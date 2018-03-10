@@ -32,7 +32,7 @@ heroku config:set LANGUAGE_SERVER=http://lang.second.ngrok.io/graphql -a floatin
 heroku addons:create mongolab:sandbox -a floating-stream-46924
 heroku addons:create heroku-redis:hobby-dev -a floating-stream-46924
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/nicholasareed/second_env_cloud/tree/master)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/secondai/env_cloud_default/tree/master)
 
 
 .  
