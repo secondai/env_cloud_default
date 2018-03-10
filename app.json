@@ -1,0 +1,42 @@
+{
+  "name": "Second Cloud Single",
+  "description": "A Second designed to run on Heroku",
+  "repository": "https://github.com/nicholasareed/second_env_cloud",
+  "keywords": ["second"],
+
+  "addons": [
+    "heroku-redis",
+    "mongolab"
+  ],
+
+  "env" : {
+    "BASE_CHAIN_URL" : {
+      "description" : "Endpoint for NodeChain",
+      "value":"https://api.getasecond.com"
+    },
+    "SECOND_SERVER" : {
+      "description" : "",
+      "value":"https://www.getasecond.com/graphql"
+    },
+    "BASICS_ZIP_URL" : {
+      "description" : "Link to zip containing nodes for startup (used once)",
+      "value":"https://github.com/secondai/bundle_cloud_smart_assistant_default"
+    },
+    "STARTUP_REACHABLE_WORDS" : {
+      "description" : "Username to register identity",
+      "value":""
+    },
+    "STELLAR_SEED" : {
+      "description" : "Seed for stellar wallet to create new identity",
+      "value":""
+    },
+    "DEFAULT_PASSPHRASE" : {
+      "description" : "Initial password for admin ActsAs user",
+      "value":"testuserpassphrase"
+    },
+    "LANGUAGE_SERVER" : {
+      "description" : "",
+      "value":"http://lang.second.ngrok.io/graphql"
+    }
+  }
+}
