@@ -14,10 +14,6 @@
       "description" : "Endpoint for NodeChain",
       "value":"https://api.getasecond.com"
     },
-    "SECOND_SERVER" : {
-      "description" : "",
-      "value":"https://www.getasecond.com/graphql"
-    },
     "BASICS_ZIP_URL" : {
       "description" : "Link to zip containing nodes for startup (used once)",
       "value":"https://github.com/secondai/bundle_cloud_smart_assistant_default"
@@ -33,6 +29,10 @@
     "DEFAULT_PASSPHRASE" : {
       "description" : "Initial password for admin ActsAs user",
       "value":"testuserpassphrase"
+    },
+    "SECOND_SERVER" : {
+      "description" : "",
+      "value":"https://www.getasecond.com/graphql"
     },
     "LANGUAGE_SERVER" : {
       "description" : "",
