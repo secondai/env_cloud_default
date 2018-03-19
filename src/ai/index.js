@@ -18,7 +18,7 @@ import _ from 'lodash'
 const parseGitHubUrl = require('parse-github-url');
 
 const JSZip = require('jszip');
-const JSZipUtils = require('jszip-utils');
+// const JSZipUtils = require('jszip-utils');
 
 const lodash = _;
 
@@ -34,8 +34,6 @@ const BASIC_NODES = {
 const {
   performance
 } = require('perf_hooks');
-
-
 
 // AI handles an input 
 // - input includes authentication 
@@ -117,6 +115,28 @@ eventEmitter.on('command',async (message, socket) => {
 
 			console.log('Fetched Nodes Possible:', app.nodesDb.length); //, nodes.length);
 			let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
+
+			// get rid of nodes that have a broken parent 
+			// - TODO: more efficient somewhere else 
+			nodesDb = nodesDb.filter(node=>{
+				// check the parents to see if they are active
+				function checkParent(n){
+
+					if(n.nodeId){
+						let parent = _.find(nodesDb,{_id: n.nodeId});
+						if(parent && parent.active){
+							return checkParent(parent);
+						}
+						return false;
+					}
+					return true;
+
+				}
+				return checkParent(node);
+			});
+
+			console.log('actual possible:', nodesDb.length);
+
 
 			let timeStart2 = (new Date());
 
@@ -412,6 +432,44 @@ eventEmitter.on('command',async (message, socket) => {
 
   		break;
 
+
+  	case 'getIpfsHashForString':
+
+  		// console.log('ipc getIpfsHashForString');
+  		// let vals = await ipfs.files.add(new Buffer(message.dataString,'utf8'));
+  		console.log('message.dataString', typeof message.dataString, message.dataString);
+
+      // console.log('Adding node to chain');
+      let ipfsHashResponse = await request({
+        // url: 'http://lang.second.ngrok.io/ipfs/gethash',
+        url: 'https://api.getasecond.com/ipfs/gethash',
+        method: 'POST',
+        body: {
+        	string: message.dataString
+        },
+        json: true
+      });
+
+      console.log('ipfsHashResponse:', ipfsHashResponse);
+
+      // return false;
+
+  		let hash = ipfsHashResponse;
+
+			// skipping history for now
+		  eventEmitter.emit(
+		    'response',
+		    {
+		      // id      : ipc.config.id,
+		      id: message.id,
+		      data: {
+		      	hash
+		      }
+		    }
+		  );
+
+  		break;
+
   	default:
   		break;
   }
@@ -485,6 +543,11 @@ class Second {
 		app.nodesDb = nodesInMemory;
     console.log('NodesDb populated!', app.nodesDb.length);
 
+    // // 
+    // let nodesFalse = await app.graphql.fetchNodesSimple({active: false});
+    // console.log('NodesDb populated2!', nodesFalse.length);
+
+
     console.log('Nodes:', nodesInMemory.length);
     let totalNodes = 0;
     if(!nodesInMemory.length && nodesInMemory.length === 0){
@@ -528,7 +591,7 @@ class Second {
       	console.error('Failed loadRemoteZip startup', err);
       	return false;
       }
-      for(let node of zipResult.nodes); //BASIC_NODES[process.env.STARTUP_BASE]){
+      for(let node of zipResult.nodes){ //; //BASIC_NODES[process.env.STARTUP_BASE]){
       	totalNodes++;
       	let savedNode = await app.graphql.newNode(node);
         await saveChildNodes(savedNode._id, node.nodes);

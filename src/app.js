@@ -27,8 +27,55 @@ console.log('PORT_ON: ',process.env.PORT_ON,' (inside docker if exists. availabl
 console.log('PUBLIC_HOST:', process.env.PUBLIC_HOST);
 console.log('MONGODB_URI (on heroku):', process.env.MONGODB_URI);
 console.log('REDIS_URL (on heroku):', process.env.REDIS_URL);
+console.log('STELLAR_NETWORK', process.env.STELLAR_NETWORK);
 app.mongoDbName = app.argv.MONGODB || process.env.MONGODB;
 global.app = app;
+
+// const IPFS = require('ipfs')
+
+// let ipfs;
+
+// const ipfsSetup = ()=>{
+//   console.log('ipfs setup in 5 seconds');
+//   setTimeout(()=>{
+//     console.log('init ipfs');
+//     try {
+//       ipfs = new IPFS({
+//         repo: 'repo/ipfs',
+//         "Addresses": {
+//           "Swarm": [],
+//           "API": false,
+//           "Gateway": false
+//         },
+//         "Discovery": {
+//           "MDNS": {
+//             "Enabled": false,
+//             "Interval": 10
+//           },
+//           "webRTCStar": {
+//             "Enabled": false
+//           }
+//         },
+//         "Bootstrap": []
+//       });
+//     }catch(err){
+//       console.error('Failed loading IPFS');
+//       throw "IPFS FAILURE"
+//     }
+
+//     ipfs.on('ready', ()=>{
+//       console.log('IPFS Ready');
+//     })
+//     ipfs.on('error', (err)=>{
+//       console.error('IPFS ERROR');
+//       console.error('--ipfs error:--', err);
+//     })
+//   },5 * 1000);
+// }
+
+// ipfsSetup();
+
+
 
 // aws setup
 aws.config.region = 'us-west-1';

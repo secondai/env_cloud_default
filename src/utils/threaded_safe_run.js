@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 import bigi from 'bigi'
 import bitcoin from 'bitcoinjs-lib'
 
+
 // const stdlib = require('@stdlib/stdlib');
 
 const {VM} = require('vm2');
@@ -35,6 +36,27 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
       // const { VM } = require('vm2');
 
+      // const IPFS = require('ipfs')
+
+      // let ipfs = new IPFS({
+      //   repo: 'repos/ipfs/' + (Math.random()).toString() + (new Date()).getTime().toString(),
+      //   "Addresses": {
+      //     "Swarm": [],
+      //     "API": false,
+      //     "Gateway": false
+      //   },
+      //   "Discovery": {
+      //     "MDNS": {
+      //       "Enabled": false,
+      //       "Interval": 10
+      //     },
+      //     "webRTCStar": {
+      //       "Enabled": false
+      //     }
+      //   },
+      //   "Bootstrap": []
+      // });
+
       const request = require('request-promise-native');
 
       const stringSimilarity = require('string-similarity');
@@ -42,8 +64,27 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       // add loadSchema() function for handling requests for schemas 
       // - also "validate schema" using type and data 
 
+      const NodeRSA = require('node-rsa');
       const crypto = require('crypto');
       var CryptoJS = require("crypto-js");
+
+      var StellarSdk = require('stellar-sdk');
+      var stellarServer;
+      console.log('STELLAR_NETWORK:', process.env.STELLAR_NETWORK);
+      switch(process.env.STELLAR_NETWORK){
+        case 'public':
+          StellarSdk.Network.usePublicNetwork();
+          stellarServer = new StellarSdk.Server('https://horizon.stellar.org');
+          break;
+        case 'test':
+        default:
+          StellarSdk.Network.useTestNetwork();
+          stellarServer = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+
+          // console.error('Missing process.env.STELLAR_NETWORK');
+          // throw "Missing process.env.STELLAR_NETWORK"
+          break;
+      }
 
       const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '2k3jfh2jkh32cn983ucr892nuv982v93'; // Must be 256 bytes (32 characters)
       const IV_LENGTH = 16; // For AES, this is always 16
@@ -188,6 +229,104 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         });
 
       }
+
+
+      const getIpfsHashForString = (str) => {
+        return new Promise(async (resolve, reject)=>{
+
+          // Runs in ThreadedVM 
+          // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+          // should validate code/schema too? 
+
+          setupIpcWatcher({
+              command: 'getIpfsHashForString', // whole thing for now
+              requestId: ob.requestId,
+              dataString: str
+          }, (r)=>{
+            resolve(r.data);
+          })
+
+        });
+      }
+
+      const publishNodeToChain = async (opts) => {
+
+        let {
+          node
+        } = opts;
+
+
+        let TMP_PRIVATE_KEY_FOR_WRITING = 'LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlDWEFJQkFBS0JnUUNjdVhvdlUrUlp5ODVLTXFMYWtZU0gxbWRWV2RwRVV0Z2NYVXlHeVU1aFZlVE83QmtWCi9reGVDMnVwY3hPd05uckJPZHN2SEkzbnJySUxndDkwL2hDU0hLenhoT0ZMUkVvckdvS3RTRUh4STcvU256emwKV3RWM2dUL0lQNUdWSEl5dnVKQngzaEN0aTBkSDU1RFpHOGlNR1oyeWNHcFY3M0RlejNoSG1lQmg2d0lEQVFBQgpBb0dBY0pDcldKalp0MEV4dm9zVit3UnZleDBjaE9vUFllbGF2U3lwelZtRENWZ25DaFA3aEpkc2hGT1JsVmhJCitOUjRZSlpNZms3MUFVV3hMYUZuRytGclJsRTJUOTZiZTR1MDZlMDJWRURuQTlFUjh1aGpENTQ5bnVkOVZjVG8KMDVZVm8vZnUvZGFKTXVsbDR5WjBSSmVuelR3UVBrSlVNN2xQaHhodXZEMTg1S2tDUVFEenQ1MUxwRTV0ZjBCTQpyZVpmR1dFNEVlUzNjL016TkJyUWwxZFc2a3IwQkU0K25HeTNCMUlaVU5tSXpkMldqK1ZHTWgwZXd3WHlJTUpzCnl0TjF6UVJWQWtFQXBKK0Fpd25HNjNlNW5IeEVUVHpybldYSDgvMUQ0UDkrRU96YUNSU2YzRE5yTlZXdW8wN2wKNXk2RU1CelJJZVpLUzF4QmJQRWhWRHNzNzNDc2VtUU5Qd0pCQU1QTkJJWTgzdldCZ25zWVN6aWovME00dlBQVwpKOUUvVHp1K0d1RXRJa0toSXV1U2FKVXpRSFl1U2xacWJsZ0VDME0yQjhjckQ1L1RTZUIxb3lYRkxIRUNRRWdvCk9ibTM0VjhZclZ6d0F5Z3Z5YjdGL0N6d0dDNnBEbUx3em1rb2h5R0gwRGdpaEZmRW4zVURxS0ZHSUV6Um1rTUoKL3d0M2JmcHpyYkNPSEt2UTZ4VUNRREN2NnZDMk5EZjR2TU5wcUhmc2RVZ0NWKzhVaGl0MTljM0oydVhmLzdQMwpEYkFJd1VqUmI0NW1XOTArZXJFaEExTG9HbXEyaHI2QTc4L05xZHBpdUtJPQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQ==';
+
+
+        let TMP_REMOTE_CHAIN_PUBLIC_KEY = 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFEQ0JpUUtCZ1FDQk5uRkMya1Z5bllDZGg0NDFOeEZxQjJUVgpLVFlaUFBaZ01mU2RxcmRDT0FGcTNnMFcyVG12U3pTMnFZNDNEVjgwdHB6ekVOaTRibk9rT1VGVmw5WGk1NTNDCisraGRucWcrcEFHYlQ5UDNDcjdyNkNOMVpOQlB4OEpYbnlXTmZ4ek5oaStyQ21hMUVwWmFvUkhiVnhUWDE3MFYKVzJxeW95Wkk4cUc5cnNxQjdRSURBUUFCCi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLQ==';
+
+        // temporary, for writing initial languages
+        let keyString = (new Buffer( TMP_PRIVATE_KEY_FOR_WRITING,'base64')).toString('utf8');
+        let key = new NodeRSA(keyString);
+        let pubKey = key.exportKey('public');
+        let chainPubKey = (new Buffer( TMP_REMOTE_CHAIN_PUBLIC_KEY,'base64')).toString('utf8');
+
+        let nodeInputStr = JSON.stringify(node);
+
+        console.log('getting ipfs hash');
+
+        let ipfsHashData = await getIpfsHashForString(nodeInputStr);
+        let ipfsHash = ipfsHashData.hash;
+
+        console.log('ipfsHash to sign:', ipfsHash);
+
+        let ref = uuidv4();
+        let version = '1';
+        let nonce = uuidv4();
+
+        // ipfsHash + sha256(pubKey) + version + nonce
+        let strToSign = [
+          ipfsHash, 
+          // SHA256(this.state.pubKey).toString(),
+          pubKey,
+          // btoa(this.state.pubKey),
+          chainPubKey, 
+          ref,
+          version,
+          nonce
+        ];
+
+        strToSign = strToSign.join('');
+        let signature = key.sign(strToSign,'hex');
+
+        // console.log('signature:', signature);
+
+        let nodeToAdd = {
+          nodeInputStr, // converted to ipfsHash 
+          pubKey,
+          ref,
+          version,
+          nonce,
+          signature
+        }
+
+        
+        // console.log('Adding node to chain');
+        let nodeAdded = await request({
+          // url: 'http://localhost:7011/nodes/add',
+          url: 'https://api.getasecond.com/nodes/add',
+          method: 'POST',
+          body: nodeToAdd,
+          json: true
+        });
+
+        console.log('Node added');
+
+        return {
+          type: 'ipfshash:0.0.1:local:3029fj',
+          data: {
+            hash: ipfsHash
+          }
+        };
+
+      }
       
       app.globalCache = app.globalCache || {};
 
@@ -295,6 +434,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // notice, using docker.for.mac.localhost !!! (temporary)
 
               console.log('createAddressForIdentity');
+              console.log('connection:', connection);
 
               // Create IPFS values (ExternalIdentityNode as JSON) 
               // - external_identity:0.0.1:local:8982f982j92 
@@ -302,19 +442,19 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // - external_identity_connect_method:0.0.1:local:382989239hsdfmn
               //   - method: 'http'
               //   - connection: http://*.second.com/ai 
-              let ExternalIdentityNode = JSON.stringify(JSON.stringify({
+              let ExternalIdentityNode = {
                 type: 'external_identity:0.0.1:local:8982f982j92',
                 data: {
-                  publicKey
+                  publicKey: '-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI+ArOUlbt1k2G2n5fj0obEn4mpCfYEx\nvSZy2c/0tv2caC0AYbxZ4vzppGVjxf+L6fythmWRB0vcwyXHy57fm7ECAwEAAQ==\n-----END PUBLIC KEY-----'
                 },
                 nodes: [{
                   type: 'external_identity_connect_method:0.0.1:local:382989239hsdfmn',
                   data: {
                     method: 'http',
-                    connection
+                    connection: 'https://infinite-brook-40362.herokuapp.com/ai'
                   }
                 }]
-              }));
+              };
 
               console.log({
                 words, 
@@ -323,84 +463,139 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                 ExternalIdentityNode
               });
 
-              // add to ipfs (todo) 
-              let ipfsHash = uuidv4();
+              // add to stellar and ipfs (nodechain) 
+              console.log('Adding to stellar and ifps (nodechain)');
 
-              let ipfsReqData = JSON.parse('{"operationName":null,"variables":{"hash":"'+ipfsHash+'","text":'+ExternalIdentityNode+'},"query":"mutation ($hash: String    $text: String) {  ipfsFileCreate(record: {hash: $hash   text: $text}) {    recordId    __typename  }}"}');
-
-              console.log('ipfsReqData:',ipfsReqData);
-
-              let ipfsResult = await request.post({
-                method: 'post',
-                url: process.env.LANGUAGE_SERVER, //'http://docker.for.mac.localhost:7011/graphql',
-                body: ipfsReqData,
-                json: true
-              })
-
-              console.log('ipfs text:', ipfsResult.data.ipfsFileCreate.recordId);
-
-              if(!ipfsResult.data.ipfsFileCreate.recordId){
-                console.error('Failed ipfs');
+              // Identity ipfs hash 
+              // - add to nodechain (pins ipfshash) 
+              let identityIpfsHash;
+              try {
+                let chainResult = await publishNodeToChain({
+                  node: ExternalIdentityNode
+                });
+                identityIpfsHash = chainResult.data.hash;
+              }catch(err){
+                console.error('Failed writing identity IpfsHash to nodechain', err);
                 return reject();
               }
 
-              // resolve({
-              //   CREATED: true,
-              //   ipfsResult
-              // })
 
-              // // Add IPFS hash to Bitcoin ledger (must be first transaction, otherwise should fail!) 
+              console.log('Adding to stellar:', identityIpfsHash, words);
 
-              // add to ipfs (todo)
+              // Add to stellar
+              var pairSource = StellarSdk.Keypair.fromSecret(process.env.STELLAR_SEED);
+              let pkTargetSeed = crypto.createHash('sha256').update(words).digest(); //returns a buffer
+              var pairTarget = StellarSdk.Keypair.fromRawEd25519Seed(pkTargetSeed);
 
-              // transform to "string[space]string[space]string[space]" format 
-              words = lodash.compact(words.split(' ')).join(' ').split('"').join('').split("'").join('');
-              // transform to wallet address 
-              var hash = bitcoin.crypto.sha256(words)
-              console.log('hash:', hash);
-              var d = bigi.fromBuffer(hash)
-              console.log('d:', d);
-              var keyPair = new bitcoin.ECPair(d)
-              var address = keyPair.getAddress()
-              console.log('Remote Second Wallet Address', address);
+              console.log('pkTarget Seed:', pairTarget.secret());
 
-              let transactionsVal = JSON.stringify([{
-                txId: uuidv4(),
-                text: ipfsHash
-              }]);
 
-              let walletReqData = JSON.parse('{"operationName":null,"variables":{"address":"'+address+'","transactions":'+transactionsVal+'},"query":"mutation ($address: String    $transactions: [WalletsWalletsTransactionsInput]) {  walletCreate(record: {address: $address   transactions: $transactions}) {    recordId    __typename  }}"}');
 
-              let walletResult = await request.post({
-                method: 'post',
-                url: process.env.LANGUAGE_SERVER, 
-                body: walletReqData,
-                json: true
-              })
+              // Update data (manageData operation) 
+              console.log('Building transaction (multisig manageData)');
 
-              console.log('wallet create result:', walletResult);
-
+              // expecting targetAccount to already exist (aka was claimed, is now being updated)
+              // - dont automatically CLAIM right now, this is just for UPDATING (targetAccount must exist)! 
+              let targetAccount;
               try {
-
-                if(!walletResult.data.walletCreate.recordId){
-                  console.error('Failed ipfs');
-                  return reject();
-                }
-
-                return resolve({
-                  type: 'boolean:..',
-                  data: true
-                }); 
-              }catch(err){
-                // might have already created wallet entry, error, but continue for now...
-                console.error('WALLET DUPLICATE!!!!');
-                return resolve({
-                  type: 'boolean:..',
-                  data: true
-                });
+                targetAccount = await funcInSandbox.universe.getStellarAccount(pairTarget.secret(), {claim: true});
+                // targetAccount = await stellarServer.loadAccount(pairTarget.publicKey())
+                console.log('Found targetAccount (from getStellarAccount):'); //, targetAccount);
+              } catch(err){
+                console.error('Failed finding existing account for username. Should have already claimed!', err);
+                return reject();
               }
 
-              // let walletReqData = JSON.parse('{"operationName":null,"variables":{"address":"'+address+'"},"query":"query ($address: String) {  walletOne(filter: {address: $address}) {    _id    address    transactions { txId   text }    createdAt    updatedAt    __typename  }}"}');
+              // Start building the transaction for manageData update
+              let transaction = new StellarSdk.TransactionBuilder(targetAccount)
+
+              .addOperation(StellarSdk.Operation.manageData({
+                name: 'ipfshash',
+                value: identityIpfsHash
+              }))
+              // .addMemo(StellarSdk.Memo.hash(b32))
+              .build();
+
+              // Sign the transaction to prove you are actually the person sending it.
+              transaction.sign(pairTarget); // targetKeys
+              transaction.sign(pairSource); // sourceKeys
+
+              // send to stellar network
+              let stellarResult = await stellarServer.submitTransaction(transaction)
+              .then(function(result) {
+                console.log('Stellar manageData Success! Results:'); //, result);
+                return result;
+              })
+              .catch(function(error) {
+                console.error('Stellar Something went wrong (failed updating data)!', error);
+                // If the result is unknown (no response body, timeout etc.) we simply resubmit
+                // already built transaction:
+                // server.submitTransaction(transaction);
+                return null;
+              });
+
+              // console.log('stellarResult', stellarResult);
+
+              if(!stellarResult){
+                console.error('Failed stellar createAddressForIdentity');
+                return reject();
+              }
+
+              console.log('stellarResult succeeded! (createAddressForIdentity)');
+
+              return resolve({
+                type: 'boolean:..',
+                data: true
+              })
+
+
+
+              // let ipfsHash = uuidv4();
+
+              // let ipfsReqData = JSON.parse('{"operationName":null,"variables":{"hash":"'+ipfsHash+'","text":'+ExternalIdentityNode+'},"query":"mutation ($hash: String    $text: String) {  ipfsFileCreate(record: {hash: $hash   text: $text}) {    recordId    __typename  }}"}');
+
+              // console.log('ipfsReqData:',ipfsReqData);
+
+              // let ipfsResult = await request.post({
+              //   method: 'post',
+              //   url: process.env.LANGUAGE_SERVER, //'http://docker.for.mac.localhost:7011/graphql',
+              //   body: ipfsReqData,
+              //   json: true
+              // })
+
+              // console.log('ipfs text:', ipfsResult.data.ipfsFileCreate.recordId);
+
+              // if(!ipfsResult.data.ipfsFileCreate.recordId){
+              //   console.error('Failed ipfs');
+              //   return reject();
+              // }
+
+              // // resolve({
+              // //   CREATED: true,
+              // //   ipfsResult
+              // // })
+
+              // // // Add IPFS hash to Bitcoin ledger (must be first transaction, otherwise should fail!) 
+
+              // // add to ipfs (todo)
+
+              // // transform to "string[space]string[space]string[space]" format 
+              // words = lodash.compact(words.split(' ')).join(' ').split('"').join('').split("'").join('');
+              // // transform to wallet address 
+              // var hash = bitcoin.crypto.sha256(words)
+              // console.log('hash:', hash);
+              // var d = bigi.fromBuffer(hash)
+              // console.log('d:', d);
+              // var keyPair = new bitcoin.ECPair(d)
+              // var address = keyPair.getAddress()
+              // console.log('Remote Second Wallet Address', address);
+
+              // let transactionsVal = JSON.stringify([{
+              //   txId: uuidv4(),
+              //   text: ipfsHash
+              // }]);
+
+              // let walletReqData = JSON.parse('{"operationName":null,"variables":{"address":"'+address+'","transactions":'+transactionsVal+'},"query":"mutation ($address: String    $transactions: [WalletsWalletsTransactionsInput]) {  walletCreate(record: {address: $address   transactions: $transactions}) {    recordId    __typename  }}"}');
 
               // let walletResult = await request.post({
               //   method: 'post',
@@ -409,30 +604,238 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               //   json: true
               // })
 
-              // // Now get ipfs info 
-              // // - todo, using language server still
-              // let hash = walletResult.data.walletOne.transactions[0].text; // first result in transaction list 
+              // console.log('wallet create result:', walletResult);
 
+              // try {
 
+              //   if(!walletResult.data.walletCreate.recordId){
+              //     console.error('Failed ipfs');
+              //     return reject();
+              //   }
 
-
-
-              // // Now get ipfs info 
-              // // - todo, using language server still
-              // console.log('ipfs text:', ipfsResult.data.ipfsFileOne.text, typeof ipfsResult.data.ipfsFileOne.text);
-              // // window.xx = ipfsResult.data.ipfsFileOne.text;
-
-              // let node;
-              // if(lodash.isString(ipfsResult.data.ipfsFileOne.text)){
-              //   node = JSON.parse(ipfsResult.data.ipfsFileOne.text);
-              // } else {
-              //   node = ipfsResult.data.ipfsFileOne.text;
+              //   return resolve({
+              //     type: 'boolean:..',
+              //     data: true
+              //   }); 
+              // }catch(err){
+              //   // might have already created wallet entry, error, but continue for now...
+              //   console.error('WALLET DUPLICATE!!!!');
+              //   return resolve({
+              //     type: 'boolean:..',
+              //     data: true
+              //   });
               // }
 
-              // resolve(node);
+              // // let walletReqData = JSON.parse('{"operationName":null,"variables":{"address":"'+address+'"},"query":"query ($address: String) {  walletOne(filter: {address: $address}) {    _id    address    transactions { txId   text }    createdAt    updatedAt    __typename  }}"}');
+
+              // // let walletResult = await request.post({
+              // //   method: 'post',
+              // //   url: process.env.LANGUAGE_SERVER, 
+              // //   body: walletReqData,
+              // //   json: true
+              // // })
+
+              // // // Now get ipfs info 
+              // // // - todo, using language server still
+              // // let hash = walletResult.data.walletOne.transactions[0].text; // first result in transaction list 
+
+
+
+
+
+              // // // Now get ipfs info 
+              // // // - todo, using language server still
+              // // console.log('ipfs text:', ipfsResult.data.ipfsFileOne.text, typeof ipfsResult.data.ipfsFileOne.text);
+              // // // window.xx = ipfsResult.data.ipfsFileOne.text;
+
+              // // let node;
+              // // if(lodash.isString(ipfsResult.data.ipfsFileOne.text)){
+              // //   node = JSON.parse(ipfsResult.data.ipfsFileOne.text);
+              // // } else {
+              // //   node = ipfsResult.data.ipfsFileOne.text;
+              // // }
+
+              // // resolve(node);
 
 
             })
+          },
+
+          getStellarAccount: async (targetSeed, opts)=>{
+
+            // Returns an account for an identity/username that we control 
+            // - if necessary: claims account (creates), sets up multi-sig
+
+            console.log('getStellarAccount:', targetSeed);
+
+            opts = opts || {
+              claim: true
+            }
+
+            var pairSource = StellarSdk.Keypair.fromSecret(process.env.STELLAR_SEED);
+            var pairTarget = StellarSdk.Keypair.fromSecret(targetSeed);
+
+            console.log('pkSource Seed:', pairSource.secret());
+            console.log('pkTarget Seed:', pairTarget.secret());
+
+
+            // Load Target account
+            let targetAccount = await stellarServer
+            .loadAccount(pairTarget.publicKey())
+            .catch(()=>{
+              return false;
+            })
+
+            if(targetAccount){
+              // target account exists
+              // - should already be owned by me 
+
+              let sourceIsSigner = lodash.find(targetAccount.signers,{public_key: pairSource.publicKey()});
+              if(sourceIsSigner){
+                // already claimed, but I'm the owner 
+                // - multi-sig is already setup 
+
+                // all good with this targetAccount! 
+                console.log('targetAccount all set with multisig for updating!');
+                return targetAccount;
+
+              } else {
+                // exists, and I'm not the owner 
+                // - could also check to see if it is unprotected? (unlikely, maybe on testnet only) 
+                // - could check the "data.willSellFor" field to see if it is for sale? 
+                console.error('Username exists and you are not the owner'); // TODO: return who the owner is 
+                return false;
+
+              }
+
+
+            }
+
+
+            // identity Account doesn't exist 
+            // - register account (and setup multisig) if I have a balance in my sourceAccount 
+
+
+            // Load source account
+            let sourceAccount;
+            try {
+              sourceAccount = await stellarServer.loadAccount(pairSource.publicKey())
+            }catch(err){
+              // problem with account 
+              return false;
+            }
+
+            // get source balance 
+            if(sourceAccount){
+              let balance = 0;
+              balance = sourceAccount.balances[0].balance;
+
+              console.log('Balance:', balance);
+
+              balance = parseInt(balance,10);
+              if(balance < 10){
+                console.error('Insufficient balance in account for creation:', sourceAccount.balances[0].balance);
+                return false;
+              }
+            }
+
+
+            // Claim account
+            if(!opts.claim){
+              console.error('NOT claiming even though targetAccount doesnt exist!');
+              return false;
+            }
+
+            // Start building the transaction.
+            let transaction = new StellarSdk.TransactionBuilder(sourceAccount)
+            .addOperation(StellarSdk.Operation.createAccount({
+              destination: pairTarget.publicKey(),
+              startingBalance: "3.0"
+              // source: pair
+            }))
+            .build();
+
+            // Sign the transaction to prove you are actually the person sending it.
+            transaction.sign(pairSource); // sourceKeys
+
+            // send to stellar network
+            let stellarResult = await stellarServer.submitTransaction(transaction)
+            .then(function(result) {
+              console.log('Stellar Success createAccount'); // , result); 
+              return result;
+            })
+            .catch(function(error) {
+              console.error('Stellar Something went wrong!', error);
+              // If the result is unknown (no response body, timeout etc.) we simply resubmit
+              // already built transaction:
+              // server.submitTransaction(transaction);
+              return null;
+            });
+
+            // console.log('stellarResult', stellarResult);
+            if(!stellarResult){
+              console.error('Failed creating account');
+              return false;
+            }
+
+            console.log('Created account, starting multisig (reloading account)');
+
+            // reload the account 
+            targetAccount = await stellarServer.loadAccount(pairTarget.publicKey())
+
+            // Add multisig 
+            console.log('adding multisig after creating username'); //, targetAccount);
+
+            // set multi-sig on this account 
+            // - will fail if I am unable to claim 
+
+            // Start building the transaction.
+            let transaction2 = new StellarSdk.TransactionBuilder(targetAccount)
+            .addOperation(StellarSdk.Operation.setOptions({
+              signer: {
+                ed25519PublicKey: pairSource.publicKey(),
+                weight: 1
+              }
+            }))
+            .addOperation(StellarSdk.Operation.setOptions({
+              masterWeight: 1, // set master key weight (should really be nothing, and controlled by this other key?) 
+              lowThreshold: 2, // trustlines
+              medThreshold: 2, // manageData
+              highThreshold: 2  // setOptions (multi-sig)
+            }))
+            .build();
+
+            // Sign the transaction to prove you are actually the person sending it.
+            transaction2.sign(pairTarget); // sourceKeys
+            // transaction2.sign(pairSource); // sourceKeys
+
+            // send to stellar network
+            let stellarResult2 = await stellarServer.submitTransaction(transaction2)
+            .then(function(result) {
+              console.log('Stellar MultiSig Setup Success!'); // Results:', result);
+              return result
+            })
+            .catch(function(error) {
+              console.error('Stellar Something went wrong (failed multisig)!', error);
+              // If the result is unknown (no response body, timeout etc.) we simply resubmit
+              // already built transaction:
+              // server.submitTransaction(transaction);
+              return null;
+            });
+
+            // console.log('Multisig result:', stellarResult2);
+
+            if(!stellarResult2){
+              console.error('Failed multisig setup');
+              return false;
+            }
+
+            // return final targetAccount (with signers, etc.) 
+            console.log('Returning targetAccount after creating and adding multi-sig');
+            targetAccount = await stellarServer.loadAccount(pairTarget.publicKey())
+
+            return targetAccount;
+
           },
 
 
@@ -1036,10 +1439,11 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           searchMemory: (opts) => {
             return new Promise(async (resolve, reject)=>{
               // resolve('universe result! ' + ob.context.tenant.dbName);
+              console.log('searchMemory1');
               opts = opts || {};
               opts.filter = opts.filter || {};
               opts.filter.sqlFilter = opts.filter.sqlFilter || {};
-
+              // console.log('FetchNodes:', opts.filter.sqlFilter);
               let nodes;
               try{
                 nodes = await fetchNodes(opts.filter.sqlFilter);
@@ -1053,6 +1457,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // if(nodes && nodes.length){
               //   console.log('Node:', nodes[0]);
               // }
+
+              console.log('internal searchMemory result length:', nodes.length);
 
               // run "filterNode" after all the results are found
               if(typeof(opts.filter.filterNodes) == 'function'){

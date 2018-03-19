@@ -65,7 +65,7 @@ NodeTC.addRelation(
         // }
       })
     },
-    projection: { _id: 1 }, // point fields in source object, which should be fetched from DB
+    projection: { _id: 1, active: 1, nodeId: 1 }, // point fields in source object, which should be fetched from DB
   }
 );
 
@@ -84,7 +84,7 @@ NodeTC.addRelation(
         }
       })
     },
-    projection: { _id: 1 }, // point fields in source object, which should be fetched from DB
+    projection: { _id: 1, active: 1, nodeId: 1 }, // point fields in source object, which should be fetched from DB
   }
 );
 
@@ -270,7 +270,7 @@ const fetchNodesSimple = (filterOpts) => {
 
   return new Promise(async (resolve, reject) => {
 
-    // by default, forces active:false 
+    // by default, forces active:true 
     filterOpts = Object.assign({},filterOpts,{
       active: true
     });

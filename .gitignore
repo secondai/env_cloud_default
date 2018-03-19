@@ -65,7 +65,12 @@ typings/
 
 # dotenv environment variables file
 .env
+.env.development
 
+registered_usernames.json
+registered_usernames_live.json
+
+repo
 
 
 

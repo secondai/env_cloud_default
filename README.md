@@ -35,9 +35,17 @@ heroku addons:create heroku-redis:hobby-dev -a floating-stream-46924
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/secondai/env_cloud_default/tree/master)
 
 
-.  
-.  
-.  
+## Usernames/Identities 
+
+```
+npm run usernames
+```
+
+
+
+
+
+# OLD --
 
 
 
