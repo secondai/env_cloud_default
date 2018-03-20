@@ -422,7 +422,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           },
 
           // converts words to an address, posts address (temporary, should post on-chain and use ipfs) 
-          createAddressForIdentity: (words, publicKey, connection)=>{
+          createAddressForIdentity: (username, publicKey, connection)=>{
             return new Promise(async (resolve, reject)=>{
               // fetches 1st bitcoin transaction for wallet address 
               // - uses decoded first transaction as an IPFS link 
@@ -445,23 +445,30 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               let ExternalIdentityNode = {
                 type: 'external_identity:0.0.1:local:8982f982j92',
                 data: {
-                  publicKey: '-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI+ArOUlbt1k2G2n5fj0obEn4mpCfYEx\nvSZy2c/0tv2caC0AYbxZ4vzppGVjxf+L6fythmWRB0vcwyXHy57fm7ECAwEAAQ==\n-----END PUBLIC KEY-----'
+                  publicKey, //: '-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI+ArOUlbt1k2G2n5fj0obEn4mpCfYEx\nvSZy2c/0tv2caC0AYbxZ4vzppGVjxf+L6fythmWRB0vcwyXHy57fm7ECAwEAAQ==\n-----END PUBLIC KEY-----'
                 },
                 nodes: [{
                   type: 'external_identity_connect_method:0.0.1:local:382989239hsdfmn',
                   data: {
                     method: 'http',
-                    connection: 'https://infinite-brook-40362.herokuapp.com/ai'
+                    connection, //: 'https://infinite-brook-40362.herokuapp.com/ai'
                   }
                 }]
               };
 
               console.log({
-                words, 
+                username, 
                 publicKey, 
                 connection,
                 ExternalIdentityNode
               });
+              
+              let subname = ''; // empty is for root 
+              let usernameSplit = username.split('@');
+              if(usernameSplit.length > 1){
+                subname = usernameSplit[0];
+                username = usernameSplit[1];
+              }
 
               // add to stellar and ipfs (nodechain) 
               console.log('Adding to stellar and ifps (nodechain)');
@@ -480,11 +487,11 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               }
 
 
-              console.log('Adding to stellar:', identityIpfsHash, words);
+              console.log('Adding to stellar:', identityIpfsHash, username);
 
               // Add to stellar
               var pairSource = StellarSdk.Keypair.fromSecret(process.env.STELLAR_SEED);
-              let pkTargetSeed = crypto.createHash('sha256').update(words).digest(); //returns a buffer
+              let pkTargetSeed = crypto.createHash('sha256').update(username).digest(); //returns a buffer
               var pairTarget = StellarSdk.Keypair.fromRawEd25519Seed(pkTargetSeed);
 
               console.log('pkTarget Seed:', pairTarget.secret());
@@ -510,7 +517,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               let transaction = new StellarSdk.TransactionBuilder(targetAccount)
 
               .addOperation(StellarSdk.Operation.manageData({
-                name: 'ipfshash',
+                name: subname + '|second',
                 value: identityIpfsHash
               }))
               // .addMemo(StellarSdk.Memo.hash(b32))
