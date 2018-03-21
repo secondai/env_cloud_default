@@ -551,11 +551,11 @@ class Second {
     console.log('Nodes:', nodesInMemory.length);
     let totalNodes = 0;
     if(!nodesInMemory.length && nodesInMemory.length === 0){
-    	console.log('Missing Nodes in Memory!! Loading default nodes:', BASIC_NODES[process.env.STARTUP_BASE].length);
+    	console.log('Missing Nodes in Memory!! Loading default nodes:'); //, BASIC_NODES[process.env.STARTUP_BASE].length);
 
     	// todo: should have a trigger for loading a new memory, maybe dont do it automatically? 
 
-    	if(!BASIC_NODES[process.env.BASICS_ZIP_URL]){
+    	if(!process.env.BASICS_ZIP_URL){
     		console.error('Missing BASICS_ZIP_URL environment variable');
     		return false;
     	}

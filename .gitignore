@@ -66,11 +66,14 @@ typings/
 # dotenv environment variables file
 .env
 .env.development
+.env.ignore
 
 registered_usernames.json
 registered_usernames_live.json
 
 repo
+
+node_modules_old
 
 
 

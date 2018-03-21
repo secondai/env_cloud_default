@@ -26,6 +26,10 @@
       "description" : "Seed for stellar wallet to create new identity",
       "value":""
     },
+    "STELLAR_NETWORK" : {
+      "description" : "public or test",
+      "value":""
+    },
     "DEFAULT_PASSPHRASE" : {
       "description" : "Initial password for admin ActsAs user",
       "value":"testuserpassphrase"
