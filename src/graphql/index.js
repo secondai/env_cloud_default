@@ -9,12 +9,12 @@ mongoose.Promise = global.Promise;
 
 import composeWithMongoose from 'graphql-compose-mongoose';
 import composeWithDataLoader from 'graphql-compose-dataloader';
-import { GQC } from 'graphql-compose';
+import { schemaComposer } from 'graphql-compose';
 
 const dbConnectionString = process.env.MONGODB_URI || ((app.argv.MONGODB_CONNECTION ||  process.env.MONGODB_CONNECTION) + app.mongoDbName);
 console.log('dbConnectionString:', dbConnectionString);
 mongoose.connect(dbConnectionString, {
-  useMongoClient: true,
+  // useMongoClient: true,
   autoReconnect: true
 }); // points to a database! 
 
@@ -118,7 +118,7 @@ console.log('composeWithMongoose22');
 
 // STEP 3: CREATE CRAZY GraphQL SCHEMA WITH ALL CRUD Node OPERATIONS
 // via graphql-compose it will be much much easier, with less typing
-GQC.rootQuery().addFields({
+schemaComposer.rootQuery().addFields({
   nodeById: NodeTC.getResolver('findById'),
   nodeByIds: NodeTC.getResolver('findByIds'),
   nodeOne: NodeTC.getResolver('findOne'),
@@ -136,7 +136,7 @@ GQC.rootQuery().addFields({
   historyPagination: HistoryTC.getResolver('pagination'),
 });
 
-GQC.rootMutation().addFields({
+schemaComposer.rootMutation().addFields({
   nodeCreate: NodeTC.getResolver('createOne'),
   nodeUpdateById: NodeTC.getResolver('updateById'),
   nodeUpdateOne: NodeTC.getResolver('updateOne'),
@@ -154,7 +154,7 @@ GQC.rootMutation().addFields({
   historyRemoveMany: HistoryTC.getResolver('removeMany'),
 });
 
-const schema = GQC.buildSchema();
+const schema = schemaComposer.buildSchema();
 
 
 
