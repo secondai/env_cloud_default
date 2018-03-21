@@ -46,7 +46,12 @@ const NodeSchema = new mongoose.Schema({
   }
 });
 const NodeModel = mongoose.model('Nodes', NodeSchema);
+
+console.log('composeWithMongoose1');
+
 const NodeTC = composeWithMongoose(NodeModel, {}); // composeWithDataLoader(, {cacheExpiration: 700});
+
+console.log('composeWithMongoose2');
 
 // Relationships
 NodeTC.addRelation(
@@ -105,7 +110,10 @@ const HistorySchema = new mongoose.Schema({
   }
 });
 const HistoryModel = mongoose.model('Historys', HistorySchema);
+
+console.log('composeWithMongoose11');
 const HistoryTC = composeWithMongoose(HistoryModel, {});
+console.log('composeWithMongoose22');
 
 
 // STEP 3: CREATE CRAZY GraphQL SCHEMA WITH ALL CRUD Node OPERATIONS
