@@ -10,9 +10,16 @@
   ],
 
   "env" : {
+    "HEROKU_APP_NAME" : {
+      "required": true
+    },
     "BASE_CHAIN_URL" : {
       "description" : "Endpoint for NodeChain",
       "value":"https://api.getasecond.com"
+    },
+    "BASE_CHAIN_IDENTITY" : {
+      "description" : "Identity for looking up NodeChain",
+      "value":"dev@second"
     },
     "BASICS_ZIP_URL" : {
       "description" : "Link to zip containing nodes for startup (used once)",
