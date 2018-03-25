@@ -253,7 +253,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       const publishNodeToChain = async (opts) => {
 
         let {
-          node
+          node,
+          chain // identity for chain, to lookup where to publish to 
         } = opts;
 
 
@@ -663,6 +664,111 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // // }
 
               // // resolve(node);
+
+
+            })
+          },
+
+          // converts words to an address, posts address (temporary, should post on-chain and use ipfs) 
+          manageData: (network, username, field, nodeValue)=>{
+            return new Promise(async (resolve, reject)=>{
+
+              // writing a node to identity 
+
+              console.log('manageData', network, username, field);
+
+              let subname = ''; // empty is for root 
+              let usernameSplit = username.split('@');
+              if(usernameSplit.length > 1){
+                subname = usernameSplit[0];
+                username = usernameSplit[1];
+              }
+
+              // add to stellar and ipfs (nodechain) 
+              console.log('manageData for Identity on stellar and ifps (nodechain)');
+
+              // ipfs hash
+              // - add to nodechain (pins ipfshash) 
+              let nodeIpfsHash;
+              try {
+                let chainResult = await publishNodeToChain({
+                  chain: 'dev@second', // TODO: should publish to my "personal" nodechain, that nobody can access, but that seeds my ipfs hashes 
+                  node: nodeValue
+                });
+                nodeIpfsHash = chainResult.data.hash;
+              }catch(err){
+                console.error('Failed writing identity IpfsHash to nodechain', err);
+                return reject();
+              }
+
+
+              console.log('Adding to stellar:', nodeIpfsHash, username);
+
+              // Add to stellar
+              var pairSource = StellarSdk.Keypair.fromSecret(process.env.STELLAR_SEED);
+              let pkTargetSeed = crypto.createHash('sha256').update(username).digest(); //returns a buffer
+              var pairTarget = StellarSdk.Keypair.fromRawEd25519Seed(pkTargetSeed);
+
+              console.log('pkTarget Seed:', pairTarget.secret());
+
+
+
+              // Update data (manageData operation) 
+              console.log('Building transaction (multisig manageData)');
+
+              // expecting targetAccount to already exist (aka was claimed, is now being updated)
+              // - dont automatically CLAIM right now, this is just for UPDATING (targetAccount must exist)! 
+              let targetAccount;
+              try {
+                targetAccount = await funcInSandbox.universe.getStellarAccount(pairTarget.secret(), {claim: false});
+                // targetAccount = await stellarServer.loadAccount(pairTarget.publicKey())
+                console.log('Found targetAccount (from getStellarAccount):'); //, targetAccount);
+              } catch(err){
+                console.error('Failed finding existing account for username. Should have already claimed!', err);
+                return reject();
+              }
+
+              // Start building the transaction for manageData update
+              let transaction = new StellarSdk.TransactionBuilder(targetAccount)
+
+              .addOperation(StellarSdk.Operation.manageData({
+                name: subname + '|' + field,
+                value: nodeIpfsHash
+              }))
+              // .addMemo(StellarSdk.Memo.hash(b32))
+              .build();
+
+              // Sign the transaction to prove you are actually the person sending it.
+              transaction.sign(pairTarget); // targetKeys
+              transaction.sign(pairSource); // sourceKeys
+
+              // send to stellar network
+              let stellarResult = await stellarServer.submitTransaction(transaction)
+              .then(function(result) {
+                console.log('Stellar manageData Success! Results:'); //, result);
+                return result;
+              })
+              .catch(function(error) {
+                console.error('Stellar Something went wrong (failed updating data)!', error);
+                // If the result is unknown (no response body, timeout etc.) we simply resubmit
+                // already built transaction:
+                // server.submitTransaction(transaction);
+                return null;
+              });
+
+              // console.log('stellarResult', stellarResult);
+
+              if(!stellarResult){
+                console.error('Failed stellar manageData');
+                return reject();
+              }
+
+              console.log('stellarResult succeeded! (manageData)');
+
+              return resolve({
+                type: 'boolean:..',
+                data: true
+              })
 
 
             })
