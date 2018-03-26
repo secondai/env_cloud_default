@@ -11,12 +11,8 @@
 
   "env" : {
     "HEROKU_APP_NAME" : {
-      "description":"Must match the subdomain of the app, aka xyz of xyz.herokuapp.com",
+      "description":"Must match the subdomain of the app, aka xyz of xyz.herokuapp.com (SAME AS ABOVE!)",
       "required": true
-    },
-    "BASE_CHAIN_IDENTITY" : {
-      "description" : "Identity for looking up NodeChain (not used)",
-      "value":"dev@second"
     },
     "BASICS_ZIP_URL" : {
       "description" : "Link to zip containing nodes for startup (used once)",
@@ -36,7 +32,7 @@
     },
     "DEFAULT_PASSPHRASE" : {
       "description" : "Initial password for admin ActsAs user",
-      "value":"testuserpassphrase"
+      "value":""
     }
   }
 }
