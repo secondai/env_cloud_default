@@ -22,7 +22,7 @@ const app = express();
 app.argv = argv;
 console.log('CLI:', app.argv.MONGODB);
 console.log('Process:', process.env.MONGODB);
-console.log('LanguageServer:', process.env.LANGUAGE_SERVER);
+// console.log('LanguageServer:', process.env.LANGUAGE_SERVER);
 console.log('PORT_ON: ',process.env.PORT_ON,' (inside docker if exists. available at http://localhost:PORT_ON):');
 console.log('PUBLIC_HOST:', process.env.PUBLIC_HOST);
 console.log('MONGODB_URI (on heroku):', process.env.MONGODB_URI);

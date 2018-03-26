@@ -372,6 +372,10 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
           getIdentityForAddress: (address)=>{
             return new Promise(async (resolve, reject)=>{
+
+
+              console.error('--Deprecated--');
+
               // fetches 1st bitcoin transaction for wallet address 
               // - uses decoded first transaction as an IPFS link 
               // - link: https://github.com/ipfs/js-ipfs/tree/master/examples/ipfs-101
