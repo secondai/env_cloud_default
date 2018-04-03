@@ -93,7 +93,7 @@ eventEmitter.on('command',async (message, socket) => {
 
   // message = JSON.parse(message); 
 
-  console.log('incoming ipc command!', typeof message, message.command);
+  console.log('IPC Command:', message.command);
 
   // await app.graphql.newHistory({
   // 	type: 'incoming_ipc_command:' + message.command, // should be a Node type (for easier display)  
@@ -113,7 +113,6 @@ eventEmitter.on('command',async (message, socket) => {
 
     	let timeStart1 = (new Date());
 
-			console.log('Fetched Nodes Possible:', app.nodesDb.length); //, nodes.length);
 			let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
 
 			// get rid of nodes that have a broken parent 
@@ -135,8 +134,7 @@ eventEmitter.on('command',async (message, socket) => {
 				return checkParent(node);
 			});
 
-			console.log('actual possible:', nodesDb.length);
-
+			// console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length); //, nodes.length);
 
 			let timeStart2 = (new Date());
 
@@ -181,10 +179,13 @@ eventEmitter.on('command',async (message, socket) => {
 
 		  let nodes = await fetchNodesQuick(message.filter, 1);
 
-			console.log('Fetched Nodes Quick2', nodes.length); //, message.filter); //, nodes.length);
+			// console.log('Fetched Nodes Quick2', nodes.length); //, message.filter); //, nodes.length);
 
     	let timeEnd1 = (new Date());
-		  console.log('FetchNodes Time1:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); 
+		  // console.log('FetchNodes Time1:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); 
+
+			console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length, 'Time:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); //, nodes.length);
+
 
 		  eventEmitter.emit(
 		    'response',
@@ -634,7 +635,7 @@ class Second {
     // wait for memory to be ready!
     return new Promise((resolve, reject)=>{
 
-    	console.log('Waiting for secondReady for runRequest');
+    	// console.log('Waiting for secondReady for runRequest');
 
 			let thisRequestId = uuidv4();
 			requestsCache[thisRequestId] = {
@@ -648,7 +649,7 @@ class Second {
 			}, 30 * 1000);
 
       secondReady.then(async ()=>{
-        console.log('Running web request:', InputNode); //, this.state.nodesDb);
+        console.log('Running web request:', InputNode.type); //, this.state.nodesDb);
 
         // fetch and run code, pass in 
         let nodes = await app.graphql.fetchNodes({
@@ -710,7 +711,7 @@ class Second {
 	      // - potentially the brain could install software that watches this and prevents more attacks, but doesn't need to be built-in 
 
 	      let safedData;
-	      console.log('thisRequestId1:', thisRequestId);
+	      // console.log('thisRequestId1:', thisRequestId);
 	      try {
 		      safedData = await runSafe({ 
 		      	code: CodeNode.data.code, 

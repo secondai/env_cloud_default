@@ -257,7 +257,7 @@ const fetchNodes = (filterOpts) => {
 
     if(result.data){
       // console.log('RESULT from fetchNodes is subject:', JSON.stringify(result,null,2));
-      console.log('Filter for fetchNodes:', filterOpts, result.data.nodeMany.length);
+      // console.log('Filter for fetchNodes:', filterOpts, result.data.nodeMany.length);
       resolve(result.data.nodeMany);
     } else {
       console.error('Failed fetchNodes in node.query!', JSON.stringify(result,null,2));
@@ -310,7 +310,7 @@ const fetchNodesSimple = (filterOpts) => {
 
     if(result.data){
       // console.log('RESULT from fetchNodes is subject:', JSON.stringify(result,null,2));
-      console.log('Filter for fetchNodesSimple:', filterOpts, result.data.nodeMany.length);
+      // console.log('Filter for fetchNodesSimple:', filterOpts, result.data.nodeMany.length);
       resolve(result.data.nodeMany);
     } else {
       console.error('Failed fetchNodesSimple in node.query!', JSON.stringify(result,null,2));
@@ -391,7 +391,7 @@ const findNode = (filterOpts) => {
 
     if(result.data){
       // console.log('RESULT from fetchNodes is subject:', JSON.stringify(result,null,2));
-      console.log('Filter for findNode:', filterOpts, result.data.nodeOne.length);
+      // console.log('Filter for findNode:', filterOpts, result.data.nodeOne.length);
       resolve(result.data.nodeOne);
     } else {
       console.error('Failed findNode in node.query!', JSON.stringify(result,null,2));

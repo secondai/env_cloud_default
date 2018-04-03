@@ -73,7 +73,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
       var StellarSdk = require('stellar-sdk');
       var stellarServer;
-      console.log('STELLAR_NETWORK:', process.env.STELLAR_NETWORK);
+      // console.log('STELLAR_NETWORK:', process.env.STELLAR_NETWORK);
       switch(process.env.STELLAR_NETWORK){
         case 'public':
           StellarSdk.Network.usePublicNetwork();
@@ -136,7 +136,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
                 let fetchnodesEnd = (new Date()).getTime();
                 let fetchnodesTime = (fetchnodesEnd - fetchnodesStart);
-                console.log('fetchnodesTime:', fetchnodesTime);
+                // console.log('fetchnodesTime:', fetchnodesTime);
 
 
                 // resolve('RESULT FROM fetchNodes, after ipc command and response2!');
@@ -1559,7 +1559,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           searchMemory: (opts) => {
             return new Promise(async (resolve, reject)=>{
               // resolve('universe result! ' + ob.context.tenant.dbName);
-              console.log('searchMemory1');
+              // console.log('searchMemory1');
               opts = opts || {};
               opts.filter = opts.filter || {};
               opts.filter.sqlFilter = opts.filter.sqlFilter || {};
@@ -1578,7 +1578,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               //   console.log('Node:', nodes[0]);
               // }
 
-              console.log('internal searchMemory result length:', nodes.length);
+              // console.log('internal searchMemory result length:', nodes.length);
 
               // run "filterNode" after all the results are found
               if(typeof(opts.filter.filterNodes) == 'function'){
