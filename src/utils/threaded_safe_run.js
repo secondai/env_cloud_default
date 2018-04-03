@@ -5,6 +5,7 @@ import bitcoin from 'bitcoinjs-lib'
 
 
 // const stdlib = require('@stdlib/stdlib');
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 const {VM} = require('vm2');
 
@@ -58,6 +59,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       // });
 
       const request = require('request-promise-native');
+
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
       const stringSimilarity = require('string-similarity');
 
