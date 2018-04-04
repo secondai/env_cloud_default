@@ -56,15 +56,17 @@ NodeTC.addRelation(
     resolver: () => NodeTC.getResolver('findOne'),
     skip: source => !source.nodeId,
     prepareArgs: {
-      filter: (source) => ({
-        active: true,
-        nodeId: source.nodeId ? source.nodeId : '507f1f77bcf86cd799439011' // how to skip, i'm usng a shitty random objectId ??
-        // _operators: {
-        //   nodeId: {
-        //     in: [source.nodeId] // easy way of providing non-ObjecId here 
-        //   }
-        // }
-      })
+      filter: (source) => {
+        return {
+          active: true,
+          _id: source.nodeId ? source.nodeId : '507f1f77bcf86cd799439011' // how to skip, i'm usng a shitty random objectId ??
+          // _operators: {
+          //   nodeId: {
+          //     in: [source.nodeId] // easy way of providing non-ObjecId here 
+          //   }
+          // }
+        }
+      }
     },
     projection: { _id: 1, active: 1, nodeId: 1 }, // point fields in source object, which should be fetched from DB
   }
@@ -237,6 +239,36 @@ const fetchNodes = (filterOpts) => {
               data
               createdAt
               updatedAt
+            }
+            parent {
+              _id
+              type
+              data
+              createdAt
+              updatedAt
+              nodeId
+              nodes {
+                _id
+                type
+                data
+                createdAt
+                updatedAt
+              }
+              parent {
+                _id
+                type
+                data
+                createdAt
+                updatedAt
+                nodeId
+                nodes {
+                  _id
+                  type
+                  data
+                  createdAt
+                  updatedAt
+                }
+              }
             }
           }
         }

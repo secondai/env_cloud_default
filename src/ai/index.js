@@ -652,6 +652,10 @@ class Second {
         console.log('Running web request:', InputNode.type); //, this.state.nodesDb);
 
         // fetch and run code, pass in 
+        // - using a specific "app_base" that is at the root 
+        //   - defined by appId: "a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0" 
+        // - platform_nodes.data.platform = 'cloud' 
+
         let nodes = await app.graphql.fetchNodes({
           type: 'incoming_from_universe:0.0.1:local:298fj293'
         });
@@ -662,13 +666,51 @@ class Second {
           return;
         }
 
-        let nodeId = nodes[0]._id;
-        let CodeNode = _.find(nodes[0].nodes,{type: 'code:0.0.1:local:32498h32f2'});
+        // find correct node for appId
+        // console.log('NODES matching incoming_from_universe:', nodes.length);
+        let foundIncomingNode = nodes.find(node=>{
+        	let node2 = JSON.parse(JSON.stringify(node));
+        	delete node2.data;
+        	node2.nodes = (node2.nodes || []).map(n=>{
+        		delete n.data;
+        		return n;
+        	});
+        	// console.log('NODE2:', node2.parent ? node2.parent.type:null); //, JSON.stringify(node2,null,2));
+        	try {
+	        	let parent = node.parent;
+	        	if(parent.type.split(':')[0] != 'platform_nodes' || parent.data.platform != 'cloud'){
+	        		return false;
+	        	}
+	        	let appbaseParent = parent.parent;
+	        	if(appbaseParent.type.split(':')[0] == 'app_base' && 
+	        		appbaseParent.data.appId == (process.env.DEFAULT_LAUNCH_APPID || 'a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0') &&
+	        		appbaseParent.data.release == 'production'
+	        		){
+	        		console.log('FOUND!');
+	        		return true;
+	        	}
+	        }catch(err){}
+        	return false;
+        });
+        
+        if(!foundIncomingNode){
+        	console.error('Missing foundIncomingNode');
+        	return false;
+        }
+
+        // console.log('incoming_from_universe:0.0.1:local:298fj293 Node:', foundIncomingNode ? true:false, foundIncomingNode.parent.type, foundIncomingNode.parent.data);
+
+        // let foundIncomingNode = nodes[0];
+        let nodeId = foundIncomingNode._id;
+
+        let CodeNode = _.find(foundIncomingNode.nodes,{type: 'code:0.0.1:local:32498h32f2'});
 
         if(!CodeNode){
-          console.error('Missing code:0.0.1:local:32498h32f2 to handle incoming_browser_request');
+          console.error('Missing code:0.0.1:local:32498h32f2 in app a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0 to handle incoming_browser_request');
           return;
         }
+
+        console.log('Got CodeNode', CodeNode._id, CodeNode.data.key);
 
         let UniverseInputNode = {};
 
