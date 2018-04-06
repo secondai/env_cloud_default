@@ -391,7 +391,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
 
           isParentOf: (parentId, node1)=>{
-            console.log('isParentOf', parentId);
+            // console.log('isParentOf', parentId);
             function getParentNodeIds(node){
               let nodes = [node._id];
               if(node.parent){
@@ -1169,7 +1169,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             opts = opts || {};
             return new Promise(async (resolve, reject)=>{
 
-              console.log('--Load capability'); //, platformClosest._id, funcInSandbox.universe.isParentOf ? true:false);
+              // console.log('--Load capability'); //, platformClosest._id, funcInSandbox.universe.isParentOf ? true:false);
 
               // Returns the Node for the capability specified
               let capabilityNodes = await funcInSandbox.universe.searchMemory({
@@ -1187,14 +1187,14 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                       //   return tmpNode.data.method == 'read';
                       // })
 
-                      try {
-                        console.log('platformClosest._id', universe.platformClosest._id);
-                      }catch(err){
-                        console.error('NO PLATFORMClOSEST');
-                      }
+                      // try {
+                      //   console.log('platformClosest._id', platformClosest._id);
+                      // }catch(err){
+                      //   console.error('NO PLATFORMClOSEST');
+                      // }
                       tmpNodes = lodash.filter(tmpNodes, tmpNode=>{
 
-                        if(universe.isParentOf(platformClosest._id, tmpNode)){
+                        if(funcInSandbox.universe.isParentOf(platformClosest._id, tmpNode)){
                           // console.log('FOUND IT UNDER SAME APP!!!!!', tmpNode._id);
                           // console.log('FOUND PARENT1!');
                           return true;
