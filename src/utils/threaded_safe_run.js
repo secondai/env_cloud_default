@@ -10,7 +10,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 const {VM} = require('vm2');
 
 const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHandlers, requestId, mainIpcId, nodeId, timeout) => {
-  return new Promise((resolve, reject)=>{
+  return new Promise(async (resolve, reject)=>{
 
     // console.log('starting ThreadedSafeRun (cannot console.log inside there/here (when run in a sandbox!)!)');
     let ob = {evalString, context, requires, threadEventHandlers, requestId, mainIpcId, nodeId, timeout}; 
@@ -93,6 +93,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       const IV_LENGTH = 16; // For AES, this is always 16
 
        
+      // let cJSON = require('circular-json');
 
       const uuidv4 = require('uuid/v4');
       // const ipc = require('node-ipc');
@@ -332,10 +333,49 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
       }
       
+
+
       app.globalCache = app.globalCache || {};
+
+
+      // Get codenode and parents/children  
+      // - from nodeId passed in
+      let codeNode = await fetchNodes({
+        _id: nodeId
+      });
+      codeNode = codeNode[0];
+
+      // app_base and platform_nodes for CodeNode 
+      // - useful to have as "global" values for the request, so we don't have to pass to each loadCapabilities function 
+      function getParentNodes1(node){
+        let nodes = [node];
+        if(node.parent){
+          nodes = nodes.concat(getParentNodes1(node.parent));
+        }
+        return nodes;
+      }
+      let parentNodes = getParentNodes1(codeNode);
+      let platformClosest = lodash.find(parentNodes, node=>{
+        return (
+          node.type.split(':')[0] == 'platform_nodes'
+        )
+      });
+      let appBaseClosest = lodash.find(parentNodes, node=>{
+        return (
+          node.type.split(':')[0] == 'app_base'
+        )
+      });
+
+      console.log('platformClosest?', (platformClosest && platformClosest._id) ? true:false, nodeId);
+      console.log('appBaseClosest?', (appBaseClosest && appBaseClosest._id) ? true:false, nodeId);
+      if(!platformClosest){
+        console.log('CodeNode:', JSON.stringify(codeNode));
+      }
 
       let funcInSandbox = Object.assign({
         universe: {
+          appBaseClosest,
+          platformClosest,
           env: process.env, // just allow all environment variables to be accessed 
           console,
           lodash,
@@ -349,6 +389,118 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           aws: app.aws,
           globalCache: app.globalCache,
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
+
+          isParentOf: (parentId, node1)=>{
+            console.log('isParentOf', parentId);
+            function getParentNodeIds(node){
+              let nodes = [node._id];
+              if(node.parent){
+                nodes = nodes.concat(getParentNodeIds(node.parent));
+              }
+              return nodes;
+            }
+            
+            let parentNodeIds1 = getParentNodeIds(node1);
+            if(parentNodeIds1.indexOf(parentId) !== -1){
+              return true;
+            }
+            return false;
+
+          },
+
+          sameAppPlatform: (node1, node2)=>{
+            // console.log('sameAppPlatform');
+            // return true;
+
+            function getParentNodes2(node){
+              let nodes = [node];
+              if(node.parent){
+                nodes = nodes.concat(getParentNodes2(node.parent));
+              }
+              return nodes;
+            }
+            
+            let parentNodes1 = getParentNodes2(node1);
+            let parentNodes2 = getParentNodes2(node2);
+
+            // console.log('NodeParents2:', node2._id, parentNodes2.length);
+
+            // see if first match of each is correct (aka "outwards" (not from root, but from nodes)) 
+            let platformClosest1 = lodash.find(parentNodes1, node=>{
+              return (
+                node.type.split(':')[0] == 'platform_nodes'
+              )
+            });
+            let appBaseClosest1 = lodash.find(parentNodes1, node=>{
+              return (
+                node.type.split(':')[0] == 'app_base'
+              )
+            });
+
+            let platformClosest2 = lodash.find(parentNodes2, node=>{
+              return (
+                node.type.split(':')[0] == 'platform_nodes'
+              )
+            });
+            let appBaseClosest2 = lodash.find(parentNodes2, node=>{
+              return (
+                node.type.split(':')[0] == 'app_base'
+              )
+            });
+
+            // if(appBaseClosest2){
+            //   console.log('appBase MATCH');
+            // } else {
+            //   // console.log('nomatch appBase', node2._id);
+            //   try {
+            //     console.log(node2.parent._id);
+            //     console.log(node2.parent.parent._id);
+            //   }catch(err){}
+            // }
+
+            // if(platformClosest1 && platformClosest2){
+            //   console.log('platform MATCH');
+            // } else {
+            //   console.log('nomatch');
+            // }
+
+            if(
+              platformClosest1 &&
+              platformClosest2 &&
+              appBaseClosest1 &&
+              appBaseClosest2 &&
+              platformClosest1._id == platformClosest2._id
+              &&
+              appBaseClosest1._id == appBaseClosest2._id
+              ){
+              return true;
+            }
+
+            // console.log('Missed sameAppPlatform');
+
+            return false;
+
+          },
+
+          sameParentChain: (node1, node2)=>{
+            function getParentIds(node){
+              let ids = [node._id];
+              if(node.parent){
+                ids = ids.concat(getParentIds(node.parent));
+              }
+              return ids;
+            }
+            
+            let parentIds1 = getParentIds(node1);
+            let parentIds2 = getParentIds(node2);
+
+            if(lodash.intersection(parentIds1, parentIds2).length){
+              return true;
+            }
+
+            return false;
+
+          },
 
           directToSecond: (opts)=>{
             // to an External second
@@ -1017,24 +1169,41 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             opts = opts || {};
             return new Promise(async (resolve, reject)=>{
 
+              console.log('--Load capability'); //, platformClosest._id, funcInSandbox.universe.isParentOf ? true:false);
+
               // Returns the Node for the capability specified
               let capabilityNodes = await funcInSandbox.universe.searchMemory({
                 filter: {
                   sqlFilter: {
                     type: "capability:0.0.1:local:187h78h23",
-                    nodeId: null, // top-level/root,
+                    // nodeId: null, // NEW: app-level. OLD: top-level/root,
                     data: {
                       key: nameSemver // todo: semver with version!
                     }
                   },
-                  // filterNodes: tmpNodes=>{
-                  //   return new Promise((resolve, reject)=>{
-                  //     // tmpNodes = tmpNodes.filter(tmpNode=>{
-                  //     //   return tmpNode.data.method == 'read';
-                  //     // })
-                  //     resolve(tmpNodes);
-                  //   });
-                  // },
+                  filterNodes: tmpNodes=>{
+                    return new Promise((resolve, reject)=>{
+                      // tmpNodes = tmpNodes.filter(tmpNode=>{
+                      //   return tmpNode.data.method == 'read';
+                      // })
+
+                      try {
+                        console.log('platformClosest._id', universe.platformClosest._id);
+                      }catch(err){
+                        console.error('NO PLATFORMClOSEST');
+                      }
+                      tmpNodes = lodash.filter(tmpNodes, tmpNode=>{
+
+                        if(universe.isParentOf(platformClosest._id, tmpNode)){
+                          // console.log('FOUND IT UNDER SAME APP!!!!!', tmpNode._id);
+                          // console.log('FOUND PARENT1!');
+                          return true;
+                        }
+                        return false;
+                      })
+                      resolve(tmpNodes);
+                    });
+                  },
                 }
               });
               // capabilityNodes = universe.lodash.sortBy(capabilityNodes,capNode=>{
@@ -1046,7 +1215,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                 console.error('Unable to find capability!', nameSemver);
 
                 let allNodes = await funcInSandbox.universe.searchMemory({});
-                console.error('here',nameSemver, allNodes);
+                console.error('Failed capabilityNode',nameSemver); //, allNodes);
                 debugger;
 
                 return reject();
@@ -1054,7 +1223,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               if(capabilityNodes.length > 1){
                 console.error('TOO MANY capability nodes!');
-                return reject();
+                // return reject();
               }
 
               return resolve(capabilityNodes[0]);
@@ -1524,6 +1693,19 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                 console.error('Missing codeNode.data.code for runNodeCodeInVM');
                 return reject();
               }
+
+              // // parent?
+              // try {
+              //   console.log('-1');
+              //   console.log(opts.codeNode.parent.type.split(':')[0]);
+              //   console.log(opts.codeNode.parent.parent.type.split(':')[0]);
+              //   console.log(opts.codeNode.parent.parent.parent.type.split(':')[0]);
+              //   console.log(opts.codeNode.parent.parent.parent.parent.type.split(':')[0]);
+              //   console.log(opts.codeNode.parent.parent.parent.parent.parent.type.split(':')[0]);
+              //   console.log('-2');
+              // }catch(err){
+
+              // }
 
               try {
 

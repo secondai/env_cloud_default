@@ -143,7 +143,7 @@ eventEmitter.on('command',async (message, socket) => {
 		    return new Promise(async (resolve,reject)=>{
 		      depth = depth || 1;
 		      depth++;
-		      if(depth > 5){
+		      if(depth > 6){
 		        // too deep! (or pointing in a loop!) 
 		        return resolve([]);
 		      }
@@ -154,14 +154,22 @@ eventEmitter.on('command',async (message, socket) => {
 
 		      for(let node of nodes){
 
-		        // get parent
+		      	function getParentChain(nodeId){
+		      		let parent = lodash.find(nodesDb, {_id: nodeId});
+		      		if(parent.nodeId){
+		      			parent.parent = getParentChain(parent.nodeId);
+		      		}
+		      		return parent;
+		      	}
+
+		        // get parent(s)
 		        if(node.nodeId){
 		          // find parent 
 		          // let parent = await fetchNodesQuick({_id: node.nodeId}, 4);
 		          // if(parent && parent.length){
 		          //   node.parent = parent[0];
 		          // }
-		          node.parent = lodash.find(nodesDb, {_id: node.nodeId});
+		          node.parent = getParentChain(node.nodeId); //lodash.find(nodesDb, {_id: node.nodeId});
 
 		        }
 
@@ -656,61 +664,88 @@ class Second {
         //   - defined by appId: "a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0" 
         // - platform_nodes.data.platform = 'cloud' 
 
-        let nodes = await app.graphql.fetchNodes({
-          type: 'incoming_from_universe:0.0.1:local:298fj293'
-        });
+        let nodes,
+        	foundIncomingNode;
 
-        // console.log('NODES:', nodes);
-        if(!nodes || !nodes.length){
-          console.error('Missing incoming_from_universe:0.0.1:local:298fj293 Node');
-          return;
-        }
+        if(1==1){
+        	// NEW way (in app_base)
 
-        // find correct node for appId
-        // console.log('NODES matching incoming_from_universe:', nodes.length);
-        let foundIncomingNode = nodes.find(node=>{
-        	let node2 = JSON.parse(JSON.stringify(node));
-        	delete node2.data;
-        	node2.nodes = (node2.nodes || []).map(n=>{
-        		delete n.data;
-        		return n;
-        	});
-        	// console.log('NODE2:', node2.parent ? node2.parent.type:null); //, JSON.stringify(node2,null,2));
-        	try {
-	        	let parent = node.parent;
-	        	if(parent.type.split(':')[0] != 'platform_nodes' || parent.data.platform != 'cloud'){
-	        		return false;
-	        	}
-	        	let appbaseParent = parent.parent;
-	        	if(appbaseParent.type.split(':')[0] == 'app_base' && 
-	        		appbaseParent.data.appId == (process.env.DEFAULT_LAUNCH_APPID || 'a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0') &&
-	        		appbaseParent.data.release == 'production'
-	        		){
-	        		console.log('FOUND!');
-	        		return true;
-	        	}
-	        }catch(err){}
-        	return false;
-        });
-        
+	        nodes = await app.graphql.fetchNodes({
+	          type: 'incoming_from_universe:0.0.1:local:298fj293'
+	        });
+
+	        // console.log('NODES:', nodes);
+	        if(!nodes || !nodes.length){
+	          console.error('Missing incoming_from_universe:0.0.1:local:298fj293 Node');
+	          return;
+	        }
+
+	        // find correct node for appId
+	        // console.log('NODES matching incoming_from_universe:', nodes.length);
+	        foundIncomingNode = nodes.find(node=>{
+	        	// let node2 = JSON.parse(JSON.stringify(node));
+	        	// delete node2.data;
+	        	// node2.nodes = (node2.nodes || []).map(n=>{
+	        	// 	delete n.data;
+	        	// 	return n;
+	        	// });
+	        	// console.log('NODE2:', node2.parent ? node2.parent.type:null); //, JSON.stringify(node2,null,2));
+	        	try {
+		        	let parent = node.parent;
+		        	if(parent.type.split(':')[0] != 'platform_nodes' || parent.data.platform != 'cloud'){
+		        		return false;
+		        	}
+		        	let appbaseParent = parent.parent;
+		        	if(appbaseParent.type.split(':')[0] == 'app_base' && 
+		        		appbaseParent.data.appId == (process.env.DEFAULT_LAUNCH_APPID || 'a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0') &&
+		        		appbaseParent.data.release == 'production'
+		        		){
+		        		// console.log('Found app_base for incoming_from_universe');
+		        		return true;
+		        	}
+		        }catch(err){}
+	        	return false;
+	        });
+	        
+
+	      } else {
+	      	// OLD (root-level 
+
+	        nodes = await app.graphql.fetchNodes({
+	        	nodeId: null,
+	          type: 'incoming_from_universe:0.0.1:local:298fj293'
+	        });
+
+	        // console.log('NODES:', nodes);
+	        if(!nodes || !nodes.length){
+	          console.error('Missing incoming_from_universe:0.0.1:local:298fj293 Node');
+	          return;
+	        }
+
+	        foundIncomingNode = nodes[0];
+	      }
+
         if(!foundIncomingNode){
         	console.error('Missing foundIncomingNode');
         	return false;
         }
 
-        // console.log('incoming_from_universe:0.0.1:local:298fj293 Node:', foundIncomingNode ? true:false, foundIncomingNode.parent.type, foundIncomingNode.parent.data);
-
-        // let foundIncomingNode = nodes[0];
         let nodeId = foundIncomingNode._id;
-
         let CodeNode = _.find(foundIncomingNode.nodes,{type: 'code:0.0.1:local:32498h32f2'});
+
+        // Get parent/nodes chain of CodeNode (for app_base) 
+        // - requires rebuild
+        let tmpCodeNodeWithParents = await app.graphql.fetchNodes({
+          _id: CodeNode._id
+        });
+        CodeNode = tmpCodeNodeWithParents[0];
 
         if(!CodeNode){
           console.error('Missing code:0.0.1:local:32498h32f2 in app a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0 to handle incoming_browser_request');
           return;
         }
 
-        console.log('Got CodeNode', CodeNode._id, CodeNode.data.key);
+        console.log('Got CodeNode', CodeNode._id); //, CodeNode.data.key);
 
         let UniverseInputNode = {};
 
@@ -726,6 +761,17 @@ class Second {
         // console.log('UniverseInputNode',UniverseInputNode);
         // console.log('CodeNode',CodeNode);
 
+        // try {
+        // 	console.log('-1');
+        // 	console.log(CodeNode.parent.type.split(':')[0]);
+        // 	console.log(CodeNode.parent.parent.type.split(':')[0]);
+        // 	console.log(CodeNode.parent.parent.parent.type.split(':')[0]);
+        // 	console.log(CodeNode.parent.parent.parent.parent.type.split(':')[0]);
+        // 	console.log(CodeNode.parent.parent.parent.parent.parent.type.split(':')[0]);
+        // 	console.log('-2');
+        // }catch(err){
+
+        // }
 
 
 	      // Set context
