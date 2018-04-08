@@ -7,8 +7,8 @@
   "license": "MIT",
   "main": "dist/index.js",
   "engines": {
-    "node": "~8.9.0",
-    "npm": ">=5.8.0"
+    "node": "=8.9.0",
+    "npm": "=5.7.1"
   },
   "scripts": {
     "prestart": "npm run -s build",
@@ -87,6 +87,7 @@
     "nedb": "1.8.0",
     "nedb-promise": "2.0.1",
     "newrelic": "^2.4.1",
+    "node-gyp": "3.6.2",
     "node-ipc": "^9.1.1",
     "node-rsa": "^0.4.2",
     "nodemon": "^1.12.5",
@@ -105,6 +106,7 @@
     "stellar-sdk": "0.8.0",
     "string-similarity": "^1.2.0",
     "subscriptions-transport-ws": "^0.9.1",
+    "systeminformation": "3.38.0",
     "uuid": "^3.1.0",
     "vm2": "^3.5.2",
     "winston": "^2.4.0"

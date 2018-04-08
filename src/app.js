@@ -6,6 +6,16 @@ import bodyParser from 'body-parser';
 
 console.log('App Init');
 
+const si = require('systeminformation');
+
+// restart/kill if memory exceeded significantly 
+setInterval(async function(){
+  let mem = await si.mem();
+  console.log('Mem:', Math.round((mem.used/mem.total)*100), 'MemFree:', mem.free, 'Used:', mem.used, 'Total:', mem.total);
+  // .then(data => console.log(data))
+  // .catch(error => console.error(error));
+},10 * 1000);
+
 // console.log('REDIS:', process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_6379_TCP_PORT);
 
 var argv = require('minimist')(process.argv.slice(2));
