@@ -107,6 +107,7 @@
     "string-similarity": "^1.2.0",
     "subscriptions-transport-ws": "^0.9.1",
     "systeminformation": "3.38.0",
+    "usage": "0.7.1",
     "uuid": "^3.1.0",
     "vm2": "^3.5.2",
     "winston": "^2.4.0"

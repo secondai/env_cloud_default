@@ -7,15 +7,29 @@ import bodyParser from 'body-parser';
 console.log('App Init');
 
 const si = require('systeminformation');
+  var usage = require('usage');
 
 // restart/kill if memory exceeded significantly 
 setInterval(async function(){
   let total = parseInt(process.env.WEB_MEMORY || '1024',10);
-  total = total * 1024 * 1024; // mb to bytes
-  let mem = await si.mem();
-  console.log('Mem:', Math.round((mem.used/total)*100), 'MemFree:', mem.free, 'Used:', mem.used, 'Total:', total);
-  // .then(data => console.log(data))
-  // .catch(error => console.error(error));
+  total = total * (1024 * 1024); // mb to bytes
+  // let mem = await si.mem();
+  // console.log('Mem:', Math.round((mem.used/total)*100), 'MemFree:', mem.free, 'Used:', mem.used, 'Total:', total);
+  // // .then(data => console.log(data))
+  // // .catch(error => console.error(error));
+
+  // linux-only (expecting heroku) 
+  var pid = process.pid // you can use any valid PID instead
+  usage.lookup(pid, function(err, result) {
+    if(err){
+      return console.error('usage lookup err:', err);
+    }
+    let mem = result.memory;
+
+    console.log('Mem:', Math.round((mem/total)*100), 'Used:', mem, 'Total:', total);
+
+  });
+
 },10 * 1000);
 
 // console.log('REDIS:', process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_6379_TCP_PORT);
