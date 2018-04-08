@@ -10,8 +10,10 @@ const si = require('systeminformation');
 
 // restart/kill if memory exceeded significantly 
 setInterval(async function(){
+  let total = parseInt(process.env.WEB_MEMORY || '1024',10);
+  total = total * 1024 * 1024; // mb to bytes
   let mem = await si.mem();
-  console.log('Mem:', Math.round((mem.used/mem.total)*100), 'MemFree:', mem.free, 'Used:', mem.used, 'Total:', mem.total);
+  console.log('Mem:', Math.round((mem.used/total)*100), 'MemFree:', mem.free, 'Used:', mem.used, 'Total:', total);
   // .then(data => console.log(data))
   // .catch(error => console.error(error));
 },10 * 1000);
