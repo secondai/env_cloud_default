@@ -1801,7 +1801,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
 
       // using VM, NOT !!!!!!! NodeVM from vm2!!! (external modules NOT allowed!) 
-      const vm = new VM({
+      let vm = new VM({
         // console: 'off', //'inherit',
         console: 'inherit', //'inherit',
         sandbox: funcInSandbox, // all the passed-in context variables (node, tenant) 
@@ -1856,6 +1856,12 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             setTimeout(()=>{
               data = null;
               ob = null;
+
+              // free memory here? delete the vm entirely? 
+              delete funcInSandbox.universe;
+              funcInSandbox = null;
+              vm = null;
+              
             },100);
 
             // exit();
