@@ -30,7 +30,7 @@ setInterval(async function(){
 
   });
 
-},10 * 1000);
+},5 * 1000);
 
 // console.log('REDIS:', process.env.REDIS_PORT_6379_TCP_ADDR + ':' + process.env.REDIS_PORT_6379_TCP_PORT);
 

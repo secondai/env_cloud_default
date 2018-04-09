@@ -129,11 +129,13 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               let fetchnodesStart = (new Date()).getTime();
 
-              eventEmitter.on('response', r=>{
+              eventEmitter.on('response', function _listener(r){
                 if(r.id != nextIpcId){
                   // skipping if not this event emitted for
                   return;
                 }
+
+                eventEmitter.removeListener('response', _listener);
 
                 let fetchnodesEnd = (new Date()).getTime();
                 let fetchnodesTime = (fetchnodesEnd - fetchnodesStart);
@@ -187,12 +189,15 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
         let nextIpcId = uuidv4()
 
-        eventEmitter.on('response', r=>{
+        eventEmitter.on('response', function _listener(r){
           // return resolve('FUCK5');
           if(r.id != nextIpcId){
             // skipping if not this event emitted for
             return;
           }
+
+          eventEmitter.removeListener('response', _listener);
+
           resolveFunc(r);
         })
 
@@ -1861,8 +1866,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               delete funcInSandbox.universe;
               funcInSandbox = null;
               vm = null;
-              
+
             },100);
+
 
             // exit();
         })

@@ -204,6 +204,8 @@ eventEmitter.on('command',async (message, socket) => {
 		    }
 		  );
 
+		  nodesDb = null;
+
   		break;
   	
   	case 'historyLog':
@@ -329,7 +331,7 @@ eventEmitter.on('command',async (message, socket) => {
 				thisCQ.on('end', (err) => {
 				  // all jobs finished 
 				  delete parallelVMs[message.workGroup];
-				  // console.log('All jobs finished!');
+				  // console.log('---All jobs finished---!');
 				})
 
 				parallelVMs[message.workGroup] = thisCQ;
