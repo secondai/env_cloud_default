@@ -83,20 +83,22 @@ routes.use('/ai', bodyParser.json(), async (req, res)=>{
 });
 
 // lobotomy (manual Node fetching and modification) 
-routes.use('/graphql', bodyParser.json(), graphqlExpress(req => {
-	// returning options for graphqlExpress from this function
-	// - because we need to assign our tenant per-route 
+if(process.env.APP_OPEN_GRAPHQL == 'true'){
+	routes.use('/graphql', bodyParser.json(), graphqlExpress(req => {
+		// returning options for graphqlExpress from this function
+		// - because we need to assign our tenant per-route 
 
-	return {
-		schema: app.graphql.schema,
-		context: {
+		return {
+			schema: app.graphql.schema,
+			context: {
+			}
 		}
-	}
-}));
+	}));
 
-routes.use('/graphiql', graphiqlExpress({
-  endpointURL: '/graphql',
-}));
+	routes.use('/graphiql', graphiqlExpress({
+	  endpointURL: '/graphql',
+	}));
+}
 
 
 export default routes;
