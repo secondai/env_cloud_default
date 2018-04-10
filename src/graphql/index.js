@@ -475,10 +475,10 @@ const newNode = (tmpRecord) => {
 
     let record = {
       // _id: record.hasOwnProperty('_id') ? record._id : undefined, // CANNOT force the id!!!!
-      name: record.hasOwnProperty('name') ? record.name : uuidv4(), // random name, if not already defined (should eventually iterate according to place in current nodes/file/directory?) 
-      nodeId: record.hasOwnProperty('nodeId') ? record.nodeId : undefined,
-      type: record.hasOwnProperty('type') ? record.type : undefined,
-      data: record.hasOwnProperty('data') ? record.data : undefined,
+      name: tmpRecord.hasOwnProperty('name') ? tmpRecord.name : uuidv4(), // random name, if not already defined (should eventually iterate according to place in current nodes/file/directory?) 
+      nodeId: tmpRecord.hasOwnProperty('nodeId') ? tmpRecord.nodeId : undefined,
+      type: tmpRecord.hasOwnProperty('type') ? tmpRecord.type : undefined,
+      data: tmpRecord.hasOwnProperty('data') ? tmpRecord.data : undefined,
       active: true,
       createdAt: (new Date()).getTime() //record.hasOwnProperty('createdAt') ? record.createdAt : undefined,
       // updatedAt: record.hasOwnProperty('updatedAt') ? record.updatedAt : undefined,
