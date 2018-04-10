@@ -932,37 +932,76 @@ const loadRemoteZip = (url) => {
 
 	    // console.log('allFiles from Zip:', allFiles);
 	    
-	    function addChildren(id){
-	      return new Promise(async (resolve,reject)=>{
+	    // function addChildren(id){
+	    //   return new Promise(async (resolve,reject)=>{
 
-	        let nodes = [];
+	    //     let nodes = [];
 
-	        for(let filepath of Object.keys(allFiles)){
-	          let contents = allFiles[filepath];
-	          if(filepath.indexOf('nodes/') !== 0){
-	            // console.log('NOT NODE:', filepath);
-	            continue;
-	          }
+	    //     for(let filepath of Object.keys(allFiles)){
+	    //       let contents = allFiles[filepath];
+	    //       if(filepath.indexOf('nodes/') !== 0){
+	    //         // console.log('NOT NODE:', filepath);
+	    //         continue;
+	    //       }
 
-	          let parsed = jsonParse(filepath, contents);
-	          if(parsed.nodeId == id){
-	            // console.log('Matches ID:', parsed.nodeId, id);
-	            let children = await addChildren(parsed._id);
-	            parsed.nodes = children;
-	            nodes.push(parsed);
-	          } else {
-	            // console.log('No Kids:', id, parsed.nodeId);
-	          }
+	    //       let parsed = jsonParse(filepath, contents);
+	    //       if(parsed.nodeId == id){
+	    //         // console.log('Matches ID:', parsed.nodeId, id);
+	    //         let children = await addChildren(parsed._id);
+	    //         parsed.nodes = children;
+	    //         nodes.push(parsed);
+	    //       } else {
+	    //         // console.log('No Kids:', id, parsed.nodeId);
+	    //       }
 
-	        }
+	    //     }
 
-	        resolve(nodes);
+	    //     resolve(nodes);
 
-	      });
-	    }
+	    //   });
+	    // }
+
+      function addChildren(path){
+        return new Promise(async (resolve,reject)=>{
+        
+          let nodes = [];
+          try {
+              
+            for(let filepath of Object.keys(allFiles)){
+              let contents = allFiles[filepath];
+              if(filepath.indexOf(path) !== 0){
+                // console.log('NOT NODE:', filepath);
+                continue;
+              }
+              let pathDepth = path.split('/').length;
+              let filepathDepth = filepath.split('/').length;
+              if(pathDepth == filepathDepth){
+                // xyz.json at correct depth
+                
+                let parsed = jsonParse(filepath, contents);
+                // if(parsed.nodeId == id){
+                  // console.log('Matches ID:', parsed.nodeId, id);
+                  let children = await addChildren(filepath.slice(0, filepath.length - 5) + '/'); // remove '.json'
+                  parsed.nodes = children;
+                  nodes.push(parsed);
+                // } else {
+                //   // console.log('No Kids:', id, parsed.nodeId);
+                // }
+              }
+
+
+            }
+          }catch(err){
+            console.error(err);
+          }
+
+          resolve(nodes);
+          
+        });
+      }
 
 	    // re-organize child nodes 
-	    ZipNodes = await addChildren(null); // start at root, adds children recursively 
+	    ZipNodes = await addChildren('nodes/'); // start at root, adds children recursively 
 
 	    let secondJson = JSON.parse(allFiles['second.json']);
 	    // let basicKey = secondJson.name; 

@@ -11,6 +11,8 @@ import composeWithMongoose from 'graphql-compose-mongoose';
 import composeWithDataLoader from 'graphql-compose-dataloader';
 import { schemaComposer } from 'graphql-compose';
 
+const uuidv4 = require('uuid/v4');
+
 const dbConnectionString = process.env.MONGODB_URI || ((app.argv.MONGODB_CONNECTION ||  process.env.MONGODB_CONNECTION) + app.mongoDbName);
 console.log('dbConnectionString:', dbConnectionString);
 mongoose.connect(dbConnectionString, {
@@ -27,6 +29,7 @@ const NodeSchema = new mongoose.Schema({
     index: true
   },
 
+  name: String, // name+node must be unique (unique to level!) 
   type: String, // txId, holds schema 
   data: mongoose.Schema.Types.Mixed,
   // hash: String, // hash of data as buffer 
@@ -45,6 +48,8 @@ const NodeSchema = new mongoose.Schema({
     index: true
   }
 });
+NodeSchema.index({ name: 1, nodeId: 1 }, {unique: true}); 
+
 const NodeModel = mongoose.model('Nodes', NodeSchema);
 
 const NodeTC = composeWithMongoose(NodeModel, {}); // composeWithDataLoader(, {cacheExpiration: 700});
@@ -173,12 +178,14 @@ const fetchNodes = (filterOpts) => {
            limit: 1000000
         ) {
           _id
+          name
           type
           data
           createdAt
           updatedAt
           nodes {
             _id
+            name
             nodeId
             type
             data
@@ -186,6 +193,7 @@ const fetchNodes = (filterOpts) => {
             updatedAt
             nodes {
               _id
+              name
               nodeId
               type
               data
@@ -193,6 +201,7 @@ const fetchNodes = (filterOpts) => {
               updatedAt
               nodes {
                 _id
+                name
                 nodeId
                 type
                 data
@@ -200,6 +209,7 @@ const fetchNodes = (filterOpts) => {
                 updatedAt
                 nodes {
                   _id
+                  name
                   nodeId
                   type
                   data
@@ -207,6 +217,7 @@ const fetchNodes = (filterOpts) => {
                   updatedAt
                   nodes {
                     _id
+                    name
                     nodeId
                     type
                     data
@@ -214,6 +225,7 @@ const fetchNodes = (filterOpts) => {
                     updatedAt
                     nodes {
                       _id
+                      name
                       nodeId
                       type
                       data
@@ -228,6 +240,7 @@ const fetchNodes = (filterOpts) => {
           nodeId
           parent {
             _id
+            name
             type
             data
             createdAt
@@ -235,6 +248,7 @@ const fetchNodes = (filterOpts) => {
             nodeId
             nodes {
               _id
+              name
               type
               data
               createdAt
@@ -242,6 +256,7 @@ const fetchNodes = (filterOpts) => {
             }
             parent {
               _id
+              name
               type
               data
               createdAt
@@ -249,6 +264,7 @@ const fetchNodes = (filterOpts) => {
               nodeId
               nodes {
                 _id
+                name
                 type
                 data
                 createdAt
@@ -256,6 +272,7 @@ const fetchNodes = (filterOpts) => {
               }
               parent {
                 _id
+                name
                 type
                 data
                 createdAt
@@ -263,6 +280,7 @@ const fetchNodes = (filterOpts) => {
                 nodeId
                 nodes {
                   _id
+                  name
                   type
                   data
                   createdAt
@@ -318,6 +336,7 @@ const fetchNodesSimple = (filterOpts) => {
            limit: 1000000
         ) {
           _id
+          name
           nodeId
           type
           data
@@ -371,22 +390,27 @@ const findNode = (filterOpts) => {
            filter: $filter
         ) {
           _id
+          name
           type
           data
           nodes {
             _id
+            name
             type
             data
             nodes {
               _id
+              name
               type
               data
               nodes {
                 _id
+                name
                 type
                 data
                 nodes {
                   _id
+                  name
                   type
                   data
                 }
@@ -396,11 +420,13 @@ const findNode = (filterOpts) => {
           nodeId
           parent {
             _id
+            name
             type
             data
             nodeId
             nodes {
               _id
+              name
               type
               data
             }
@@ -449,6 +475,7 @@ const newNode = (record) => {
 
     record = {
       // _id: record.hasOwnProperty('_id') ? record._id : undefined, // CANNOT force the id!!!!
+      name: record.hasOwnProperty('name') ? record.name : uuidv4(), // random name, if not already defined (should eventually iterate according to place in current nodes/file/directory?) 
       nodeId: record.hasOwnProperty('nodeId') ? record.nodeId : undefined,
       type: record.hasOwnProperty('type') ? record.type : undefined,
       data: record.hasOwnProperty('data') ? record.data : undefined,
@@ -472,6 +499,7 @@ const newNode = (record) => {
           recordId
           record {
             _id
+            name
             nodeId
             type
             data
@@ -520,6 +548,7 @@ const updateNode = (record) => {
           recordId
           record {
             _id
+            name
             nodeId
             type
             data
