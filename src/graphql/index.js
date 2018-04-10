@@ -462,18 +462,18 @@ const findNode = (filterOpts) => {
 
 
 
-const newNode = (record) => {
+const newNode = (tmpRecord) => {
 
   return new Promise(async (resolve, reject) => {
 
-    if(!record){
+    if(!tmpRecord){
       console.error('Missing newNode record!');
       return reject('Missing newNode record');
     }
     
-    record = Object.assign({},record);
+    tmpRecord = Object.assign({},tmpRecord);
 
-    record = {
+    let record = {
       // _id: record.hasOwnProperty('_id') ? record._id : undefined, // CANNOT force the id!!!!
       name: record.hasOwnProperty('name') ? record.name : uuidv4(), // random name, if not already defined (should eventually iterate according to place in current nodes/file/directory?) 
       nodeId: record.hasOwnProperty('nodeId') ? record.nodeId : undefined,
@@ -522,13 +522,19 @@ const newNode = (record) => {
       }
     })
 
-    if(result.data){
-      // console.log('RESULT from fetchNodes is subject:', JSON.stringify(result,null,2));
-      resolve(result.data.nodeCreate.record);
-    } else {
-      console.error('Failed newNode in node.query!', JSON.stringify(result,null,2));
+    try {
+      if(result.data){
+        // console.log('RESULT from fetchNodes is subject:', JSON.stringify(result,null,2));
+        resolve(result.data.nodeCreate.record);
+      } else {
+        console.error('Failed newNode in node.query1!', JSON.stringify(result,null,2));
+        reject(result);
+      }
+    }catch(err){
+      console.error('Failed newNode in node.query2!', JSON.stringify(result,null,2));
       reject(result);
     }
+
 
   })
 
