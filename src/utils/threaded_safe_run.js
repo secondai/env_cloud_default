@@ -1608,6 +1608,37 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             });
 
           },
+          
+          removeNode: (node) => {
+            return new Promise(async (resolve, reject)=>{
+
+              // Runs in ThreadedVM 
+              // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+              // should validate code/schema too? 
+
+              if(!node){
+                console.error('Missing Node to remove!');
+                return reject();
+              }
+              node = Object.assign({},node);
+
+              node = {
+                _id: node._id || undefined
+              }
+
+              // console.log('Node to update:', JSON.stringify(node,null,2));
+
+              setupIpcWatcher({
+                  command: 'removeNode', // whole thing for now
+                  node
+              }, (r)=>{
+                resolve(r.data);
+              })
+
+            });
+
+          },
 
           getRequestCache: (opts) => {
             return new Promise(async (resolve, reject)=>{

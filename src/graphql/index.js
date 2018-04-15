@@ -48,7 +48,7 @@ const NodeSchema = new mongoose.Schema({
     index: true
   }
 });
-NodeSchema.index({ name: 1, nodeId: 1 }, {unique: true}); 
+NodeSchema.index({ name: 1, nodeId: 1, active: true }, {unique: true}); 
 
 const NodeModel = mongoose.model('Nodes', NodeSchema);
 
@@ -633,6 +633,46 @@ const updateAllNodes = (filter, record) => {
 
 }
 
+const removeNode = (record) => {
+
+  return new Promise(async (resolve, reject) => {
+
+    let mutate_removeNode = `
+      mutation (
+        $record: RemoveByIdNodesInput!
+      ) {
+        nodeRemoveById (
+           record: $record
+        )
+      }
+    `
+
+    let result = await app.graphql.graphql({
+      schema: app.graphql.schema,
+      source: mutate_removeNode,
+      contextValue: {
+        admin: true,
+        user: null
+      },
+      variableValues: {
+        record
+      }
+    })
+
+    console.log('Removed Result:', JSON.stringify(result.data,null,2));
+
+    if(result.data){
+      // console.log('RESULT from fetchNodes is subject:', JSON.stringify(result,null,2));
+      resolve(true);
+    } else {
+      console.error('Failed nodeRemoveById in node.query!', JSON.stringify(result,null,2));
+      reject(result);
+    }
+
+  })
+
+}
+
 const newHistory = (record) => {
 
   return new Promise(async (resolve, reject) => {
@@ -693,5 +733,6 @@ export default {
   newNode,
   findNode,
   updateNode,
-  updateAllNodes
+  updateAllNodes,
+  removeNode
 }

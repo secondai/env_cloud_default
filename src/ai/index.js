@@ -297,6 +297,29 @@ eventEmitter.on('command',async (message, socket) => {
 
   		break;
 
+  	case 'removeNode':
+
+  		// console.log('UpdateNode:', typeof message.node)
+  		// console.log('UpdateNode2:', JSON.stringify(message.node, null,2))
+  		console.log('RemoveNode');
+
+  		// message.data = "filter"
+			let removedNode = await app.graphql.removeNode(message.node);
+
+			// Update memory!
+	    app.nodesDb = await app.graphql.fetchNodesSimple();
+
+		  eventEmitter.emit(
+		    'response',
+		    {
+		      // id      : ipc.config.id,
+		      id: message.id,
+		      data: removeNode
+		    }
+		  );
+
+  		break;
+
 
   	case 'ThreadedSafeRun':
 
