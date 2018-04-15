@@ -281,8 +281,12 @@ eventEmitter.on('command',async (message, socket) => {
   		console.log('UpdateNode');
 
   		// message.data = "filter"
-			let updatedNode = await app.graphql.updateNode(message.node);
-
+			let updatedNode;
+  		if(message.node.active === false){
+  			updatedNode = await app.graphql.removeNode(message.node);
+  		} else {
+  			updatedNode = await app.graphql.updateNode(message.node);
+  		}
 			// Update memory!
 	    app.nodesDb = await app.graphql.fetchNodesSimple();
 
