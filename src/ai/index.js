@@ -318,7 +318,7 @@ eventEmitter.on('command',async (message, socket) => {
 		    {
 		      // id      : ipc.config.id,
 		      id: message.id,
-		      data: removeNode
+		      data: removedNode // boolean?
 		    }
 		  );
 
