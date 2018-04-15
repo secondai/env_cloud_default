@@ -577,6 +577,7 @@ class Second {
           
           for(let tmpNode of childNodes){
             let newChildNode = {
+            	name: tmpNode.name,
               nodeId,
               type: tmpNode.type,
               data: tmpNode.data,
