@@ -639,10 +639,10 @@ const removeNode = (record) => {
 
     let mutate_removeNode = `
       mutation (
-        $record: RemoveByIdNodesPayload!
+        $_id: MongoID!
       ) {
         nodeRemoveById (
-           record: $record
+           _id: $_id
         ) {
           recordId
         }
@@ -657,7 +657,7 @@ const removeNode = (record) => {
         user: null
       },
       variableValues: {
-        record
+        _id: record._id
       }
     })
 
