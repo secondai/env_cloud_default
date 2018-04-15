@@ -96,6 +96,10 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       // let cJSON = require('circular-json');
 
       const uuidv4 = require('uuid/v4');
+
+
+      const JSZip = require('jszip');
+
       // const ipc = require('node-ipc');
       // let ipcId = 'second-worker-' + uuidv4();
       // ipc.config.id = ipcId;
@@ -390,6 +394,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           bitcoin,
           bigi,
           uuidv4,
+          JSZip,
           stringSimilarity,
           aws: app.aws,
           globalCache: app.globalCache,
