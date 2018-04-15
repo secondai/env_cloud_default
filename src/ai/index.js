@@ -699,7 +699,7 @@ class Second {
 		        	}
 		        	let appbaseParent = parent.parent;
 		        	if(appbaseParent.type.split(':')[0] == 'app_base' && 
-		        		appbaseParent.data.appId == (process.env.DEFAULT_LAUNCH_APPID || 'a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0') &&
+		        		appbaseParent.data.appId == (process.env.DEFAULT_LAUNCH_APPID || 'cloud_appstore') &&
 		        		appbaseParent.data.release == 'production'
 		        		){
 		        		// console.log('Found app_base for incoming_from_universe');
@@ -874,6 +874,7 @@ const loadRemoteZip = (url) => {
   return new Promise((resolve,reject)=>{
 
 
+
 	  console.log('startupZipUrl1:', url);
 
 	  // converts startup git url into username/password 
@@ -1012,7 +1013,7 @@ const loadRemoteZip = (url) => {
 	    	config: secondJson
 	    });
 
-	 });
+		});
 
 	});
 
