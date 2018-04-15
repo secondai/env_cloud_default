@@ -639,11 +639,13 @@ const removeNode = (record) => {
 
     let mutate_removeNode = `
       mutation (
-        $record: RemoveByIdNodesInput!
+        $record: RemoveByIdNodesPayload!
       ) {
         nodeRemoveById (
            record: $record
-        )
+        ) {
+          recordId
+        }
       }
     `
 
