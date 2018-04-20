@@ -218,6 +218,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       const rsa = require('node-rsa');
       var jsSchema = require('js-schema');
 
+      require("underscore-query")(lodash);
+
       const getPrivateIdentity = () => {
         return new Promise(async (resolve, reject)=>{
 

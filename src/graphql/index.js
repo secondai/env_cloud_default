@@ -525,6 +525,7 @@ const newNode = (tmpRecord) => {
     try {
       if(result.data){
         // console.log('RESULT from fetchNodes is subject:', JSON.stringify(result,null,2));
+        console.log('Inserted new node');
         resolve(result.data.nodeCreate.record);
       } else {
         console.error('Failed newNode in node.query1!', JSON.stringify(result,null,2));
