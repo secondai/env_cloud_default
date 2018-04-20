@@ -532,8 +532,19 @@ const newNode = (tmpRecord) => {
         reject(result);
       }
     }catch(err){
-      console.error('Failed newNode in node.query2!', JSON.stringify(result,null,2));
-      reject(result);
+      // console.error('Failed newNode in node.query2!', JSON.stringify(result,null,2));
+      // reject(result);
+
+      console.error('Failed creating new query2!', result.message);
+      // console.error(JSON.stringify(result,null,2));
+      // console.error('RECORD:', JSON.stringify(record,null,2));
+      return resolve({
+        type: 'error:Qmdsflj',
+        data: {
+          error: true,
+          message: result.message
+        }
+      });
     }
 
 
@@ -598,10 +609,16 @@ const updateNode = (tmpRecord) => {
       try {
         resolve(result.data.nodeUpdateById.record);
       }catch(err){
-        console.error('Failed updating!', err);
-        console.error(JSON.stringify(result,null,2));
-        console.error('RECORD:', JSON.stringify(record,null,2));
-        reject(result);
+        console.error('Failed updating!', result.message);
+        // console.error(JSON.stringify(result,null,2));
+        // console.error('RECORD:', JSON.stringify(record,null,2));
+        return resolve({
+          type: 'error:Qmdsflj',
+          data: {
+            error: true,
+            message: result.message
+          }
+        });
       }
     } else {
       console.error('Failed nodeUpdateById in node.query!', JSON.stringify(result,null,2));
