@@ -541,9 +541,24 @@ const newNode = (tmpRecord) => {
 
 }
 
-const updateNode = (record) => {
+const updateNode = (tmpRecord) => {
 
   return new Promise(async (resolve, reject) => {
+
+    let record = {
+      _id: tmpRecord.hasOwnProperty('_id') ? tmpRecord._id : undefined, // should be defined! 
+      name: tmpRecord.hasOwnProperty('name') ? tmpRecord.name : undefined, // random name, if not already defined (should eventually iterate according to place in current nodes/file/directory?) 
+      nodeId: tmpRecord.hasOwnProperty('nodeId') ? tmpRecord.nodeId : undefined,
+      type: tmpRecord.hasOwnProperty('type') ? tmpRecord.type : undefined,
+      data: tmpRecord.hasOwnProperty('data') ? tmpRecord.data : undefined,
+      // active: true, // should have used removeNode instead! 
+      // createdAt: (new Date()).getTime() //record.hasOwnProperty('createdAt') ? record.createdAt : undefined,
+      updatedAt: (new Date()).getTime()
+    }
+
+    if(tmpRecord.active === false){
+      console.error('Unexpected tmpRecord.active === false in updateNode');
+    }
 
     let mutate_updateNode = `
       mutation (
@@ -580,7 +595,12 @@ const updateNode = (record) => {
 
     if(result.data){
       // console.log('RESULT from fetchNodes is subject:', JSON.stringify(result,null,2));
-      resolve(result.data.nodeUpdateById.record);
+      try {
+        resolve(result.data.nodeUpdateById.record);
+      }catch(err){
+        console.error('Failed updating!', err, JSON.stringify(result.data,null,2));
+        reject(result);
+      }
     } else {
       console.error('Failed nodeUpdateById in node.query!', JSON.stringify(result,null,2));
       reject(result);
