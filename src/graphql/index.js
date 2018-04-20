@@ -598,7 +598,9 @@ const updateNode = (tmpRecord) => {
       try {
         resolve(result.data.nodeUpdateById.record);
       }catch(err){
-        console.error('Failed updating!', err, JSON.stringify(result.data,null,2));
+        console.error('Failed updating!', err);
+        console.error(JSON.stringify(result.data,null,2));
+        console.error('RECORD:', JSON.stringify(record,null,2));
         reject(result);
       }
     } else {
