@@ -47,7 +47,7 @@ const NodeSchema = new mongoose.Schema({
     type: Number,
     index: true
   }
-});
+},{ minimize: false });
 NodeSchema.index({ name: 1, nodeId: 1}, {unique: true}); 
 
 const NodeModel = mongoose.model('Nodes', NodeSchema);
