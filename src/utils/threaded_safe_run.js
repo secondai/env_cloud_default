@@ -1811,6 +1811,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // Check cache 
               if(opts.cache){
                 if(app.globalCache.SearchFilters[opts.cache]){
+                  console.log('Used cache (skipped IPC fetchNodes)');
                   return resolve(app.globalCache.SearchFilters[opts.cache]);
                 }
               }
