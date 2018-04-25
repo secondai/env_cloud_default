@@ -352,10 +352,26 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
       // Get codenode and parents/children  
       // - from nodeId passed in
-      let codeNode = await fetchNodes({
-        _id: nodeId
-      });
-      codeNode = codeNode[0];
+      // - cache, until code changes are made 
+      //   - or simply cache for a limited time period? (testing: 2 minutes) 
+
+      let codeNode;
+
+      if(app.globalCache.SearchFilters['exact_codeNode:'+nodeId]){
+        console.log('Using cached codeNode for vm');
+        codeNode = app.globalCache.SearchFilters['exact_codeNode:'+nodeId];
+      } else {
+        console.log('Not using cached codeNode for vm');
+        codeNode = await fetchNodes({
+          _id: nodeId
+        });
+        codeNode = codeNode[0];
+        app.globalCache.SearchFilters['exact_codeNode:'+nodeId] = codeNode;
+        setTimeout(()=>{
+          console.log('de-caching internal codeNode');
+          app.globalCache.SearchFilters['exact_codeNode:'+nodeId] = null;
+        },2 * 60 * 1000);
+      }
 
       // app_base and platform_nodes for CodeNode 
       // - useful to have as "global" values for the request, so we don't have to pass to each loadCapabilities function 
@@ -378,10 +394,10 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         )
       });
 
-      console.log('platformClosest?', (platformClosest && platformClosest._id) ? true:false, nodeId);
-      console.log('appBaseClosest?', (appBaseClosest && appBaseClosest._id) ? true:false, nodeId);
+      // console.log('platformClosest?', (platformClosest && platformClosest._id) ? true:false, nodeId);
+      // console.log('appBaseClosest?', (appBaseClosest && appBaseClosest._id) ? true:false, nodeId);
       if(!platformClosest){
-        console.log('CodeNode:', JSON.stringify(codeNode));
+        console.error('Missing platformClosest for CodeNode:', JSON.stringify(codeNode));
       }
 
       let funcInSandbox = Object.assign({
@@ -1801,6 +1817,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           },
           searchMemory: (opts) => {
             return new Promise(async (resolve, reject)=>{
+              console.log('Running searchMemory');
               // resolve('universe result! ' + ob.context.tenant.dbName);
               // console.log('searchMemory1');
               opts = opts || {};
@@ -1813,8 +1830,14 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                 if(app.globalCache.SearchFilters[opts.cache]){
                   console.log('Used cache (skipped IPC fetchNodes)');
                   return resolve(app.globalCache.SearchFilters[opts.cache]);
+                } else {
+                  console.log('Not cached yet:', opts.cache);
                 }
+              } else {
+                console.log('No cache attempted, fetchingNodes');
               }
+
+              console.log('SLOW:', opts.cache ? opts.cache:'NoCache');
 
               let nodes;
               try{
