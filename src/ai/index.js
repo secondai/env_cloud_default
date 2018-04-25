@@ -696,89 +696,111 @@ class Second {
         // - platform_nodes.data.platform = 'cloud' 
 
         let nodes,
+        	nodeId,
+        	UniverseInputNode,
+        	CodeNode,
         	foundIncomingNode;
 
-        if(1==1){
-        	// NEW way (in app_base)
 
-	        nodes = await app.graphql.fetchNodes({
-	          type: 'incoming_from_universe:0.0.1:local:298fj293'
-	        });
+        // cache starting point 
+	      app.globalCache = app.globalCache || {};
+	      app.globalCache.SearchFilters = app.globalCache.SearchFilters || {};
 
-	        // console.log('NODES:', nodes);
-	        if(!nodes || !nodes.length){
-	          console.error('Missing incoming_from_universe:0.0.1:local:298fj293 Node');
-	          return;
-	        }
 
-	        // find correct node for appId
-	        // console.log('NODES matching incoming_from_universe:', nodes.length);
-	        foundIncomingNode = nodes.find(node=>{
-	        	// let node2 = JSON.parse(JSON.stringify(node));
-	        	// delete node2.data;
-	        	// node2.nodes = (node2.nodes || []).map(n=>{
-	        	// 	delete n.data;
-	        	// 	return n;
-	        	// });
-	        	// console.log('NODE2:', node2.parent ? node2.parent.type:null); //, JSON.stringify(node2,null,2));
-	        	try {
-		        	let parent = node.parent;
-		        	if(parent.type.split(':')[0] != 'platform_nodes' || parent.data.platform != 'cloud'){
-		        		return false;
-		        	}
-		        	let appbaseParent = parent.parent;
-		        	if(appbaseParent.type.split(':')[0] == 'app_base' && 
-		        		appbaseParent.data.appId == (process.env.DEFAULT_LAUNCH_APPID || 'cloud_appstore') &&
-		        		appbaseParent.data.release == 'production'
-		        		){
-		        		// console.log('Found app_base for incoming_from_universe');
-		        		return true;
-		        	}
-		        }catch(err){}
-	        	return false;
-	        });
-	        
-
+	      if(app.globalCache.SearchFilters[ 'incoming_from_universe:CodeNode' ]){
+	      	console.log('Using cached incoming_from_universe');
+	        nodeId = app.globalCache.SearchFilters[ 'incoming_from_universe:nodeId' ];
+	      	CodeNode = app.globalCache.SearchFilters[ 'incoming_from_universe:CodeNode' ];
 	      } else {
-	      	// OLD (root-level 
 
-	        nodes = await app.graphql.fetchNodes({
-	        	nodeId: null,
-	          type: 'incoming_from_universe:0.0.1:local:298fj293'
+
+	        if(1==1){
+	        	// NEW way (in app_base)
+
+		        nodes = await app.graphql.fetchNodes({
+		          type: 'incoming_from_universe:0.0.1:local:298fj293'
+		        });
+
+		        // console.log('NODES:', nodes);
+		        if(!nodes || !nodes.length){
+		          console.error('Missing incoming_from_universe:0.0.1:local:298fj293 Node');
+		          return;
+		        }
+
+		        // find correct node for appId
+		        // console.log('NODES matching incoming_from_universe:', nodes.length);
+		        foundIncomingNode = nodes.find(node=>{
+		        	// let node2 = JSON.parse(JSON.stringify(node));
+		        	// delete node2.data;
+		        	// node2.nodes = (node2.nodes || []).map(n=>{
+		        	// 	delete n.data;
+		        	// 	return n;
+		        	// });
+		        	// console.log('NODE2:', node2.parent ? node2.parent.type:null); //, JSON.stringify(node2,null,2));
+		        	try {
+			        	let parent = node.parent;
+			        	if(parent.type.split(':')[0] != 'platform_nodes' || parent.data.platform != 'cloud'){
+			        		return false;
+			        	}
+			        	let appbaseParent = parent.parent;
+			        	if(appbaseParent.type.split(':')[0] == 'app_base' && 
+			        		appbaseParent.data.appId == (process.env.DEFAULT_LAUNCH_APPID || 'cloud_appstore') &&
+			        		appbaseParent.data.release == 'production'
+			        		){
+			        		// console.log('Found app_base for incoming_from_universe');
+			        		return true;
+			        	}
+			        }catch(err){}
+		        	return false;
+		        });
+		        
+
+		      } else {
+		      	// OLD (root-level 
+
+		        nodes = await app.graphql.fetchNodes({
+		        	nodeId: null,
+		          type: 'incoming_from_universe:0.0.1:local:298fj293'
+		        });
+
+		        // console.log('NODES:', nodes);
+		        if(!nodes || !nodes.length){
+		          console.error('Missing incoming_from_universe:0.0.1:local:298fj293 Node');
+		          return;
+		        }
+
+		        foundIncomingNode = nodes[0];
+		      }
+
+	        if(!foundIncomingNode){
+	        	console.error('Missing foundIncomingNode');
+	        	return false;
+	        }
+
+	        nodeId = foundIncomingNode._id;
+	        CodeNode = _.find(foundIncomingNode.nodes,{type: 'code:0.0.1:local:32498h32f2'});
+
+	        // Get parent/nodes chain of CodeNode (for app_base) 
+	        // - requires rebuild
+	        let tmpCodeNodeWithParents = await app.graphql.fetchNodes({
+	          _id: CodeNode._id
 	        });
+	        CodeNode = tmpCodeNodeWithParents[0];
 
-	        // console.log('NODES:', nodes);
-	        if(!nodes || !nodes.length){
-	          console.error('Missing incoming_from_universe:0.0.1:local:298fj293 Node');
+	        if(!CodeNode){
+	          console.error('Missing code:0.0.1:local:32498h32f2 in app a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0 to handle incoming_browser_request');
 	          return;
 	        }
 
-	        foundIncomingNode = nodes[0];
+	        // cache default CodeNode 
+	        app.globalCache.SearchFilters[ 'incoming_from_universe:nodeId' ] = nodeId;
+	        app.globalCache.SearchFilters[ 'incoming_from_universe:CodeNode' ] = CodeNode;
+
 	      }
-
-        if(!foundIncomingNode){
-        	console.error('Missing foundIncomingNode');
-        	return false;
-        }
-
-        let nodeId = foundIncomingNode._id;
-        let CodeNode = _.find(foundIncomingNode.nodes,{type: 'code:0.0.1:local:32498h32f2'});
-
-        // Get parent/nodes chain of CodeNode (for app_base) 
-        // - requires rebuild
-        let tmpCodeNodeWithParents = await app.graphql.fetchNodes({
-          _id: CodeNode._id
-        });
-        CodeNode = tmpCodeNodeWithParents[0];
-
-        if(!CodeNode){
-          console.error('Missing code:0.0.1:local:32498h32f2 in app a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0 to handle incoming_browser_request');
-          return;
-        }
 
         console.log('Got CodeNode', CodeNode._id); //, CodeNode.data.key);
 
-        let UniverseInputNode = {};
+        UniverseInputNode = {};
 
         if(skipWrappingInputNode){
           UniverseInputNode = InputNode;
