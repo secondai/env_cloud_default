@@ -347,6 +347,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
 
       app.globalCache = app.globalCache || {};
+      app.globalCache.SearchFilters = app.globalCache.SearchFilters || {};
 
 
       // Get codenode and parents/children  
@@ -417,6 +418,22 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               return true;
             }
             return false;
+
+          },
+
+          getParentRoot: (node)=>{
+            // get the root of a node (follow parents) 
+            // - parent probably doesnt have the full chain filled out (TODO: node.nodes().xyz) 
+            function getParentNodes(node){
+              let nodes = [node];
+              if(node.parent){
+                nodes = nodes.concat(getParentNodes(node.parent));
+              }
+              return nodes;
+            }
+            
+            let parentNodes1 = getParentNodes(node);
+            return parentNodes1[parentNodes1.length - 1];
 
           },
 
@@ -1790,6 +1807,14 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               opts.filter = opts.filter || {};
               opts.filter.sqlFilter = opts.filter.sqlFilter || {};
               // console.log('FetchNodes:', opts.filter.sqlFilter);
+
+              // Check cache 
+              if(opts.cache){
+                if(app.globalCache.SearchFilters[opts.cache]){
+                  return resolve(app.globalCache.SearchFilters[opts.cache]);
+                }
+              }
+
               let nodes;
               try{
                 nodes = await fetchNodes(opts.filter.sqlFilter);
@@ -1813,6 +1838,11 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               Promise.resolve(nodes)
               .then(nodes=>{
+                // add result to cache
+                if(opts.cache){
+                  app.globalCache.SearchFilters[opts.cache] = nodes;
+                }
+
                 resolve(nodes);
               })
               .catch(err=>{
@@ -1822,6 +1852,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                   err: err.toString()
                 });
               })
+
+
 
             })
           },
