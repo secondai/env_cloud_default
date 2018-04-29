@@ -683,12 +683,13 @@ class Second {
 			};
 
 			// clear request cache after 30 seconds 
+			// - should just do on completion? 
 			setTimeout(()=>{
 				delete requestsCache[thisRequestId];
 			}, 30 * 1000);
 
       secondReady.then(async ()=>{
-        console.log('Running web request:', InputNode.type); //, this.state.nodesDb);
+        console.log('Running web request (expecting express_obj):', InputNode.type); //, this.state.nodesDb);
 
         // fetch and run code, pass in 
         // - using a specific "app_base" that is at the root 
@@ -715,15 +716,17 @@ class Second {
 
 
 	        if(1==1){
-	        	// NEW way (in app_base)
+	        	// NEW way (in specified app_base)
 
 		        nodes = await app.graphql.fetchNodes({
-		          type: 'incoming_from_universe:0.0.1:local:298fj293'
+		          // type: 'incoming_from_universe:0.0.1:local:298fj293'
+		          type: 'incoming_from_uni:Qmsldfj2f'
 		        });
 
 		        // console.log('NODES:', nodes);
 		        if(!nodes || !nodes.length){
-		          console.error('Missing incoming_from_universe:0.0.1:local:298fj293 Node');
+		          // console.error('Missing incoming_from_universe:0.0.1:local:298fj293 Node');
+		          console.error('Missing incoming_from_uni:Qmsldfj2f');
 		          return;
 		        }
 
@@ -788,7 +791,7 @@ class Second {
 	        CodeNode = tmpCodeNodeWithParents[0];
 
 	        if(!CodeNode){
-	          console.error('Missing code:0.0.1:local:32498h32f2 in app a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0 to handle incoming_browser_request');
+	          console.error('Missing code:0.0.1:local:32498h32f2 in app a22a4864-773d-4b0b-bf69-0b2c0bc7f3e0 to handle incoming_web_request');
 	          return;
 	        }
 
@@ -807,7 +810,7 @@ class Second {
         } else {
           UniverseInputNode = {
             type: 'incoming_web_request:0.0.1:local:29832398h4723',
-            data: InputNode
+            data: InputNode // type:express_obj
           }
         }
 
@@ -1071,7 +1074,7 @@ const loadRemoteZip = (url) => {
 }
 
 
-const incomingAIRequest = ({ req }) => {
+const incomingAIRequest = ({ req, res }) => {
 
 	return new Promise(async (resolve, reject)=>{
 
@@ -1110,14 +1113,45 @@ const incomingAIRequest = ({ req }) => {
 
 		// req.body SHOULD be a node! 
 		// - todo: should validate schema 
-		let response = await MySecond.runRequest(req.body);
-
-		return resolve({
-			secondResponse: {
-				type: 'output_generic:0.0.1:local:239f2382fj2983f',
-				data: response
+		let response = await MySecond.runRequest({
+			type: 'express_obj:Qmdsfkljsl',
+			data: {
+				req,
+				res
 			}
 		});
+
+		if(!response){
+			console.error('Invalid response, null!');
+			return false;
+		}
+
+		console.log('RESPONSE (from hardcoded):', response);
+
+
+		// // expecting output to be a node 
+		// switch(response.type){
+		// 	case 'second_response:Qmsdfklj23f89j':
+		// 		break;
+
+		// 	case 'redirect_response:Qms899832f':
+		// 		break;
+
+		// 	case 'render_response:Qms899832f':
+		// 		break;
+
+		// }
+		// try {
+		// }catch(err){
+
+		// }
+
+		// return resolve({
+		// 	secondResponse: {
+		// 		type: 'output_generic:0.0.1:local:239f2382fj2983f',
+		// 		data: response
+		// 	}
+		// });
 
 
 

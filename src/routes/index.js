@@ -67,21 +67,6 @@ routes.get('/test1', (req, res)=>{
 	// res.send('ok!');
 })
 
-// ai endpoint
-const ai = require('../ai');
-routes.use('/ai', bodyParser.json(), async (req, res)=>{
-	
-	// wait for the result from the AI request 
-	// - passing in the "request arrived like X" information that will give us a valid response to return 
-	// - response might be a res.send({...everything..}) or simply res.send({resultId:'123'}) w/ a follow-up later 
-	let response = await ai.incomingAIRequest({
-		req,
-		cacheTEST:'test1'
-	});
-	res.send(response);
-
-});
-
 // lobotomy (manual Node fetching and modification) 
 if(process.env.APP_OPEN_GRAPHQL == 'true'){
 	routes.use('/graphql', bodyParser.json(), graphqlExpress(req => {
@@ -99,6 +84,25 @@ if(process.env.APP_OPEN_GRAPHQL == 'true'){
 	  endpointURL: '/graphql',
 	}));
 }
+
+
+
+// ai endpoint
+// - all remaining routes
+const ai = require('../ai');
+routes.use(bodyParser.json(), async (req, res)=>{
+	
+	// wait for the result from the AI request 
+	// - passing in the "request arrived like X" information that will give us a valid response to return 
+	// - response might be a res.send({...everything..}) or simply res.send({resultId:'123'}) w/ a follow-up later 
+	let response = await ai.incomingAIRequest({
+		req,
+		res,
+		cacheTEST:'test1'
+	});
+	// res.send(response);
+
+});
 
 
 export default routes;

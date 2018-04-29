@@ -218,6 +218,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       const rsa = require('node-rsa');
       var jsSchema = require('js-schema');
 
+      let RouteParser = require('route-parser');
+
       require("underscore-query")(lodash);
 
       const getPrivateIdentity = () => {
@@ -415,6 +417,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           uuidv4,
           JSZip,
           stringSimilarity,
+          RouteParser,
           aws: app.aws,
           globalCache: app.globalCache,
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise

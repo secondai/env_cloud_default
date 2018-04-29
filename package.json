@@ -102,6 +102,7 @@
     "request": "^2.83.0",
     "request-promise-native": "1.0.5",
     "rimraf": "^2.6.1",
+    "route-parser": "0.0.5",
     "safe-eval": "^0.3.0",
     "stellar-sdk": "0.8.0",
     "string-similarity": "^1.2.0",
