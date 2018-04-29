@@ -719,7 +719,7 @@ class Second {
 	        	// NEW way (in specified app_base)
 
 		        nodes = await app.graphql.fetchNodes({
-		          type: (process.env.NEW_INCOMING === true) ? 'incoming_from_uni:Qmsldfj2f':'incoming_from_universe:0.0.1:local:298fj293'
+		          type: ((process.env.NEW_INCOMING || '').toString() == 'true') ? 'incoming_from_uni:Qmsldfj2f':'incoming_from_universe:0.0.1:local:298fj293'
 		          // type: 'incoming_from_uni:Qmsldfj2f'
 		        });
 
@@ -1114,7 +1114,7 @@ const incomingAIRequest = ({ req, res }) => {
 		// req.body SHOULD be a node! 
 		// - todo: should validate schema 
 		let response;
-		if(process.env.NEW_INCOMING === true){
+		if((process.env.NEW_INCOMING || '').toString() == 'true'){
 			console.log('NEW_INCOMING');
 			response = await MySecond.runRequest({
 				type: 'express_obj:Qmdsfkljsl',

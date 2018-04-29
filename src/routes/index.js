@@ -100,7 +100,12 @@ routes.use(bodyParser.json(), async (req, res)=>{
 		res,
 		cacheTEST:'test1'
 	});
-	// res.send(response);
+
+	if((process.env.NEW_INCOMING || '').toString() == 'true'){
+		console.log('Should have responded inside Second...');
+	} else {
+		res.send(response);
+	}
 
 });
 
