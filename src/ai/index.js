@@ -669,7 +669,7 @@ class Second {
     }
 
 	}
-	runRequest(InputNode, skipWrappingInputNode){
+	runRequest(InputNode, skipWrappingInputNode, reqNode){
 
     // wait for memory to be ready!
     return new Promise((resolve, reject)=>{
@@ -834,6 +834,7 @@ class Second {
 	      let safeContext = {
 	        // subject: tmpSubject,
 	        // pointer,
+	        reqNode, 
 	        SELF: CodeNode, 
 	        INPUT: UniverseInputNode, // this is NOT validated at this step, cuz we are just passing in a Node (type, data) that I can decide how to handle. Ideally the passed-in schema types includes:  (inputData, outputFormat/info)
 	        // user: context.user, // user._id (this should be the datasource, or auth, or something else??) (might have Auth provided over the top, or assumed?)
@@ -1125,7 +1126,7 @@ const incomingAIRequest = ({ req, res }) => {
 			});
 		} else {
 			console.log('OLD_INCOMING, req.body');
-			response = await MySecond.runRequest(req.body);
+			response = await MySecond.runRequest(req.body, false, req);
 
 			return resolve({
 				secondResponse: {

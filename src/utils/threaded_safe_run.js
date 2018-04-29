@@ -93,7 +93,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       const IV_LENGTH = 16; // For AES, this is always 16
 
        
-      // let cJSON = require('circular-json');
+      let cJSON = require('circular-json');
 
       const uuidv4 = require('uuid/v4');
 
@@ -415,6 +415,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           bitcoin,
           bigi,
           uuidv4,
+          cJSON,
           JSZip,
           stringSimilarity,
           RouteParser,
