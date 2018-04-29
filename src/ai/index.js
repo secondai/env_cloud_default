@@ -1126,6 +1126,15 @@ const incomingAIRequest = ({ req, res }) => {
 		} else {
 			console.log('OLD_INCOMING, req.body');
 			response = await MySecond.runRequest(req.body);
+
+			return resolve({
+				secondResponse: {
+					type: 'output_generic:0.0.1:local:239f2382fj2983f',
+					data: response
+				}
+			});
+
+
 		}
 
 
