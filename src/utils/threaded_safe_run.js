@@ -1829,7 +1829,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // console.log('FetchNodes:', opts.filter.sqlFilter);
 
               // Check cache 
-              if(opts.cache){
+              if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
                 if(app.globalCache.SearchFilters[opts.cache]){
                   console.log('Used cache (skipped IPC fetchNodes)');
                   return resolve(app.globalCache.SearchFilters[opts.cache]);
