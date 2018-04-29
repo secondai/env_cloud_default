@@ -472,6 +472,31 @@ eventEmitter.on('command',async (message, socket) => {
   		break;
 
 
+  	case 'httpResponse':
+  		// process should have the requestId in it?
+  		// - or somehow it could look up the chain if necessary? 
+  		// - or each process coulc kinda self-identify that it was creaing a new process, and then this could crawl that chain? 
+
+  		// message: {
+  		// 	action: 'send', // redirect
+  		// 	data: '', // string? 
+  		// }
+
+  		// emit response according to input 
+  		requestsCache[message.requestId].res[message.action](message.data);
+
+		  eventEmitter.emit(
+		    'response',
+		    {
+		      // id      : ipc.config.id,
+		      id: message.id,
+		      data: true // TODO: success/fail
+		    }
+		  );
+
+  		break;
+
+
   	case 'getIpfsHashForString':
 
   		// console.log('ipc getIpfsHashForString');
@@ -669,7 +694,7 @@ class Second {
     }
 
 	}
-	runRequest(InputNode, skipWrappingInputNode, reqNode){
+	runRequest(InputNode, skipWrappingInputNode, resObj){
 
     // wait for memory to be ready!
     return new Promise((resolve, reject)=>{
@@ -679,7 +704,8 @@ class Second {
 			let thisRequestId = uuidv4();
 			requestsCache[thisRequestId] = {
 				keyvalue: {},
-				stack: []
+				stack: [],
+				res: resObj
 			};
 
 			// clear request cache after 30 seconds 
@@ -834,7 +860,6 @@ class Second {
 	      let safeContext = {
 	        // subject: tmpSubject,
 	        // pointer,
-	        reqNode, 
 	        SELF: CodeNode, 
 	        INPUT: UniverseInputNode, // this is NOT validated at this step, cuz we are just passing in a Node (type, data) that I can decide how to handle. Ideally the passed-in schema types includes:  (inputData, outputFormat/info)
 	        // user: context.user, // user._id (this should be the datasource, or auth, or something else??) (might have Auth provided over the top, or assumed?)
@@ -1120,13 +1145,12 @@ const incomingAIRequest = ({ req, res }) => {
 			response = await MySecond.runRequest({
 				type: 'express_obj:Qmdsfkljsl',
 				data: {
-					req,
-					res
+					req // convert using circular-json when stringifying 
 				}
-			});
+			}, false, res);
 		} else {
 			console.log('OLD_INCOMING, req.body');
-			response = await MySecond.runRequest(req.body, false, req);
+			response = await MySecond.runRequest(req.body, false, res);
 
 			return resolve({
 				secondResponse: {
