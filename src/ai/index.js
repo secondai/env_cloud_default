@@ -708,7 +708,7 @@ class Second {
 	      app.globalCache.SearchFilters = app.globalCache.SearchFilters || {};
 
 
-	      if(app.globalCache.SearchFilters[ 'incoming_from_universe:CodeNode' ]){
+	      if(app.globalCache.SearchFilters[ 'incoming_from_universe:CodeNode' ] && (process.env.IGNORE_MEMORY_CACHE || '').toString() != 'true'){
 	      	console.log('Using cached incoming_from_universe');
 	        nodeId = app.globalCache.SearchFilters[ 'incoming_from_universe:nodeId' ];
 	      	CodeNode = app.globalCache.SearchFilters[ 'incoming_from_universe:CodeNode' ];
