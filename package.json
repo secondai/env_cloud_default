@@ -62,6 +62,7 @@
     "express": "^4.15.2",
     "express-session": "^1.15.6",
     "getstream": "^3.9.0",
+    "googleapis": "29.0.0",
     "graphql": "0.13.2",
     "graphql-client": "^2.0.0",
     "graphql-compose": "3.0.6",

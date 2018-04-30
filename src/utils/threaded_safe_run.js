@@ -218,6 +218,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       const rsa = require('node-rsa');
       var jsSchema = require('js-schema');
 
+      const {google} = require('googleapis');
+
       let RouteParser = require('route-parser');
 
       require("underscore-query")(lodash);
@@ -421,6 +423,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           RouteParser,
           aws: app.aws,
           globalCache: app.globalCache,
+          google,
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
 
           isParentOf: (parentId, node1)=>{
