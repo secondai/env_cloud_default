@@ -54,6 +54,7 @@ console.log('PUBLIC_HOST:', process.env.PUBLIC_HOST);
 console.log('MONGODB_URI (on heroku):', process.env.MONGODB_URI);
 console.log('REDIS_URL (on heroku):', process.env.REDIS_URL);
 console.log('STELLAR_NETWORK', process.env.STELLAR_NETWORK);
+console.log('OLD_INCOMING', process.env.OLD_INCOMING);
 app.mongoDbName = app.argv.MONGODB || process.env.MONGODB;
 global.app = app;
 

@@ -745,7 +745,7 @@ class Second {
 	        	// NEW way (in specified app_base)
 
 		        nodes = await app.graphql.fetchNodes({
-		          type: ((process.env.NEW_INCOMING || '').toString() == 'true') ? 'incoming_from_uni:Qmsldfj2f':'incoming_from_universe:0.0.1:local:298fj293'
+		          type: ((process.env.OLD_INCOMING || '').toString() == 'true') ? 'incoming_from_universe:0.0.1:local:298fj293':'incoming_from_uni:Qmsldfj2f'
 		          // type: 'incoming_from_uni:Qmsldfj2f'
 		        });
 
@@ -1140,15 +1140,7 @@ const incomingAIRequest = ({ req, res }) => {
 		// req.body SHOULD be a node! 
 		// - todo: should validate schema 
 		let response;
-		if((process.env.NEW_INCOMING || '').toString() == 'true'){
-			console.log('NEW_INCOMING');
-			response = await MySecond.runRequest({
-				type: 'express_obj:Qmdsfkljsl',
-				data: {
-					req // convert using circular-json when stringifying 
-				}
-			}, false, res);
-		} else {
+		if((process.env.OLD_INCOMING || '').toString() == 'true'){
 			console.log('OLD_INCOMING, req.body');
 			response = await MySecond.runRequest(req.body, false, res);
 
@@ -1159,7 +1151,14 @@ const incomingAIRequest = ({ req, res }) => {
 				}
 			});
 
-
+		} else {
+			// console.log('NEW_INCOMING');
+			response = await MySecond.runRequest({
+				type: 'express_obj:Qmdsfkljsl',
+				data: {
+					req // convert using circular-json when stringifying 
+				}
+			}, false, res);
 		}
 
 

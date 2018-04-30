@@ -101,10 +101,10 @@ routes.use(bodyParser.json(), async (req, res)=>{
 		cacheTEST:'test1'
 	});
 
-	if((process.env.NEW_INCOMING || '').toString() == 'true'){
-		console.log('Should have responded inside Second...');
-	} else {
+	if((process.env.OLD_INCOMING || '').toString() == 'true'){
 		res.send(response);
+	} else {
+		console.log('Expected to have responded inside Second');
 	}
 
 });
