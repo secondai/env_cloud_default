@@ -34,9 +34,9 @@ const hashcashFixedMiddleware = (req, res, next) => {
 
 }
 
-routes.get('/', (req, res) => {
-  res.render('index', { title: 'Second' });
-});
+// routes.get('/', (req, res) => {
+//   res.render('index', { title: 'Second' });
+// });
 
 routes.get('/hashcash', hashcashFixedMiddleware, (req, res)=>{
 	// Passed
