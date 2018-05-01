@@ -516,7 +516,7 @@ eventEmitter.on('command',async (message, socket) => {
   				// key, value
   				try {
 	  				console.log('Setting session values:', message.data.key, message.data.value);
-	  				session[message.data.key] = message.data.value;
+	  				requestsCache[message.requestId].req.session[message.data.key] = message.data.value;
 	  			}catch(err){
 	  				console.error('httpSession error:', err);
 	  			}
