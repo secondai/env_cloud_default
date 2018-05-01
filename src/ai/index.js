@@ -497,6 +497,31 @@ eventEmitter.on('command',async (message, socket) => {
   		break;
 
 
+  	case 'httpSession':
+  		// process should have the requestId in it?
+  		// - or somehow it could look up the chain if necessary? 
+  		// - or each process coulc kinda self-identify that it was creaing a new process, and then this could crawl that chain? 
+
+  		// message: {
+  		// 	action: 'send', // redirect
+  		// 	data: '', // string? 
+  		// }
+
+  		// emit response according to input 
+  		let session = requestsCache[message.requestId].req.session;
+
+		  eventEmitter.emit(
+		    'response',
+		    {
+		      // id      : ipc.config.id,
+		      id: message.id,
+		      data: session
+		    }
+		  );
+
+  		break;
+
+
   	case 'getIpfsHashForString':
 
   		// console.log('ipc getIpfsHashForString');
@@ -694,7 +719,7 @@ class Second {
     }
 
 	}
-	runRequest(InputNode, skipWrappingInputNode, resObj){
+	runRequest(InputNode, skipWrappingInputNode, reqObj, resObj){
 
     // wait for memory to be ready!
     return new Promise((resolve, reject)=>{
@@ -705,7 +730,8 @@ class Second {
 			requestsCache[thisRequestId] = {
 				keyvalue: {},
 				stack: [],
-				res: resObj
+				res: resObj,
+				req: reqObj
 			};
 
 			// clear request cache after 30 seconds 
@@ -1142,7 +1168,7 @@ const incomingAIRequest = ({ req, res }) => {
 		let response;
 		if((process.env.OLD_INCOMING || '').toString() == 'true'){
 			console.log('OLD_INCOMING, req.body');
-			response = await MySecond.runRequest(req.body, false, res);
+			response = await MySecond.runRequest(req.body, false, req, res);
 
 			return resolve({
 				secondResponse: {

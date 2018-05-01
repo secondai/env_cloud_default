@@ -1739,6 +1739,26 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             });
           },
 
+          httpSession: (action, data) => {
+            return new Promise(async (resolve, reject)=>{
+
+              // Runs in ThreadedVM 
+              // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+              // should validate code/schema too? 
+
+              setupIpcWatcher({
+                  command: 'httpSession', // whole thing for now
+                  requestId: ob.requestId,
+                  action,
+                  data
+              }, (r)=>{
+                resolve(r.data);
+              })
+
+            });
+          },
+
           runNodeCodeInVMSimple: (opts) => {
             return new Promise(async (resolve, reject)=>{
 
