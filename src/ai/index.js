@@ -1184,7 +1184,7 @@ const incomingAIRequest = ({ req, res }) => {
 				data: {
 					req // convert using circular-json when stringifying 
 				}
-			}, false, res);
+			}, false, req, res);
 		}
 
 
