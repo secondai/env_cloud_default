@@ -512,7 +512,7 @@ eventEmitter.on('command',async (message, socket) => {
   		switch(message.action){
   			case 'get':
   				break;
-  			case 'set';
+  			case 'set':
   				// key, value
   				session[message.data.key] = message.data.value;
   				break;
