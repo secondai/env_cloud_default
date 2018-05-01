@@ -507,8 +507,19 @@ eventEmitter.on('command',async (message, socket) => {
   		// 	data: '', // string? 
   		// }
 
-  		// emit response according to input 
   		let session = requestsCache[message.requestId].req.session;
+  		// emit response according to input 
+  		switch(message.action){
+  			case 'get':
+  				break;
+  			case 'set';
+  				// key, value
+  				session[message.data.key] = message.data.value;
+  				break;
+  			default:
+  				console.error('Invalid httpSession action');
+  				break;
+  		}
 
 		  eventEmitter.emit(
 		    'response',
