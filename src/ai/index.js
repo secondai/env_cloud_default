@@ -515,11 +515,12 @@ eventEmitter.on('command',async (message, socket) => {
   			case 'set':
   				// key, value
   				try {
-	  				console.log('Setting session values:', message.data.key, message.data.value);
+	  				// console.log('Setting session values:', message.data.key, message.data.value);
 	  				requestsCache[message.requestId].req.session[message.data.key] = message.data.value;
 	  			}catch(err){
 	  				console.error('httpSession error:', err);
 	  			}
+	  			console.log('new value for httpSession.',message.data.key,'=',requestsCache[message.requestId].req.session[message.data.key]);
   				break;
   			default:
   				console.error('Invalid httpSession action');
