@@ -287,10 +287,10 @@ eventEmitter.on('command',async (message, socket) => {
 
   		// expecting only an _id as input 
 
-  		console.log('fetchNodesInMemoryByIds');
+  		console.log('fetchNodesInMemoryByIds:', message._ids);
   		let nodes3 = [];
 
-  		(message.filter._ids || []).forEach(_id=>{
+  		(message._ids || []).forEach(_id=>{
     		let foundNodeById = nodesDbParsedIds[_id];
     		if(foundNodeById){
     			nodes3.push(JSON.parse(JSON.stringify(foundNodeById)));

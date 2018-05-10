@@ -193,14 +193,14 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       }
 
 
-      const fetchNodesInMemoryByIds = (filter) => {
+      const fetchNodesInMemoryByIds = (_ids) => {
 
         return new Promise(async (resolve, reject) => {
 
           setupIpcWatcher({
               command: 'fetchNodesInMemoryByIds', // whole thing for now
               requestId: ob.requestId,
-              filter              
+              _ids              
           }, (r)=>{
             resolve(r.data);
           })
