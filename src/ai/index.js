@@ -306,7 +306,7 @@ eventEmitter.on('command',async (message, socket) => {
 		    }
 		  );
 
-		  nodesDb2 = null;
+		  nodes3 = null;
 
   		break;
 
