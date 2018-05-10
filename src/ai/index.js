@@ -50,7 +50,7 @@ const {
 } = require('perf_hooks');
 
 
-l
+
 var npm = require('npm');
 let installedPackages = {};
 let npmReadyResolve;
