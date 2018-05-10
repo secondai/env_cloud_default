@@ -175,6 +175,23 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
       }
 
+      const fetchNodesInMemory = (filter) => {
+
+        return new Promise(async (resolve, reject) => {
+
+          setupIpcWatcher({
+              command: 'fetchNodesInMemory', // whole thing for now
+              requestId: ob.requestId,
+              filter              
+          }, (r)=>{
+            resolve(r.data);
+          })
+
+
+        })
+
+      }
+
 
       // passed-in libs as required and available
       let required = {};
@@ -1980,6 +1997,72 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               let nodes;
               try{
                 nodes = await fetchNodes(opts.filter.sqlFilter);
+              }catch(err){
+                return resolve({
+                  err: 'shit'
+                });
+              }
+
+              // console.log('NODES FOR fetchNodes:', nodes.length);
+              // if(nodes && nodes.length){
+              //   console.log('Node:', nodes[0]);
+              // }
+
+              // console.log('internal searchMemory result length:', nodes.length);
+
+              // run "filterNode" after all the results are found
+              if(typeof(opts.filter.filterNodes) == 'function'){
+                nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
+              }
+
+              Promise.resolve(nodes)
+              .then(nodes=>{
+                // add result to cache
+                if(opts.cache){
+                  app.globalCache.SearchFilters[opts.cache] = nodes;
+                }
+
+                resolve(nodes);
+              })
+              .catch(err=>{
+                resolve({
+                  error: true,
+                  str: 'Failed searching internal memory (filterNodes)!',
+                  err: err.toString()
+                });
+              })
+
+
+
+            })
+          },
+          searchMemoryMemory: (opts) => {
+            return new Promise(async (resolve, reject)=>{
+              console.log('Running searchMemoryMemory');
+              // resolve('universe result! ' + ob.context.tenant.dbName);
+              // console.log('searchMemory1');
+              opts = opts || {};
+              opts.filter = opts.filter || {};
+              opts.filter.sqlFilter = opts.filter.sqlFilter || {};
+              // console.log('FetchNodes:', opts.filter.sqlFilter);
+
+              // Check cache 
+              if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
+                if(app.globalCache.SearchFilters[opts.cache]){
+                  console.log('Used cache (skipped IPC fetchNodes)');
+                  return resolve(app.globalCache.SearchFilters[opts.cache]);
+                } else {
+                  console.log('Not cached yet:', opts.cache);
+                }
+              } else {
+                console.log('No cache attempted, fetchingNodes');
+              }
+
+              console.log('SLOW:', opts.cache ? opts.cache:'NoCache');
+
+              let nodes;
+              try{
+                nodes = await fetchNodesInMemory(opts.filter.sqlFilter);
               }catch(err){
                 return resolve({
                   err: 'shit'

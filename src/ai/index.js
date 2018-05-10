@@ -113,6 +113,7 @@ app.eventEmitter = eventEmitter;
 // Keep nodes in memory for easy access!
 // - rebuilds on changes, etc. 
 app.nodesDb = [];
+app.nodesDbParsed = [];
 
 
 // for creating a group of VMs that are processing things in parallel 
@@ -245,6 +246,41 @@ eventEmitter.on('command',async (message, socket) => {
 		  nodesDb = null;
 
   		break;
+  	
+
+  	case 'fetchNodesInMemory':
+
+  		// expecting a simple match as input 
+  		// - no children, parents (but does return those?) 
+
+  		console.log('fetchNodesInMemory');
+
+    	let timeStart3 = (new Date());
+
+			let nodesDb2 = JSON.parse(JSON.stringify(app.nodesDbParsed));
+		  let nodes = lodash.filter(nodesDb2, message.filter);
+
+			// console.log('Fetched Nodes Quick2', nodes.length); //, message.filter); //, nodes.length);
+
+    	let timeEnd2 = (new Date());
+		  // console.log('FetchNodes Time1:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); 
+
+			console.log('DB Nodes. Total:', app.nodesDb.length, 'ParsedTotal:', app.nodesDbParsed.length, 'Possible:', nodesDb2.length, 'Time:', (timeEnd2.getTime() - timeStart3.getTime())/1000); //, nodes.length);
+
+
+		  eventEmitter.emit(
+		    'response',
+		    {
+		      // id      : ipc.config.id,
+		      id: message.id,
+		      data: nodes //JSON.parse(JSON.stringify(nodes))
+		    }
+		  );
+
+		  nodesDb = null;
+
+  		break;
+
   	
   	case 'historyLog':
 
@@ -790,8 +826,87 @@ class Second {
     // fetch and run code, pass in 
     let nodesInMemory = await app.graphql.fetchNodesSimple();
 
+    app.nodesDbParser = function(){
+    	return new Promise((resolve)=>{
+
+				let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
+
+				// get rid of nodes that have a broken parent 
+				// - TODO: more efficient somewhere else 
+				nodesDb = nodesDb.filter(node=>{
+					// check the parents to see if they are active
+					function checkParent(n){
+
+						if(n.nodeId){
+							let parent = _.find(nodesDb,{_id: n.nodeId});
+							if(parent && parent.active){
+								return checkParent(parent);
+							}
+							return false;
+						}
+						return true;
+
+					}
+					return checkParent(node);
+				});
+
+				// console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length); //, nodes.length);
+
+			  const fetchNodesQuick = (filterObj, depth) => {
+			    // also fetches all child nodes, for 10 levels deep
+			    return new Promise(async (resolve,reject)=>{
+			      depth = depth || 1;
+			      depth++;
+			      if(depth > 6){
+			        // too deep! (or pointing in a loop!) 
+			        return resolve([]);
+			      }
+
+			      let nodes = JSON.parse(JSON.stringify(lodash.filter(nodesDb, filterObj))); // mimics simply object requests 
+
+			      // console.log('Found nodes!');
+
+			      for(let node of nodes){
+
+			      	function getParentChain(nodeId){
+			      		let parent = lodash.find(nodesDb, {_id: nodeId});
+			      		if(parent.nodeId){
+			      			parent.parent = getParentChain(parent.nodeId);
+			      		}
+			      		return parent;
+			      	}
+
+			        // get parent(s)
+			        if(node.nodeId){
+			          // find parent 
+			          // let parent = await fetchNodesQuick({_id: node.nodeId}, 4);
+			          // if(parent && parent.length){
+			          //   node.parent = parent[0];
+			          // }
+			          node.parent = getParentChain(node.nodeId); //lodash.find(nodesDb, {_id: node.nodeId});
+
+			        }
+
+			        // get children 
+			        node.nodes = await fetchNodesQuick({nodeId: node._id}, depth);
+
+			      }
+
+			      // console.log('After nodes');
+			      resolve(nodes);
+
+			    });
+			  }
+
+			  let nodes = await fetchNodesQuick({}, 1);
+			  app.nodesDbParsed = nodes;
+
+    	})
+    }
 		app.nodesDb = nodesInMemory;
     console.log('NodesDb populated!', app.nodesDb.length);
+		app.nodesDbParsed = await app.nodesDbParser();
+		console.log('app.nodesDbParsed updated'), app.nodesDbParsed.length;
 
     // // 
     // let nodesFalse = await app.graphql.fetchNodesSimple({active: false});
