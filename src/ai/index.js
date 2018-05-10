@@ -372,11 +372,13 @@ eventEmitter.on('command',async (message, socket) => {
 			// Update memory!
 			if(message.skipWaitForResolution){
 	    	app.graphql.fetchNodesSimple()
-	    	.then(newNodesDb=>{
+	    	.then(async (newNodesDb)=>{
 	    		app.nodesDb = newNodesDb;	
+	    		app.nodesDbParsed = await app.nodesDbParser();
 	    	});
 	    } else {
 	    	app.nodesDb = await app.graphql.fetchNodesSimple();
+	    	app.nodesDbParsed = await app.nodesDbParser();
 	    }
 
 		  eventEmitter.emit(
@@ -827,7 +829,7 @@ class Second {
     let nodesInMemory = await app.graphql.fetchNodesSimple();
 
     app.nodesDbParser = function(){
-    	return new Promise((resolve)=>{
+    	return new Promise(async (resolve)=>{
 
 				let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
 
@@ -899,7 +901,8 @@ class Second {
 			  }
 
 			  let nodes = await fetchNodesQuick({}, 1);
-			  app.nodesDbParsed = nodes;
+
+			  resolve(nodes);
 
     	})
     }
