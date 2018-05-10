@@ -269,6 +269,25 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         });
       }
 
+      const npminstall = (packageName) => {
+        return new Promise(async (resolve, reject)=>{
+
+          // Runs in ThreadedVM 
+          // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+          // should validate code/schema too? 
+
+          setupIpcWatcher({
+              command: 'npminstall', // whole thing for now
+              requestId: ob.requestId,
+              package: packageName
+          }, (r)=>{
+            resolve(r.data);
+          })
+
+        });
+      }
+
       const publishNodeToChain = async (opts) => {
 
         let {
@@ -406,6 +425,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
       let funcInSandbox = Object.assign({
         universe: {
+          npm: {
+            install: npminstall
+          },
           appBaseClosest,
           platformClosest,
           env: process.env, // just allow all environment variables to be accessed 

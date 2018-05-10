@@ -15,6 +15,7 @@ services:
       - .:/usr/src/app
     ports:
       - "${PORT_ON}:7001"
+      - "9229:9229"
     links:
       - redis
       - mongodb

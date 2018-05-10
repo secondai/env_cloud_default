@@ -35,6 +35,28 @@ const {
   performance
 } = require('perf_hooks');
 
+
+var npm = require('npm');
+let installedPackages = {};
+let npmReadyResolve;
+const waitNpmReady = new Promise(resolve=>{
+	npmReadyResolve = resolve;
+});
+let npmReady; = new Promise();
+npm.load(function(err) {
+	npmReadyResolve();
+  // handle errors
+  if(err){
+    // what possible errors?? 
+    console.error('npm load error:', err);
+  }
+
+  npm.on('log', function(message) {
+    // log installation progress
+    console.log('[[NPM Install Log]]', message);
+  });
+});
+
 // AI handles an input 
 // - input includes authentication 
 // - could be a JWT, or some other kind of asset 
@@ -535,6 +557,56 @@ eventEmitter.on('command',async (message, socket) => {
 		      data: session
 		    }
 		  );
+
+  		break;
+
+
+  	case 'npminstall':
+  		// install npm module (if not already installed?) 
+
+  		waitNpmReady.then(()=>{
+
+  			console.log('waitNpmReady was resolved, executing npmPackage install');
+
+	  		let npmPackage = message.package;
+
+	  		if(installedPackages[npmPackage]){
+	  			// previously installed!
+
+				  eventEmitter.emit(
+				    'response',
+				    {
+				      // id      : ipc.config.id,
+				      id: message.id,
+				      data: true
+				    }
+				  );
+
+					return;
+	  		}
+	  		installedPackages[npmPackage] = true;
+
+			  // install module ffi
+			  npm.commands.install([npmPackage], function(err, data) {
+			    if(err){
+			    	console.error('Failed npm install command:', err);
+			    }
+
+				  eventEmitter.emit(
+				    'response',
+				    {
+				      // id      : ipc.config.id,
+				      id: message.id,
+				      data: {
+				      	err, 
+				      	data
+				      }
+				    }
+				  );
+			  });
+
+			});
+
 
   		break;
 
