@@ -434,6 +434,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           console,
           lodash,
           required, // "requires" libs
+          require,
           jsSchema,
           rsa,
           bitcoin,

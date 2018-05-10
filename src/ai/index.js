@@ -585,6 +585,8 @@ eventEmitter.on('command',async (message, socket) => {
 
 	  		let npmPackage = message.package;
 
+	  		console.log('package to install:', npmPackage);
+
 	  		if(installedPackages[npmPackage]){
 	  			// previously installed!
 
@@ -604,24 +606,32 @@ eventEmitter.on('command',async (message, socket) => {
 	  		}
 	  		installedPackages[npmPackage] = true;
 
-			  // install module ffi
-			  npm.commands.install([npmPackage], function(err, data) {
-			    if(err){
-			    	console.error('Failed npm install command:', err);
-			    }
+	  		console.log('not installed, installing');
 
-				  eventEmitter.emit(
-				    'response',
-				    {
-				      // id      : ipc.config.id,
-				      id: message.id,
-				      data: {
-				      	err, 
-				      	data
-				      }
+			  // install module ffi
+			  try {
+				  npm.commands.install([npmPackage], function(err, data) {
+				    if(err){
+				    	console.error('Failed npm install command:', err);
 				    }
-				  );
-			  });
+
+				    console.log('Installed package.',data);
+
+					  eventEmitter.emit(
+					    'response',
+					    {
+					      // id      : ipc.config.id,
+					      id: message.id,
+					      data: {
+					      	err, 
+					      	data
+					      }
+					    }
+					  );
+				  });
+				}catch(err){
+					console.error('failed installing package2:', err);
+				}
 
 			});
 
