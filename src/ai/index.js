@@ -258,6 +258,7 @@ eventEmitter.on('command',async (message, socket) => {
     	let timeStart3 = (new Date());
 
 			let nodesDb2 = JSON.parse(JSON.stringify(app.nodesDbParsed));
+    	let timeStart4 = (new Date());
 		  let nodes2 = lodash.filter(nodesDb2, message.filter);
 
 			// console.log('Fetched Nodes Quick2', nodes.length); //, message.filter); //, nodes.length);
@@ -265,7 +266,7 @@ eventEmitter.on('command',async (message, socket) => {
     	let timeEnd2 = (new Date());
 		  // console.log('FetchNodes Time1:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); 
 
-			console.log('DB Nodes. Total:', app.nodesDb.length, 'ParsedTotal:', app.nodesDbParsed.length, 'Possible:', nodesDb2.length, 'Time:', (timeEnd2.getTime() - timeStart3.getTime())/1000); //, nodes.length);
+			console.log('fetchNodesInMemory: DB Nodes. Total:', app.nodesDb.length, 'ParsedTotal:', app.nodesDbParsed.length, 'Possible:', nodesDb2.length, 'Time:',  (timeStart4.getTime() - timeStart3.getTime())/1000, (timeEnd2.getTime() - timeStart4.getTime())/1000, (timeEnd2.getTime() - timeStart3.getTime())/1000); //, nodes.length);
 
 
 		  eventEmitter.emit(
