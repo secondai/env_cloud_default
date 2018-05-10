@@ -449,6 +449,71 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           google,
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
 
+          checkPackage: (pkgName)=>{
+            app.globalCache.packages = app.globalCache.packages || {};
+            return app.globalCache.packages[pkgName] || {};
+          },
+          installPackage: (pkgName)=>{
+            // manages package installation 
+            // - simultaneous, etc. 
+            return new Promise((resolve,reject)=>{
+              // create global package tracker
+              console.log('installPackage1');
+              app.globalCache.packages = app.globalCache.packages || {};
+              if(!app.globalCache.packages[pkgName]){
+                let onInstallResolve;
+                let onInstall = new Promise((resolve2)=>{
+                  onInstallResolve = resolve2;
+                });
+                app.globalCache.packages[pkgName] = {
+                  installing: false,
+                  installed: false,
+                  errorInstalling: null,
+                  onInstallResolve,
+                  onInstall
+                }
+              }
+              let pkg = app.globalCache.packages[pkgName];
+              console.log('pkg:', pkg);
+              if(pkg.installing){
+                console.log('waiting for install, in progress');
+                return pkg.onInstall.then(resolve);
+              }
+              if(pkg.installed){
+                // all good, return resolved
+                console.log('installed already, ok!');
+                return resolve(true);
+              }
+              
+              if(pkg.errorInstalling){
+                console.log('Unable to load, previous error installing (try uninstalling, then reinstalling)');
+                return resolve(false);
+              }
+              
+              // install
+              const { exec } = require('child_process');
+              exec('npm install ' + pkgName, (err, stdout, stderr) => {
+                if (err) {
+                  console.error(`exec error installing package!: ${err}`);
+                  pkg.installing = false;
+                  pkg.errorInstalling = true;
+                  return;
+                }
+                console.log(`Exec Result: ${stdout}`);
+                
+                // resolve all waiting scripts (including in this block) 
+                pkg.onInstallResolve(true);
+                pkg.installed = true;
+                pkg.installing = false;
+                
+              });
+              
+              pkg.onInstall.then(resolve);
+              
+            });
+
+          },
+
           isParentOf: (parentId, node1)=>{
             // console.log('isParentOf', parentId);
             function getParentNodeIds(node){
