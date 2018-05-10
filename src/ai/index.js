@@ -909,7 +909,7 @@ class Second {
 		app.nodesDb = nodesInMemory;
     console.log('NodesDb populated!', app.nodesDb.length);
 		app.nodesDbParsed = await app.nodesDbParser();
-		console.log('app.nodesDbParsed updated'), app.nodesDbParsed.length;
+		console.log('app.nodesDbParsed updated', app.nodesDbParsed.length);
 
     // // 
     // let nodesFalse = await app.graphql.fetchNodesSimple({active: false});
