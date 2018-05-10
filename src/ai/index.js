@@ -39,11 +39,11 @@ const {
 var npm = require('npm');
 let installedPackages = {};
 let npmReadyResolve;
-const waitNpmReady = new Promise(resolve=>{
+const waitNpmReady = new Promise((resolve)=>{
 	npmReadyResolve = resolve;
 });
-let npmReady; = new Promise();
 npm.load(function(err) {
+	console.log('npm loaded');
 	npmReadyResolve();
   // handle errors
   if(err){
@@ -578,7 +578,10 @@ eventEmitter.on('command',async (message, socket) => {
 				    {
 				      // id      : ipc.config.id,
 				      id: message.id,
-				      data: true
+				      data: {
+				      	err: false,
+				      	data: true
+				      }
 				    }
 				  );
 
