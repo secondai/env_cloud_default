@@ -51,26 +51,27 @@ const {
 
 
 
-var npm = require('npm');
+var npm = require('npm-programmatic');
+// var npm = require('npm');
 let installedPackages = {};
-let npmReadyResolve;
-const waitNpmReady = new Promise((resolve)=>{
-	npmReadyResolve = resolve;
-});
-npm.load(function(err) {
-	console.log('npm loaded');
-	npmReadyResolve();
-  // handle errors
-  if(err){
-    // what possible errors?? 
-    console.error('npm load error:', err);
-  }
+// let npmReadyResolve;
+// const waitNpmReady = new Promise((resolve)=>{
+// 	npmReadyResolve = resolve;
+// });
+// npm.load(function(err) {
+// 	console.log('npm loaded');
+// 	npmReadyResolve();
+//   // handle errors
+//   if(err){
+//     // what possible errors?? 
+//     console.error('npm load error:', err);
+//   }
 
-  npm.on('log', function(message) {
-    // log installation progress
-    console.log('[[NPM Install Log]]', message);
-  });
-});
+//   npm.on('log', function(message) {
+//     // log installation progress
+//     console.log('[[NPM Install Log]]', message);
+//   });
+// });
 
 // AI handles an input 
 // - input includes authentication 
@@ -579,7 +580,7 @@ eventEmitter.on('command',async (message, socket) => {
   	case 'npminstall':
   		// install npm module (if not already installed?) 
 
-  		waitNpmReady.then(()=>{
+  		// waitNpmReady.then(()=>{
 
   			console.log('waitNpmReady was resolved, executing npmPackage install');
 
@@ -608,14 +609,24 @@ eventEmitter.on('command',async (message, socket) => {
 
 	  		console.log('not installed, installing');
 
-			  // install module ffi
 			  try {
-				  npm.commands.install([npmPackage], function(err, data) {
-				    if(err){
-				    	console.error('Failed npm install command:', err);
-				    }
-
-				    console.log('Installed package.',data);
+			  	npm.install([package], {})
+			    .then(function(){
+			      console.log("SUCCESS installing package");
+					  eventEmitter.emit(
+					    'response',
+					    {
+					      // id      : ipc.config.id,
+					      id: message.id,
+					      data: {
+					      	err: null, 
+					      	data: true
+					      }
+					    }
+					  );
+			    })
+			    .catch(function(){
+			       console.log("Unable to install package");
 
 					  eventEmitter.emit(
 					    'response',
@@ -623,17 +634,27 @@ eventEmitter.on('command',async (message, socket) => {
 					      // id      : ipc.config.id,
 					      id: message.id,
 					      data: {
-					      	err, 
-					      	data
+					      	err: true, 
+					      	data: false
 					      }
 					    }
 					  );
-				  });
+
+			    });
+
+				  // npm.commands.install([npmPackage], function(err, data) {
+				  //   if(err){
+				  //   	console.error('Failed npm install command:', err);
+				  //   }
+
+				  //   console.log('Installed package.',data);
+
+				  // });
 				}catch(err){
 					console.error('failed installing package2:', err);
 				}
 
-			});
+			// });
 
 
   		break;

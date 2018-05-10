@@ -95,6 +95,7 @@
     "node-rsa": "^0.4.2",
     "nodemon": "^1.12.5",
     "npm": "5.7.1",
+    "npm-programmatic": "0.0.10",
     "papaparse": "4.3.7",
     "parse-domain": "2.0.0",
     "parse-github-url": "1.0.2",
