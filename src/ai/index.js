@@ -15,6 +15,20 @@ import ipc from './ipc'
 
 import _ from 'lodash'
 
+// import {PluginManager} from "live-plugin-manager";
+// const pluginManager = new PluginManager();
+// async function runPlugins() {
+//   await pluginManager.install("moment");
+
+//   const moment = pluginManager.require("moment");
+//   console.log(moment().format());
+
+//   await pluginManager.uninstall("moment");
+// }
+// runPlugins();
+
+
+
 const parseGitHubUrl = require('parse-github-url');
 
 const JSZip = require('jszip');
@@ -36,6 +50,7 @@ const {
 } = require('perf_hooks');
 
 
+l
 var npm = require('npm');
 let installedPackages = {};
 let npmReadyResolve;
