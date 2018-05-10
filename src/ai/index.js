@@ -282,7 +282,14 @@ eventEmitter.on('command',async (message, socket) => {
 			let savedNode = await app.graphql.newNode(message.node);
 
 			// Update memory!
-	    app.nodesDb = await app.graphql.fetchNodesSimple();
+			if(message.skipWaitForResolution){
+	    	app.graphql.fetchNodesSimple()
+	    	.then(newNodesDb=>{
+	    		app.nodesDb = newNodesDb;	
+	    	});
+	    } else {
+	    	app.nodesDb = await app.graphql.fetchNodesSimple();
+	    }
 
 		  eventEmitter.emit(
 		    'response',
@@ -327,7 +334,14 @@ eventEmitter.on('command',async (message, socket) => {
   			updatedNode = await app.graphql.updateNode(message.node);
   		}
 			// Update memory!
-	    app.nodesDb = await app.graphql.fetchNodesSimple();
+			if(message.skipWaitForResolution){
+	    	app.graphql.fetchNodesSimple()
+	    	.then(newNodesDb=>{
+	    		app.nodesDb = newNodesDb;	
+	    	});
+	    } else {
+	    	app.nodesDb = await app.graphql.fetchNodesSimple();
+	    }
 
 		  eventEmitter.emit(
 		    'response',
@@ -350,7 +364,14 @@ eventEmitter.on('command',async (message, socket) => {
 			let removedNode = await app.graphql.removeNode(message.node);
 
 			// Update memory!
-	    app.nodesDb = await app.graphql.fetchNodesSimple();
+			if(message.skipWaitForResolution){
+	    	app.graphql.fetchNodesSimple()
+	    	.then(newNodesDb=>{
+	    		app.nodesDb = newNodesDb;	
+	    	});
+	    } else {
+	    	app.nodesDb = await app.graphql.fetchNodesSimple();
+	    }
 
 		  eventEmitter.emit(
 		    'response',
@@ -610,7 +631,9 @@ eventEmitter.on('command',async (message, socket) => {
 	  		console.log('not installed, installing');
 
 			  try {
-			  	npm.install([npmPackage], {})
+			  	npm.install([npmPackage], {
+			  		output: true
+			  	})
 			    .then(function(){
 			      console.log("SUCCESS installing package");
 					  eventEmitter.emit(
@@ -625,8 +648,8 @@ eventEmitter.on('command',async (message, socket) => {
 					    }
 					  );
 			    })
-			    .catch(function(){
-			       console.log("Unable to install package");
+			    .catch(function(err){
+			       console.log("Unable to install package", err);
 
 					  eventEmitter.emit(
 					    'response',

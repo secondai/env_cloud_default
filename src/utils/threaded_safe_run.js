@@ -1665,7 +1665,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             });
           },
 
-          newNode: (node) => {
+          newNode: (node, skipWaitForResolution) => {
             return new Promise(async (resolve, reject)=>{
 
               // Runs in ThreadedVM 
@@ -1675,7 +1675,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               setupIpcWatcher({
                   command: 'newNode', // whole thing for now
-                  node
+                  node,
+                  skipWaitForResolution
               }, (r)=>{
                 resolve(r.data);
               })
@@ -1701,7 +1702,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             });
           },
           
-          updateNode: (node) => {
+          updateNode: (node, skipWaitForResolution) => {
             return new Promise(async (resolve, reject)=>{
 
               // Runs in ThreadedVM 
@@ -1730,7 +1731,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               setupIpcWatcher({
                   command: 'updateNode', // whole thing for now
-                  node
+                  node,
+                  skipWaitForResolution
               }, (r)=>{
                 resolve(r.data);
               })
@@ -1739,7 +1741,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
           },
           
-          removeNode: (node) => {
+          removeNode: (node, skipWaitForResolution) => {
             return new Promise(async (resolve, reject)=>{
 
               // Runs in ThreadedVM 
@@ -1761,7 +1763,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               setupIpcWatcher({
                   command: 'removeNode', // whole thing for now
-                  node
+                  node,
+                  skipWaitForResolution
               }, (r)=>{
                 resolve(r.data);
               })
