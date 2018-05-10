@@ -15,7 +15,7 @@
     "server:start": "node dist/index.js",
     "server:dev": "nodemon src/index.js --exec \"node -r dotenv/config -r babel-register\"",
     "server:dev-inspect": "nodemon src/index.js --exec \"node --inspect=0.0.0.0 -r dotenv/config -r babel-register\"",
-    "server:heroku": "node_modules/nodemon/bin/nodemon.js src/index.js --exec \"node -r dotenv/config -r babel-register\" --verbose",
+    "server:heroku": "node_modules/nodemon/bin/nodemon.js src/index.js --exec \"node -r dotenv/config -r babel-register\" --verbose --ignore 'package.json' --ignore 'package.json.*'",
     "server:clean": "rimraf dist",
     "server:build": "npm run server:clean && mkdir -p dist && babel src -s -D -d dist",
     "server:test": "jest --watch",
