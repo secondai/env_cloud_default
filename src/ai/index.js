@@ -281,6 +281,34 @@ eventEmitter.on('command',async (message, socket) => {
 		  nodesDb2 = null;
 
   		break;
+  	
+
+  	case 'fetchNodesInMemoryByIds':
+
+  		// expecting only an _id as input 
+
+  		console.log('fetchNodesInMemoryByIds');
+  		let nodes3 = [];
+
+  		(message.filter._ids || []).forEach(_id=>{
+    		let foundNodeById = nodesDbParsedIds[_id];
+    		if(foundNodeById){
+    			nodes3.push(JSON.parse(JSON.stringify(foundNodeById)));
+    		}
+  		})
+
+		  eventEmitter.emit(
+		    'response',
+		    {
+		      // id      : ipc.config.id,
+		      id: message.id,
+		      data: nodes3 //JSON.parse(JSON.stringify(nodes))
+		    }
+		  );
+
+		  nodesDb2 = null;
+
+  		break;
 
   	
   	case 'historyLog':
@@ -375,11 +403,11 @@ eventEmitter.on('command',async (message, socket) => {
 	    	app.graphql.fetchNodesSimple()
 	    	.then(async (newNodesDb)=>{
 	    		app.nodesDb = newNodesDb;	
-	    		app.nodesDbParsed = await app.nodesDbParser();
+	    		await app.nodesDbParser();
 	    	});
 	    } else {
 	    	app.nodesDb = await app.graphql.fetchNodesSimple();
-	    	app.nodesDbParsed = await app.nodesDbParser();
+	    	await app.nodesDbParser();
 	    }
 
 		  eventEmitter.emit(
@@ -854,8 +882,9 @@ class Second {
 				});
 
 				// console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length); //, nodes.length);
+				let nodesById = {};
 
-			  const fetchNodesQuick = (filterObj, depth) => {
+			  const fetchNodesQuick = (filterObj, depth, addToIdList) => {
 			    // also fetches all child nodes, for 10 levels deep
 			    return new Promise(async (resolve,reject)=>{
 			      depth = depth || 1;
@@ -893,6 +922,10 @@ class Second {
 			        // get children 
 			        node.nodes = await fetchNodesQuick({nodeId: node._id}, depth);
 
+			        if(addToIdList){
+			        	nodesById[node._id] = node;
+			        }
+
 			      }
 
 			      // console.log('After nodes');
@@ -901,7 +934,10 @@ class Second {
 			    });
 			  }
 
-			  let nodes = await fetchNodesQuick({}, 1);
+			  let nodes = await fetchNodesQuick({}, 1, true);
+
+			  app.nodesDbParsed = nodes;
+			  app.nodesDbParsedIds = nodesById;
 
 			  resolve(nodes);
 
@@ -909,7 +945,7 @@ class Second {
     }
 		app.nodesDb = nodesInMemory;
     console.log('NodesDb populated!', app.nodesDb.length);
-		app.nodesDbParsed = await app.nodesDbParser();
+		await app.nodesDbParser();
 		console.log('app.nodesDbParsed updated', app.nodesDbParsed.length);
 
     // // 

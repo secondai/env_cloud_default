@@ -193,6 +193,25 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       }
 
 
+      const fetchNodesInMemoryByIds = (filter) => {
+
+        return new Promise(async (resolve, reject) => {
+
+          setupIpcWatcher({
+              command: 'fetchNodesInMemoryByIds', // whole thing for now
+              requestId: ob.requestId,
+              filter              
+          }, (r)=>{
+            resolve(r.data);
+          })
+
+
+        })
+
+      }
+      
+
+
       // passed-in libs as required and available
       let required = {};
       for(let r of ob.requires){
@@ -2079,6 +2098,60 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // run "filterNode" after all the results are found
               if(typeof(opts.filter.filterNodes) == 'function'){
                 nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
+              }
+
+              Promise.resolve(nodes)
+              .then(nodes=>{
+                // add result to cache
+                if(opts.cache){
+                  app.globalCache.SearchFilters[opts.cache] = nodes;
+                }
+
+                resolve(nodes);
+              })
+              .catch(err=>{
+                resolve({
+                  error: true,
+                  str: 'Failed searching internal memory (filterNodes)!',
+                  err: err.toString()
+                });
+              })
+
+
+
+            })
+          },
+          searchMemoryByIds: (opts) => {
+            return new Promise(async (resolve, reject)=>{
+              console.log('Running searchMemoryByIds');
+              // resolve('universe result! ' + ob.context.tenant.dbName);
+              // console.log('searchMemory1');
+              opts = opts || {};
+              opts.filter = opts.filter || {};
+              opts.filter._ids = opts.filter._ids || [];
+              // console.log('FetchNodes:', opts.filter.sqlFilter);
+
+              // // Check cache 
+              // if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
+              //   if(app.globalCache.SearchFilters[opts.cache]){
+              //     console.log('Used cache (skipped IPC fetchNodes)');
+              //     return resolve(app.globalCache.SearchFilters[opts.cache]);
+              //   } else {
+              //     console.log('Not cached yet:', opts.cache);
+              //   }
+              // } else {
+              //   console.log('No cache attempted, fetchingNodes');
+              // }
+
+              // console.log('SLOW:', opts.cache ? opts.cache:'NoCache');
+
+              let nodes;
+              try{
+                nodes = await fetchNodesInMemoryByIds(opts.filter._ids);
+              }catch(err){
+                return resolve({
+                  err: 'shit'
+                });
               }
 
               Promise.resolve(nodes)
