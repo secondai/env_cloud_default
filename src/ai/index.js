@@ -258,7 +258,7 @@ eventEmitter.on('command',async (message, socket) => {
     	let timeStart3 = (new Date());
 
 			let nodesDb2 = JSON.parse(JSON.stringify(app.nodesDbParsed));
-		  let nodes = lodash.filter(nodesDb2, message.filter);
+		  let nodes2 = lodash.filter(nodesDb2, message.filter);
 
 			// console.log('Fetched Nodes Quick2', nodes.length); //, message.filter); //, nodes.length);
 
@@ -273,11 +273,11 @@ eventEmitter.on('command',async (message, socket) => {
 		    {
 		      // id      : ipc.config.id,
 		      id: message.id,
-		      data: nodes //JSON.parse(JSON.stringify(nodes))
+		      data: nodes2 //JSON.parse(JSON.stringify(nodes))
 		    }
 		  );
 
-		  nodesDb = null;
+		  nodesDb2 = null;
 
   		break;
 
