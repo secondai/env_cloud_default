@@ -610,7 +610,7 @@ eventEmitter.on('command',async (message, socket) => {
 	  		console.log('not installed, installing');
 
 			  try {
-			  	npm.install([package], {})
+			  	npm.install([npmPackage], {})
 			    .then(function(){
 			      console.log("SUCCESS installing package");
 					  eventEmitter.emit(
