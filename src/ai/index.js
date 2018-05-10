@@ -114,7 +114,7 @@ app.eventEmitter = eventEmitter;
 // - rebuilds on changes, etc. 
 app.nodesDb = [];
 app.nodesDbParsed = [];
-
+app.nodesDbParsedIds = {}; // _ids ref to app.nodesDbParsed object
 
 // for creating a group of VMs that are processing things in parallel 
 // - the group name is passed in, as well as the amount to allow at a time 
@@ -291,7 +291,7 @@ eventEmitter.on('command',async (message, socket) => {
   		let nodes3 = [];
 
   		(message._ids || []).forEach(_id=>{
-    		let foundNodeById = nodesDbParsedIds[_id];
+    		let foundNodeById = app.nodesDbParsedIds[_id];
     		if(foundNodeById){
     			nodes3.push(JSON.parse(JSON.stringify(foundNodeById)));
     		}
