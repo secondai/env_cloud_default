@@ -1978,8 +1978,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                   code: code,
                   SELF: opts.codeNode,
                   INPUT: opts.dataNode || opts.inputNode,
-                  requestId: ob.requestId, // from ob.context!!
-                  mainIpcId: ob.mainIpcId,
+                  requestId: ob ? ob.requestId : uuidv4(), // from ob.context!!
+                  mainIpcId: ob ? ob.mainIpcId : uuidv4(),
                   nodeId: opts.codeNode._id,
                   timeout: opts.timeout,
                   workGroup: opts.workGroup,
@@ -2254,17 +2254,21 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               data
             ); // sends up from subprocess/child
 
-            output = null;
-            setTimeout(()=>{
-              data = null;
-              ob = null;
+            // if(output && output.keepVM === true){
+            //   // not used, always not kept (was maybe using when ob was nulled for scheduler...)
+            // } else {
+              output = null;
+              setTimeout(()=>{
+                data = null;
+                ob = null;
 
-              // free memory here? delete the vm entirely? 
-              delete funcInSandbox.universe;
-              funcInSandbox = null;
-              vm = null;
+                // free memory here? delete the vm entirely? 
+                delete funcInSandbox.universe;
+                funcInSandbox = null;
+                vm = null;
 
-            },100);
+              },100);
+            // }
 
 
             // exit();
