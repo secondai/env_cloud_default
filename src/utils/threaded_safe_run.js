@@ -610,6 +610,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             let appBaseClosest1 = lodash.find(parentNodes1, node=>{
               return (
                 node.type.split(':')[0] == 'app_base'
+                ||
+                node.type.split(':')[0] == 'app_parts'
               )
             });
 
@@ -621,6 +623,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             let appBaseClosest2 = lodash.find(parentNodes2, node=>{
               return (
                 node.type.split(':')[0] == 'app_base'
+                ||
+                node.type.split(':')[0] == 'app_parts'
               )
             });
 
