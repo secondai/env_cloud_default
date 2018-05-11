@@ -450,6 +450,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       let appBaseClosest = lodash.find(parentNodes, node=>{
         return (
           node.type.split(':')[0] == 'app_base'
+          ||
+          node.type.split(':')[0] == 'app_parts'
         )
       });
 
