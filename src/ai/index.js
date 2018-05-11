@@ -1031,8 +1031,21 @@ class Second {
 
       console.log('firstResponse', firstResponse);
 
-
     }
+
+
+
+    // run "startup" action
+    // - initiates heartbeat/cron 
+    let startupResponse = await this.runRequest({
+      type: 'incoming_startup:Qmf3289h9293fhsb',
+      data: {} // arrives as INPUT
+    }, true)
+
+
+    // start running heartbeat 
+    // - is started inside "incoming_first" node (even though it is long-running, I think we'll allow it?) 
+
 
 	}
 	runRequest(InputNode, skipWrappingInputNode, reqObj, resObj){
