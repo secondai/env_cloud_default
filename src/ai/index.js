@@ -27,7 +27,7 @@ import _ from 'lodash'
 // }
 // runPlugins();
 
-
+var cacheManager = require('cache-manager');
 
 const parseGitHubUrl = require('parse-github-url');
 
@@ -1074,6 +1074,12 @@ class Second {
         // cache starting point 
 	      app.globalCache = app.globalCache || {};
 	      app.globalCache.SearchFilters = app.globalCache.SearchFilters || {};
+
+	      app.memoryCache = cacheManager.caching({
+	      	store: 'memory',
+	      	max: 100,
+	      	ttl: 10 // seconds
+	      });
 
 
 	      if(app.globalCache.SearchFilters[ 'incoming_from_universe:CodeNode' ] && (process.env.IGNORE_MEMORY_CACHE || '').toString() != 'true'){
