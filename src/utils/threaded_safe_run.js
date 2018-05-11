@@ -649,9 +649,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               platformClosest2 &&
               appBaseClosest1 &&
               appBaseClosest2 &&
-              platformClosest1._id == platformClosest2._id
+              platformClosest1.data.platform == platformClosest2.data.platform
               &&
-              appBaseClosest1._id == appBaseClosest2._id
+              appBaseClosest1.data.appId == appBaseClosest2.data.appId
               ){
               return true;
             }
