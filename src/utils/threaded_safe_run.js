@@ -481,6 +481,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           stringSimilarity,
           RouteParser,
           aws: app.aws,
+          setTimeout,
+          setInterval,
           globalCache: app.globalCache,
           google,
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
