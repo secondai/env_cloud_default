@@ -487,6 +487,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           setInterval,
           clearTimeout,
           clearInterval,
+          eventEmitter,
           globalCache: app.globalCache,
           google,
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
