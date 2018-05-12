@@ -252,7 +252,9 @@ eventEmitter.on('command',async (message, socket) => {
 		    }
 		  );
 
-		  nodesDb = null;
+		  // null out nodes?
+		  // nodes = null;
+		  // nodesDb = null;
 
   		break;
   	
