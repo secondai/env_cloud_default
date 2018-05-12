@@ -114,7 +114,8 @@ app.eventEmitter = eventEmitter;
 // Keep nodes in memory for easy access!
 // - rebuilds on changes, etc. 
 app.nodesDb = [];
-app.nodesDbParsed = [];
+// app.nodesDbCopy = [];
+app.nodesDbParsed = []; // gets frozen!
 app.nodesDbParsedIds = {}; // _ids ref to app.nodesDbParsed object
 
 // for creating a group of VMs that are processing things in parallel 
@@ -364,8 +365,8 @@ eventEmitter.on('command',async (message, socket) => {
 	  //   	app.nodesDb = await app.graphql.fetchNodesSimple();
 	  //   }
   		app.nodesDb.push(savedNode);
-			app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
-			app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
+			// app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
+			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
 			await app.nodesDbParser();
 
 
@@ -436,8 +437,8 @@ eventEmitter.on('command',async (message, socket) => {
 			// TODO: figure out affected and only update as necessary! 
 			
 
-			app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
-			app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
+			// app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
+			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
 			await app.nodesDbParser();
 
 
@@ -481,8 +482,8 @@ eventEmitter.on('command',async (message, socket) => {
 	  //   	app.nodesDb = await app.graphql.fetchNodesSimple();
 	  //   }
 
-			app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
-			app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
+			// app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
+			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
 			await app.nodesDbParser();
 
 
@@ -904,7 +905,7 @@ class Second {
     	return new Promise(async (resolve)=>{
 
 				// comes in as Object.freeze'd (no need to copy/clone) (faster to deepClone?) 
-				let nodesDb = app.nodesDbCopy;
+				let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
 
 				// get rid of nodes that have a broken parent 
 				// - TODO: more efficient somewhere else 
@@ -996,9 +997,9 @@ class Second {
     let nodesInMemory = await app.graphql.fetchNodesSimple();
 
 		app.nodesDb = nodesInMemory;
-		app.nodesDbCopy = JSON.parse(JSON.stringify(nodesInMemory));
+		// app.nodesDbCopy = JSON.parse(JSON.stringify(nodesInMemory));
     console.log('NodesDb populated!', app.nodesDb.length);
-		app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
+		// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
 		await app.nodesDbParser();
 		console.log('app.nodesDbParsed updated', app.nodesDbParsed.length);
 
@@ -1059,8 +1060,8 @@ class Second {
 
 			// Update memory!
 	    app.nodesDb = await app.graphql.fetchNodesSimple();
-			app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
-			app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
+			// app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
+			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
 			await app.nodesDbParser();
 
       console.log('Inserted Nodes! Total:', totalNodes); //, ' Root:', BASIC_NODES[process.env.STARTUP_BASE].length);
