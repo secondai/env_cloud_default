@@ -371,6 +371,8 @@ eventEmitter.on('command',async (message, socket) => {
 			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
 			await app.nodesDbParser();
 
+      app.eventEmitter.emit('node.afterCreate', savedNode); // should use removedNode? just active==false...
+
 
 		  eventEmitter.emit(
 		    'response',
@@ -423,6 +425,7 @@ eventEmitter.on('command',async (message, socket) => {
   			console.log('UpdateNode');
   			updatedNode = await app.graphql.updateNode(message.node);
   			app.nodesDb.splice(nodeInMemoryIdx,1, updatedNode);
+
   		}
 			// // Update memory!
 			// if(message.skipWaitForResolution){
@@ -442,6 +445,8 @@ eventEmitter.on('command',async (message, socket) => {
 			// app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
 			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
 			await app.nodesDbParser();
+
+      app.eventEmitter.emit('node.afterUpdate', updatedNode);
 
 
 		  eventEmitter.emit(
@@ -488,6 +493,7 @@ eventEmitter.on('command',async (message, socket) => {
 			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
 			await app.nodesDbParser();
 
+      app.eventEmitter.emit('node.afterUpdate', message.node); // should use removedNode? just active==false...
 
 		  eventEmitter.emit(
 		    'response',
