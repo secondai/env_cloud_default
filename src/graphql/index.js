@@ -503,6 +503,7 @@ const newNode = (tmpRecord) => {
             nodeId
             type
             data
+            active
             createdAt
             updatedAt
           }
@@ -584,6 +585,7 @@ const updateNode = (tmpRecord) => {
             nodeId
             type
             data
+            active
             createdAt
             updatedAt
           }
