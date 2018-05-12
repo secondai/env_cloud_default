@@ -1037,6 +1037,7 @@ class Second {
 			  app.deepFreeze(app.nodesDbParsed);
 			  app.deepFreeze(app.nodesDbParsedIds);
 
+			  console.info('event_emit: nodeDb.afterParse');
 			  app.eventEmitter.emit('nodesDb.afterParse', Date.now());
 
 			  resolve(nodes);
