@@ -492,6 +492,11 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           google,
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
 
+          sleep: (ms)=>{
+            return new Promise((resolve,reject)=>{
+              setTimeout(resolve,ms)
+            })
+          },
           checkPackage: (pkgName)=>{
             app.globalCache.packages = app.globalCache.packages || {};
             return app.globalCache.packages[pkgName] || {};

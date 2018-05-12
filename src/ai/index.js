@@ -507,7 +507,7 @@ eventEmitter.on('command',async (message, socket) => {
 				});
 			} else {
 				if(message.skipWaitForResolution){
-					app.nodesDbParser();
+					app.nodesDbParser()
 					.then(()=>{
 	      		app.eventEmitter.emit('node.afterUpdate', message.node);
 					});
