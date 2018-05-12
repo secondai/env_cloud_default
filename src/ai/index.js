@@ -36,6 +36,7 @@ const JSZip = require('jszip');
 
 const lodash = _;
 
+let cJSON = require('circular-json');
 
 let ZipNodes = []; // will be populated to match BASIC_NODES.xyz
 
@@ -141,6 +142,9 @@ eventEmitter.on('command',async (message, socket) => {
   // 		message: message
   // 	}
   // })
+
+  let nodeInMemoryIdx,
+  	nodeInMemory;
 
   switch(message.command){
   	
@@ -346,15 +350,20 @@ eventEmitter.on('command',async (message, socket) => {
   		// message.data = "filter"
 			let savedNode = await app.graphql.newNode(message.node);
 
-			// Update memory!
-			if(message.skipWaitForResolution){
-	    	app.graphql.fetchNodesSimple()
-	    	.then(newNodesDb=>{
-	    		app.nodesDb = newNodesDb;	
-	    	});
-	    } else {
-	    	app.nodesDb = await app.graphql.fetchNodesSimple();
-	    }
+			// // Update memory!
+			// if(message.skipWaitForResolution){
+	  //   	app.graphql.fetchNodesSimple()
+	  //   	.then(newNodesDb=>{
+	  //   		app.nodesDb = newNodesDb;	
+	  //   	});
+	  //   } else {
+	  //   	app.nodesDb = await app.graphql.fetchNodesSimple();
+	  //   }
+  		app.nodesDb.push(savedNode);
+			app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
+			app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
+			await app.nodesDbParser();
+
 
 		  eventEmitter.emit(
 		    'response',
@@ -389,26 +398,44 @@ eventEmitter.on('command',async (message, socket) => {
   		// console.log('UpdateNode:', typeof message.node)
   		// console.log('UpdateNode2:', JSON.stringify(message.node, null,2))
 
+  		nodeInMemoryIdx = app.nodesDb.findIndex(n=>{ // app.nodesDbParsedIds[message.node._id];
+  			return n._id == message.node._id;
+  		});
+
+  		if(nodeInMemoryIdx === -1){
+  			console.error('Node to update NOT in memory!', message.node._id);
+  		}
+
   		// message.data = "filter"
 			let updatedNode;
   		if(message.node.active === false){
   			console.log('RemoveNode');
   			updatedNode = await app.graphql.removeNode(message.node);
+  			app.nodesDb.splice(nodeInMemoryIdx,1);
   		} else {
   			console.log('UpdateNode');
   			updatedNode = await app.graphql.updateNode(message.node);
+  			app.nodesDb.splice(nodeInMemoryIdx,1, updatedNode);
   		}
-			// Update memory!
-			if(message.skipWaitForResolution){
-	    	app.graphql.fetchNodesSimple()
-	    	.then(async (newNodesDb)=>{
-	    		app.nodesDb = newNodesDb;	
-	    		await app.nodesDbParser();
-	    	});
-	    } else {
-	    	app.nodesDb = await app.graphql.fetchNodesSimple();
-	    	await app.nodesDbParser();
-	    }
+			// // Update memory!
+			// if(message.skipWaitForResolution){
+			// 	app.graphql.fetchNodesSimple()
+			// 	.then(async (newNodesDb)=>{
+			// 		app.nodesDb = newNodesDb;	
+			// 		await app.nodesDbParser();
+			// 	});
+			// } else {
+			// 	app.nodesDb = await app.graphql.fetchNodesSimple();
+			// 	await app.nodesDbParser();
+			// }
+
+			// TODO: figure out affected and only update as necessary! 
+			
+
+			app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
+			app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
+			await app.nodesDbParser();
+
 
 		  eventEmitter.emit(
 		    'response',
@@ -421,7 +448,16 @@ eventEmitter.on('command',async (message, socket) => {
 
   		break;
 
+
   	case 'removeNode':
+
+  		nodeInMemoryIdx = app.nodesDb.findIndex(n=>{ // app.nodesDbParsedIds[message.node._id];
+  			return n._id == message.node._id;
+  		});
+
+  		if(nodeInMemoryIdx === -1){
+  			console.error('Node to remove NOT in memory!', message.node._id);
+  		}
 
   		// console.log('UpdateNode:', typeof message.node)
   		// console.log('UpdateNode2:', JSON.stringify(message.node, null,2))
@@ -429,16 +465,22 @@ eventEmitter.on('command',async (message, socket) => {
 
   		// message.data = "filter"
 			let removedNode = await app.graphql.removeNode(message.node);
+			app.nodesDb.splice(nodeInMemoryIdx,1);
 
-			// Update memory!
-			if(message.skipWaitForResolution){
-	    	app.graphql.fetchNodesSimple()
-	    	.then(newNodesDb=>{
-	    		app.nodesDb = newNodesDb;	
-	    	});
-	    } else {
-	    	app.nodesDb = await app.graphql.fetchNodesSimple();
-	    }
+			// // Update memory!
+			// if(message.skipWaitForResolution){
+	  //   	app.graphql.fetchNodesSimple()
+	  //   	.then(newNodesDb=>{
+	  //   		app.nodesDb = newNodesDb;	
+	  //   	});
+	  //   } else {
+	  //   	app.nodesDb = await app.graphql.fetchNodesSimple();
+	  //   }
+
+			app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
+			app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
+			await app.nodesDbParser();
+
 
 		  eventEmitter.emit(
 		    'response',
@@ -854,13 +896,11 @@ class Second {
   	console.log('Second Now Ready (loaded, nothing AT ALL run yet tho (learnBasics might run))');
   	secondReadyResolve(); //
 
-    // fetch and run code, pass in 
-    let nodesInMemory = await app.graphql.fetchNodesSimple();
-
     app.nodesDbParser = function(){
     	return new Promise(async (resolve)=>{
 
-				let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
+				// comes in as Object.freeze'd (no need to copy/clone) (faster to deepClone?) 
+				let nodesDb = app.nodesDbCopy;
 
 				// get rid of nodes that have a broken parent 
 				// - TODO: more efficient somewhere else 
@@ -890,10 +930,11 @@ class Second {
 			      depth = depth || 1;
 			      depth++;
 			      if(depth > 6){
-			        // too deep! (or pointing in a loop!) 
+			        // too deep! (or pointing in a loop!?) 
 			        return resolve([]);
 			      }
 
+			      // necessary to parse/stringify instead of using circular json? 
 			      let nodes = JSON.parse(JSON.stringify(lodash.filter(nodesDb, filterObj))); // mimics simply object requests 
 
 			      // console.log('Found nodes!');
@@ -943,8 +984,14 @@ class Second {
 
     	})
     }
+
+    // fetch and run code, pass in 
+    let nodesInMemory = await app.graphql.fetchNodesSimple();
+
 		app.nodesDb = nodesInMemory;
+		app.nodesDbCopy = JSON.parse(JSON.stringify(nodesInMemory));
     console.log('NodesDb populated!', app.nodesDb.length);
+		app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
 		await app.nodesDbParser();
 		console.log('app.nodesDbParsed updated', app.nodesDbParsed.length);
 
@@ -1005,6 +1052,9 @@ class Second {
 
 			// Update memory!
 	    app.nodesDb = await app.graphql.fetchNodesSimple();
+			app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
+			app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
+			await app.nodesDbParser();
 
       console.log('Inserted Nodes! Total:', totalNodes); //, ' Root:', BASIC_NODES[process.env.STARTUP_BASE].length);
 
