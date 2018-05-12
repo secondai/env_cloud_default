@@ -241,7 +241,7 @@ eventEmitter.on('command',async (message, socket) => {
 			// console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length, 'Time:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); //, nodes.length);
 
 			// should use underscore-query instead of lodash.filter!!! 
-			nodes = lodash.filter(app.nodesDbParsed, filterObj);
+			nodes = lodash.filter(app.nodesDbParsed, message.filter);
 
 		  eventEmitter.emit(
 		    'response',
