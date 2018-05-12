@@ -1712,25 +1712,6 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             });
           },
 
-          newNode: (node, skipWaitForResolution) => {
-            return new Promise(async (resolve, reject)=>{
-
-              // Runs in ThreadedVM 
-              // - putting this here means it PROBABLY won't have all the context we'd hope for
-
-              // should validate code/schema too? 
-
-              setupIpcWatcher({
-                  command: 'newNode', // whole thing for now
-                  node,
-                  skipWaitForResolution
-              }, (r)=>{
-                resolve(r.data);
-              })
-
-            });
-          },
-
           findNode: (filterObj) => {
             return new Promise(async (resolve, reject)=>{
 
@@ -1748,8 +1729,28 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
             });
           },
+
+          newNode: (node, skipWaitForResolution, skipRebuild) => {
+            return new Promise(async (resolve, reject)=>{
+
+              // Runs in ThreadedVM 
+              // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+              // should validate code/schema too? 
+
+              setupIpcWatcher({
+                  command: 'newNode', // whole thing for now
+                  node,
+                  skipWaitForResolution,
+                  skipRebuild
+              }, (r)=>{
+                resolve(r.data);
+              })
+
+            });
+          },
           
-          updateNode: (node, skipWaitForResolution) => {
+          updateNode: (node, skipWaitForResolution, skipRebuild) => {
             return new Promise(async (resolve, reject)=>{
 
               // Runs in ThreadedVM 
@@ -1779,7 +1780,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               setupIpcWatcher({
                   command: 'updateNode', // whole thing for now
                   node,
-                  skipWaitForResolution
+                  skipWaitForResolution,
+                  skipRebuild
               }, (r)=>{
                 resolve(r.data);
               })
@@ -1788,7 +1790,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
           },
           
-          removeNode: (node, skipWaitForResolution) => {
+          removeNode: (node, skipWaitForResolution, skipRebuild) => {
             return new Promise(async (resolve, reject)=>{
 
               // Runs in ThreadedVM 
@@ -1811,6 +1813,24 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               setupIpcWatcher({
                   command: 'removeNode', // whole thing for now
                   node,
+                  skipWaitForResolution,
+                  skipRebuild
+              }, (r)=>{
+                resolve(r.data);
+              })
+
+            });
+
+          },
+
+          rebuildMemory: (skipWaitForResolution) => {
+            return new Promise(async (resolve, reject)=>{
+
+              // used to manually rebuild memory after making bulk changes 
+              // - queues up "afterUpdate" events? 
+
+              setupIpcWatcher({
+                  command: 'rebuildMemory', 
                   skipWaitForResolution
               }, (r)=>{
                 resolve(r.data);

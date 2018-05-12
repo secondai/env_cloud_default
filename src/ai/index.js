@@ -352,38 +352,6 @@ eventEmitter.on('command',async (message, socket) => {
 
   		break;
 
-  	case 'newNode':
-
-  		// message.data = "filter"
-			let savedNode = await app.graphql.newNode(message.node);
-
-			// // Update memory!
-			// if(message.skipWaitForResolution){
-	  //   	app.graphql.fetchNodesSimple()
-	  //   	.then(newNodesDb=>{
-	  //   		app.nodesDb = newNodesDb;	
-	  //   	});
-	  //   } else {
-	  //   	app.nodesDb = await app.graphql.fetchNodesSimple();
-	  //   }
-  		app.nodesDb.push(savedNode);
-			// app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
-			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
-			await app.nodesDbParser();
-
-      app.eventEmitter.emit('node.afterCreate', savedNode); // should use removedNode? just active==false...
-
-
-		  eventEmitter.emit(
-		    'response',
-		    {
-		      // id      : ipc.config.id,
-		      id: message.id,
-		      data: savedNode
-		    }
-		  );
-
-  		break;
 
   	case 'findNode':
 
@@ -401,6 +369,50 @@ eventEmitter.on('command',async (message, socket) => {
 		  );
 
   		break;
+
+
+  	case 'newNode':
+
+  		// message.data = "filter"
+			let savedNode = await app.graphql.newNode(message.node);
+
+			// Update memory!
+			
+			// have a "wait until next resolution" before emitting afterUpdate? 
+			// - states: update-succeeded, updated-and-changes-available-after-reparse
+			
+			// TODO: figure out affected and only update as necessary! 
+  		app.nodesDb.push(savedNode);
+
+			if(message.skipRebuild){
+				// skipping rebuild for now
+				// - listen for next change before emitting afterCreate
+				app.eventEmitter.once('nodesDb.afterParse',()=>{
+	      	app.eventEmitter.emit('node.afterCreate', savedNode);
+				});
+			} else {
+				if(message.skipWaitForResolution){
+					app.nodesDbParser()
+					.then(()=>{
+	      		app.eventEmitter.emit('node.afterCreate', savedNode);
+					});
+		    } else {
+		    	await app.nodesDbParser();
+	      	app.eventEmitter.emit('node.afterCreate', savedNode);
+		    }
+		  }
+
+		  eventEmitter.emit(
+		    'response',
+		    {
+		      // id      : ipc.config.id,
+		      id: message.id,
+		      data: savedNode
+		    }
+		  );
+
+  		break;
+
 
   	case 'updateNode':
 
@@ -427,26 +439,33 @@ eventEmitter.on('command',async (message, socket) => {
   			app.nodesDb.splice(nodeInMemoryIdx,1, updatedNode);
 
   		}
-			// // Update memory!
-			// if(message.skipWaitForResolution){
-			// 	app.graphql.fetchNodesSimple()
-			// 	.then(async (newNodesDb)=>{
-			// 		app.nodesDb = newNodesDb;	
-			// 		await app.nodesDbParser();
-			// 	});
-			// } else {
-			// 	app.nodesDb = await app.graphql.fetchNodesSimple();
-			// 	await app.nodesDbParser();
-			// }
 
-			// TODO: figure out affected and only update as necessary! 
+			// Update memory!
+
+			// have a "wait until next resolution" before emitting afterUpdate? 
+			// - states: update-succeeded, updated-and-changes-available-after-reparse
 			
+			// TODO: figure out affected and only update as necessary! 
 
-			// app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
-			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
-			await app.nodesDbParser();
 
-      app.eventEmitter.emit('node.afterUpdate', updatedNode);
+			if(message.skipRebuild){
+				// skipping rebuild for now
+				// - listen for next change before emitting afterCreate
+				app.eventEmitter.once('nodesDb.afterParse',()=>{
+	      	app.eventEmitter.emit('node.afterUpdate', updatedNode);
+				});
+			} else {
+				if(message.skipWaitForResolution){
+					app.nodesDbParser()
+					.then(()=>{
+	      		app.eventEmitter.emit('node.afterUpdate', updatedNode);
+					});
+		    } else {
+		    	await app.nodesDbParser();
+	      	app.eventEmitter.emit('node.afterUpdate', updatedNode);
+		    }
+		  }
+
 
 
 		  eventEmitter.emit(
@@ -479,21 +498,23 @@ eventEmitter.on('command',async (message, socket) => {
 			let removedNode = await app.graphql.removeNode(message.node);
 			app.nodesDb.splice(nodeInMemoryIdx,1);
 
-			// // Update memory!
-			// if(message.skipWaitForResolution){
-	  //   	app.graphql.fetchNodesSimple()
-	  //   	.then(newNodesDb=>{
-	  //   		app.nodesDb = newNodesDb;	
-	  //   	});
-	  //   } else {
-	  //   	app.nodesDb = await app.graphql.fetchNodesSimple();
-	  //   }
-
-			// app.nodesDbCopy = JSON.parse(JSON.stringify(app.nodesDb));
-			// app.deepFreeze(app.nodesDbCopy); // prevent changes by freezing object
-			await app.nodesDbParser();
-
-      app.eventEmitter.emit('node.afterUpdate', message.node); // should use removedNode? just active==false...
+			// Update memory!
+			if(message.skipRebuild){
+				// skipping rebuild for now
+				// - listen for next change before emitting afterCreate
+				app.eventEmitter.once('nodesDb.afterParse',()=>{
+	      	app.eventEmitter.emit('node.afterUpdate', message.node);
+				});
+			} else {
+				if(message.skipWaitForResolution){
+					app.nodesDbParser();
+					.then(()=>{
+	      		app.eventEmitter.emit('node.afterUpdate', message.node);
+					});
+		    } else {
+		    	await app.nodesDbParser();
+		    }
+		  }
 
 		  eventEmitter.emit(
 		    'response',
@@ -501,6 +522,26 @@ eventEmitter.on('command',async (message, socket) => {
 		      // id      : ipc.config.id,
 		      id: message.id,
 		      data: removedNode // boolean?
+		    }
+		  );
+
+  		break;
+
+
+  	case 'rebuildMemory':
+
+			if(message.skipWaitForResolution){
+				app.nodesDbParser();
+			} else {
+				await app.nodesDbParser();
+			}
+
+		  eventEmitter.emit(
+		    'response',
+		    {
+		      // id      : ipc.config.id,
+		      id: message.id,
+		      data: true // boolean?
 		    }
 		  );
 
@@ -995,6 +1036,8 @@ class Second {
 
 			  app.deepFreeze(app.nodesDbParsed);
 			  app.deepFreeze(app.nodesDbParsedIds);
+
+			  app.eventEmitter.emit('nodesDb.afterParse', Date.now());
 
 			  resolve(nodes);
 
