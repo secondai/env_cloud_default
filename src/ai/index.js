@@ -143,7 +143,8 @@ eventEmitter.on('command',async (message, socket) => {
   // 	}
   // })
 
-  let nodeInMemoryIdx,
+  let nodes,
+  	nodeInMemoryIdx,
   	nodeInMemory;
 
   switch(message.command){
@@ -154,89 +155,92 @@ eventEmitter.on('command',async (message, socket) => {
 			// let nodes = await app.graphql.fetchNodes(message.filter);
 
 
-    	let timeStart1 = (new Date());
 
-			let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
+   //  	let timeStart1 = (new Date());
 
-			// get rid of nodes that have a broken parent 
-			// - TODO: more efficient somewhere else 
-			nodesDb = nodesDb.filter(node=>{
-				// check the parents to see if they are active
-				function checkParent(n){
+			// let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
 
-					if(n.nodeId){
-						let parent = _.find(nodesDb,{_id: n.nodeId});
-						if(parent && parent.active){
-							return checkParent(parent);
-						}
-						return false;
-					}
-					return true;
+			// // get rid of nodes that have a broken parent 
+			// // - TODO: more efficient somewhere else 
+			// nodesDb = nodesDb.filter(node=>{
+			// 	// check the parents to see if they are active
+			// 	function checkParent(n){
 
-				}
-				return checkParent(node);
-			});
+			// 		if(n.nodeId){
+			// 			let parent = _.find(nodesDb,{_id: n.nodeId});
+			// 			if(parent && parent.active){
+			// 				return checkParent(parent);
+			// 			}
+			// 			return false;
+			// 		}
+			// 		return true;
 
-			// console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length); //, nodes.length);
+			// 	}
+			// 	return checkParent(node);
+			// });
 
-			let timeStart2 = (new Date());
+			// // console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length); //, nodes.length);
 
-		  const fetchNodesQuick = (filterObj, depth) => {
-		    // also fetches all child nodes, for 10 levels deep
-		    return new Promise(async (resolve,reject)=>{
-		      depth = depth || 1;
-		      depth++;
-		      if(depth > 6){
-		        // too deep! (or pointing in a loop!) 
-		        return resolve([]);
-		      }
+			// let timeStart2 = (new Date());
 
-		      let nodes = JSON.parse(JSON.stringify(lodash.filter(nodesDb, filterObj))); // mimics simply object requests 
+		 //  const fetchNodesQuick = (filterObj, depth) => {
+		 //    // also fetches all child nodes, for 10 levels deep
+		 //    return new Promise(async (resolve,reject)=>{
+		 //      depth = depth || 1;
+		 //      depth++;
+		 //      if(depth > 6){
+		 //        // too deep! (or pointing in a loop!) 
+		 //        return resolve([]);
+		 //      }
 
-		      // console.log('Found nodes!');
+		 //      let nodes = JSON.parse(JSON.stringify(lodash.filter(nodesDb, filterObj))); // mimics simply object requests 
 
-		      for(let node of nodes){
+		 //      // console.log('Found nodes!');
 
-		      	function getParentChain(nodeId){
-		      		let parent = lodash.find(nodesDb, {_id: nodeId});
-		      		if(parent.nodeId){
-		      			parent.parent = getParentChain(parent.nodeId);
-		      		}
-		      		return parent;
-		      	}
+		 //      for(let node of nodes){
 
-		        // get parent(s)
-		        if(node.nodeId){
-		          // find parent 
-		          // let parent = await fetchNodesQuick({_id: node.nodeId}, 4);
-		          // if(parent && parent.length){
-		          //   node.parent = parent[0];
-		          // }
-		          node.parent = getParentChain(node.nodeId); //lodash.find(nodesDb, {_id: node.nodeId});
+		 //      	function getParentChain(nodeId){
+		 //      		let parent = lodash.find(nodesDb, {_id: nodeId});
+		 //      		if(parent.nodeId){
+		 //      			parent.parent = getParentChain(parent.nodeId);
+		 //      		}
+		 //      		return parent;
+		 //      	}
 
-		        }
+		 //        // get parent(s)
+		 //        if(node.nodeId){
+		 //          // find parent 
+		 //          // let parent = await fetchNodesQuick({_id: node.nodeId}, 4);
+		 //          // if(parent && parent.length){
+		 //          //   node.parent = parent[0];
+		 //          // }
+		 //          node.parent = getParentChain(node.nodeId); //lodash.find(nodesDb, {_id: node.nodeId});
 
-		        // get children 
-		        node.nodes = await fetchNodesQuick({nodeId: node._id}, depth);
+		 //        }
 
-		      }
+		 //        // get children 
+		 //        node.nodes = await fetchNodesQuick({nodeId: node._id}, depth);
 
-		      // console.log('After nodes');
+		 //      }
 
-		      resolve(nodes);
+		 //      // console.log('After nodes');
 
-		    });
-		  }
+		 //      resolve(nodes);
 
-		  let nodes = await fetchNodesQuick(message.filter, 1);
+		 //    });
+		 //  }
 
-			// console.log('Fetched Nodes Quick2', nodes.length); //, message.filter); //, nodes.length);
+		 //  let nodes = await fetchNodesQuick(message.filter, 1);
 
-    	let timeEnd1 = (new Date());
-		  // console.log('FetchNodes Time1:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); 
+			// // console.log('Fetched Nodes Quick2', nodes.length); //, message.filter); //, nodes.length);
 
-			console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length, 'Time:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); //, nodes.length);
+   //  	let timeEnd1 = (new Date());
+		 //  // console.log('FetchNodes Time1:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); 
 
+			// console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length, 'Time:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); //, nodes.length);
+
+			// should use underscore-query instead of lodash.filter!!! 
+			nodes = lodash.filter(app.nodesDbParsed, filterObj);
 
 		  eventEmitter.emit(
 		    'response',
@@ -979,6 +983,9 @@ class Second {
 
 			  app.nodesDbParsed = nodes;
 			  app.nodesDbParsedIds = nodesById;
+
+			  app.deepFreeze(app.nodesDbParsed);
+			  app.deepFreeze(app.nodesDbParsedIds);
 
 			  resolve(nodes);
 
