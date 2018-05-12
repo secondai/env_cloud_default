@@ -539,6 +539,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               }
               
               // install
+              pkg.installing = true;
               const { exec } = require('child_process');
               exec('npm install ' + pkgName, (err, stdout, stderr) => {
                 if (err) {
