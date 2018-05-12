@@ -248,7 +248,7 @@ eventEmitter.on('command',async (message, socket) => {
 		    {
 		      // id      : ipc.config.id,
 		      id: message.id,
-		      data: nodes //JSON.parse(JSON.stringify(nodes))
+		      data: JSON.parse(JSON.stringify(nodes)) //JSON.parse(JSON.stringify(nodes))
 		    }
 		  );
 
