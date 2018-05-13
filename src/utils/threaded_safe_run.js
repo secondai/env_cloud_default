@@ -58,6 +58,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       //   "Bootstrap": []
       // });
 
+
       const request = require('request-promise-native');
 
       process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
@@ -693,6 +694,36 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
             return false;
 
+          },
+
+          IPFS: {
+            ipfs: app.ipfs,
+            ready: app.ipfsReady,
+
+            pin: (bufferToPin)=>{
+
+              return new Promise(async (resolve, reject)=>{
+
+                try {
+                  let ipfsHash = await app.ipfs.files.add(bufferToPin);
+                  console.log('IPFS hash to pin:', ipfsHash);
+                  await app.ipfs.pin.add(ipfsHash);
+                  resolve({
+                    type: 'boolean:..',
+                    data: true
+                  });
+                }catch(err){
+                  console.error('IPFS pin failure:', err);
+                  resolve({
+                    type: 'boolean:..',
+                    data: false
+                  });
+                }
+
+              });
+
+
+            }
           },
 
           directToSecond: (opts)=>{

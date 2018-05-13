@@ -16,10 +16,19 @@
     "server:dev": "nodemon src/index.js --exec \"node -r dotenv/config -r babel-register\"",
     "server:dev-inspect": "nodemon src/index.js --exec \"node --inspect=0.0.0.0 -r dotenv/config -r babel-register\"",
     "server:heroku": "node_modules/nodemon/bin/nodemon.js src/index.js --exec \"node -r dotenv/config -r babel-register\" --verbose --ignore 'package.json' --ignore 'package.json.*' --ignore 'package-lock.json.*' --ignore 'package-lock.json'",
+
     "server:clean": "rimraf dist",
     "server:build": "npm run server:clean && mkdir -p dist && babel src -s -D -d dist",
     "server:test": "jest --watch",
     "server:lint": "esw -w src test",
+
+    "heroku-local": "./node_modules/.bin/pm2 start npm -- run heroku-envstart && ./node_modules/.bin/pm2 logs",
+    "heroku-envstart": "node -r dotenv/config dist/index.js",
+    "heroku-postbuild-IGNORE": "npm run server:build",
+    
+    "heroku": "IPFS_PATH=$PWD/repo/ipfs1 ./node_modules/.bin/jsipfs init && ./node_modules/.bin/pm2 start npm -- run server:heroku2 && ./node_modules/.bin/pm2 logs",
+    "server:heroku2": "node src/index.js -r dotenv/config -r babel-register",
+
     "usernames": "node -r dotenv/config -r babel-register src/utils/usernames.js"
   },
   "keywords": [
@@ -79,7 +88,7 @@
     "hashcash": "^0.5.1",
     "helmet": "^3.9.0",
     "immutable": "3.8.2",
-    "ipfs": "0.28.1",
+    "ipfs": "git+https://github.com/ipfs/js-ipfs.git#pin-api",
     "js-schema": "^1.0.1",
     "js-sha256": "0.9.0",
     "jszip": "3.1.5",
@@ -106,6 +115,7 @@
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "pkgcloud": "1.5.0",
+    "pm2": "2.10.3",
     "pug": "^2.0.0-beta11",
     "queue": "^4.4.2",
     "redis": "^2.8.0",
