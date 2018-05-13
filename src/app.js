@@ -149,6 +149,8 @@ app.use(compression())
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'pug');
 
+app.disable('x-powered-by');
+
 // app.use(logger('dev', {
 //   skip: () => app.get('env') === 'test'
 // }));

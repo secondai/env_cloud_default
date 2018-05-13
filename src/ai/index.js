@@ -722,14 +722,20 @@ eventEmitter.on('command',async (message, socket) => {
   		// 		break;
   		// }
 
-  		requestsCache[message.requestId].res[message.action](message.data);
+  		let returnData = true;
+
+  		if(message.action == 'res'){
+  			returnData = requestsCache[message.requestId].res;
+  		} else {
+  			requestsCache[message.requestId].res[message.action](message.data);
+  		}
 
 		  eventEmitter.emit(
 		    'response',
 		    {
 		      // id      : ipc.config.id,
 		      id: message.id,
-		      data: true // TODO: success/fail
+		      data: returnData // TODO: success/fail
 		    }
 		  );
 
