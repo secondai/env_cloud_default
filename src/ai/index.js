@@ -708,7 +708,21 @@ eventEmitter.on('command',async (message, socket) => {
   		let msgArgs = lodash.isArray(message.data) ? message.data : [message.data];
 
   		// emit response according to input 
-  		requestsCache[message.requestId].res[message.action].apply(this, msgArgs);
+  		switch(message.action){
+  			case 'send':
+  				requestsCache[message.requestId].res[message.action](msgArgs[0]);
+  				break;
+
+  			case 'set':
+  				requestsCache[message.requestId].res[message.action](msgArgs[0], msgArgs[1]);
+  				break;
+
+  			default:
+  				console.error('Invalid httpResponse values');
+  				break;
+  		}
+
+  		// requestsCache[message.requestId].res[message.action].apply(requestsCache[message.requestId].res, msgArgs);
 
 		  eventEmitter.emit(
 		    'response',
