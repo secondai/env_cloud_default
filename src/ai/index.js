@@ -704,25 +704,25 @@ eventEmitter.on('command',async (message, socket) => {
   		// 	data: '', // string? 
   		// }
 
-  		// data = arguments
-  		let msgArgs = lodash.isArray(message.data) ? message.data : [message.data];
+  		// // data = arguments
+  		// let msgArgs = lodash.isArray(message.data) ? message.data : [message.data];
 
-  		// emit response according to input 
-  		switch(message.action){
-  			case 'send':
-  				requestsCache[message.requestId].res[message.action](msgArgs[0]);
-  				break;
+  		// // emit response according to input 
+  		// switch(message.action){
+  		// 	case 'send':
+  		// 		requestsCache[message.requestId].res[message.action](msgArgs[0]);
+  		// 		break;
 
-  			case 'set':
-  				requestsCache[message.requestId].res[message.action](msgArgs[0], msgArgs[1]);
-  				break;
+  		// 	case 'set':
+  		// 		requestsCache[message.requestId].res[message.action](msgArgs[0], msgArgs[1]);
+  		// 		break;
 
-  			default:
-  				console.error('Invalid httpResponse values');
-  				break;
-  		}
+  		// 	default:
+  		// 		console.error('Invalid httpResponse values');
+  		// 		break;
+  		// }
 
-  		// requestsCache[message.requestId].res[message.action].apply(requestsCache[message.requestId].res, msgArgs);
+  		requestsCache[message.requestId].res[message.action](message.data);
 
 		  eventEmitter.emit(
 		    'response',
