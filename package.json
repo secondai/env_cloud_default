@@ -25,8 +25,8 @@
     "heroku-local": "./node_modules/.bin/pm2 start npm -- run heroku-envstart && ./node_modules/.bin/pm2 logs",
     "heroku-envstart": "node -r dotenv/config dist/index.js",
     "heroku-postbuild-IGNORE": "npm run server:build",
-    
-    "heroku": "IPFS_PATH=$PWD/repo/ipfs1 ./node_modules/.bin/jsipfs init && ./node_modules/.bin/pm2 start npm -- run server:heroku2 && ./node_modules/.bin/pm2 logs",
+
+    "heroku": "IPFS_PATH=$PWD/repo/ipfs1 ./node_modules/.bin/jsipfs init && ./node_modules/.bin/pm2 start src/index.js && ./node_modules/.bin/pm2 logs",
     "server:heroku2": "node src/index.js -r dotenv/config -r babel-register",
 
     "usernames": "node -r dotenv/config -r babel-register src/utils/usernames.js"
