@@ -700,23 +700,54 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             ipfs: app.ipfs,
             ready: app.ipfsReady,
 
-            pin: (bufferToPin)=>{
+            pin: (buffersToPin)=>{
 
               return new Promise(async (resolve, reject)=>{
 
+                // pin multiple!
+                let returnSingle = false;
+                if(!lodash.isArray(buffersToPin)){
+                  returnSingle = true;
+                  buffersToPin = [buffersToPin];
+                }
+
+                let hashResult;
                 try {
-                  let ipfsHash = await app.ipfs.files.add(bufferToPin);
-                  console.log('IPFS hash to pin:', ipfsHash);
-                  await app.ipfs.pin.add(ipfsHash);
-                  resolve({
-                    type: 'boolean:..',
-                    data: true
-                  });
+                  hashResult = await app.ipfs.files.add(buffersToPin);
+                  console.log('hashResult:', hashResult);
+                  let ipfsHashes = hashResult.map(result=>result.hash);
+                  console.log('IPFS hashes to pin:', ipfsHashes);
+                  for(let ipfsHash of ipfsHashes){
+                    if(!ipfsHash){
+                      console.error('Skipping invalid hash, empty from results', );
+                      continue;
+                    }
+                    await app.ipfs.pin.add(ipfsHash);
+                  }
+                  if(returnSingle){
+                    resolve({
+                      type: 'ipfs_hash:..',
+                      data: {
+                        hash: ipfsHashes[0]
+                      }
+                    });
+                  } else {
+                    resolve({
+                      type: 'ipfs_hashes:..',
+                      data: {
+                        hash: ipfsHashes
+                      }
+                    });
+                  }
                 }catch(err){
                   console.error('IPFS pin failure:', err);
                   resolve({
-                    type: 'boolean:..',
-                    data: false
+                    type: 'ipfs_error_pinning:..',
+                    data: {
+                      error: true,
+                      hashResult,
+                      err
+                    }
                   });
                 }
 
