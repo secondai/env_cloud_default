@@ -704,8 +704,11 @@ eventEmitter.on('command',async (message, socket) => {
   		// 	data: '', // string? 
   		// }
 
+  		// data = arguments
+  		let msgArgs = lodash.isArray(message.data) ? message.data : [message.data];
+
   		// emit response according to input 
-  		requestsCache[message.requestId].res[message.action](message.data);
+  		requestsCache[message.requestId].res[message.action].apply(this, msgArgs);
 
 		  eventEmitter.emit(
 		    'response',
