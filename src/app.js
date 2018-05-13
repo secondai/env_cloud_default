@@ -165,8 +165,7 @@ function ipfsSetup(){
       app.ipfs = ipfs;
 
       ipfs.on('error', (err) => {
-        console.error('IPFS ERROR!!!!');
-        console.error(err);
+        console.error('IPFS ERROR:', err.type);
         // process.exit(); // should restart automatically! 
       });
 
