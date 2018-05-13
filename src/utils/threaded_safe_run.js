@@ -698,7 +698,14 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
           IPFS: {
             ipfs: app.ipfs,
-            ready: app.ipfsReady,
+            onReady: app.ipfsReady,
+            isReady: ()=>{
+              if(app.ipfsIsReady){
+                return true;    
+              } else {
+                return false;
+              }
+            },
 
             pin: (buffersToPin)=>{
 

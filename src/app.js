@@ -126,6 +126,8 @@ function ipfsSetup(){
       ipfs.on('ready', async () => {
         console.log('==IPFS Setup Ready==');
           
+        app.ipfsIsReady = true;
+        
         let myId = await ipfs.id();
         console.log('IPFS ID:', myId);
 
