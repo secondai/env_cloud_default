@@ -735,7 +735,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                     resolve({
                       type: 'ipfs_hashes:..',
                       data: {
-                        hash: ipfsHashes
+                        hashes: ipfsHashes
                       }
                     });
                   }
