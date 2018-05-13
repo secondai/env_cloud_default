@@ -16,19 +16,15 @@
     "server:dev": "nodemon src/index.js --exec \"node -r dotenv/config -r babel-register\"",
     "server:dev-inspect": "nodemon src/index.js --exec \"node --inspect=0.0.0.0 -r dotenv/config -r babel-register\"",
     "server:heroku": "node_modules/nodemon/bin/nodemon.js src/index.js --exec \"node -r dotenv/config -r babel-register\" --verbose --ignore 'package.json' --ignore 'package.json.*' --ignore 'package-lock.json.*' --ignore 'package-lock.json'",
-
     "server:clean": "rimraf dist",
     "server:build": "npm run server:clean && mkdir -p dist && babel src -s -D -d dist",
     "server:test": "jest --watch",
     "server:lint": "esw -w src test",
-
     "heroku-local": "./node_modules/.bin/pm2 start npm -- run heroku-envstart && ./node_modules/.bin/pm2 logs",
     "heroku-envstart": "node -r dotenv/config dist/index.js",
     "heroku-postbuild-IGNORE": "npm run server:build",
-
     "heroku": "IPFS_PATH=$PWD/repo/ipfs1 ./node_modules/.bin/jsipfs init && ./node_modules/.bin/pm2 start src/index.js && ./node_modules/.bin/pm2 logs",
     "server:heroku2": "node src/index.js -r dotenv/config -r babel-register",
-
     "usernames": "node -r dotenv/config -r babel-register src/utils/usernames.js"
   },
   "keywords": [
@@ -94,6 +90,7 @@
     "jszip": "3.1.5",
     "jszip-utils": "0.0.2",
     "keypress": "0.2.1",
+    "libp2p-webrtc-star": "0.15.0",
     "live-plugin-manager": "0.12.0",
     "luxon": "0.5.8",
     "minimist": "^1.2.0",
@@ -132,7 +129,8 @@
     "usage": "0.7.1",
     "uuid": "^3.1.0",
     "vm2": "^3.5.2",
-    "winston": "^2.4.0"
+    "winston": "^2.4.0",
+    "wrtc": "0.1.4"
   },
   "devDependencies": {
     "eslint": "^4.6.1",
