@@ -34,7 +34,9 @@ const parseGitHubUrl = require('parse-github-url');
 const JSZip = require('jszip');
 // const JSZipUtils = require('jszip-utils');
 
-const lodash = _;
+let lodash = _;
+
+require("underscore-query")(lodash);
 
 let cJSON = require('circular-json');
 
@@ -148,6 +150,13 @@ eventEmitter.on('command',async (message, socket) => {
   	nodeInMemoryIdx,
   	nodeInMemory;
 
+
+	let sqlFilter,
+		dataFilter;
+
+	let useDataFilter,
+		useSqlFilter;
+
   switch(message.command){
   	
   	case 'fetchNodes':
@@ -240,8 +249,26 @@ eventEmitter.on('command',async (message, socket) => {
 
 			// console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length, 'Time:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); //, nodes.length);
 
-			// should use underscore-query instead of lodash.filter!!! 
-			nodes = lodash.filter(app.nodesDbParsed, message.filter);
+			{
+				dataFilter, // priority, easier/flexible 
+				sqlFilter
+			} = message.filter;
+
+			// using either underscore-query or lodash.filter (sqlFilter) 
+			if(!lodash.isEmpty(dataFilter)){
+				useDataFilter = true;
+			} else if(!lodash.isEmpty(sqlFilter)){
+				useSqlFilter = true;
+			}
+
+			if(useDataFilter){
+				nodes = lodash.query(nodesDb2, dataFilter);
+			} else if(useSqlFilter){
+				nodes = lodash.filter(nodesDb2, sqlFilter);
+			} else {
+				// all nodes
+				nodes = app.nodesDbParsed;
+			}
 
 		  eventEmitter.emit(
 		    'response',
@@ -270,7 +297,28 @@ eventEmitter.on('command',async (message, socket) => {
 
 			let nodesDb2 = JSON.parse(JSON.stringify(app.nodesDbParsed));
     	let timeStart4 = (new Date());
-		  let nodes2 = lodash.filter(nodesDb2, message.filter);
+		  let nodes2; // = lodash.filter(nodesDb2, message.filter);
+
+			{
+				dataFilter, // priority, easier/flexible 
+				sqlFilter
+			} = message.filter;
+
+			// using either underscore-query or lodash.filter (sqlFilter) 
+			if(!lodash.isEmpty(dataFilter)){
+				useDataFilter = true;
+			} else if(!lodash.isEmpty(sqlFilter)){
+				useSqlFilter = true;
+			}
+
+			if(useDataFilter){
+				nodes2 = lodash.query(nodesDb2, dataFilter);
+			} else if(useSqlFilter){
+				nodes2 = lodash.filter(nodesDb2, sqlFilter);
+			} else {
+				// all nodes
+				nodes2 = nodesDb2;
+			}
 
 			// console.log('Fetched Nodes Quick2', nodes.length); //, message.filter); //, nodes.length);
 

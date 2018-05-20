@@ -122,6 +122,10 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
       const fetchNodes = (filterOpts) => {
 
+        filterOpts = filterOpts || {};
+        filterOpts.sqlFilter = filterOpts.sqlFilter || {};
+        filterOpts.dataFilter = filterOpts.dataFilter || {};
+
         return new Promise(async (resolve, reject) => {
           // resolve('REULT FROM fetchNodes!');
           // // emit "fetch" command to main brain 
@@ -267,8 +271,10 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           let nodes;
           try{
             nodes = await fetchNodes({
-              nodeId: null,
-              type: 'identity_private:0.0.1:local:3298f2j398233'
+              sqlFilter: {
+                nodeId: null,
+                type: 'identity_private:0.0.1:local:3298f2j398233'
+              }
             });
             if(!nodes.length){
               throw "No private identity";
@@ -423,7 +429,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       } else {
         console.log('Not using cached codeNode for vm');
         codeNode = await fetchNodes({
-          _id: nodeId
+          sqlFilter: {
+            _id: nodeId
+          }
         });
         codeNode = codeNode[0];
         app.globalCache.SearchFilters['exact_codeNode:'+nodeId] = codeNode;
@@ -2103,6 +2111,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               opts = opts || {};
               opts.filter = opts.filter || {};
               opts.filter.sqlFilter = opts.filter.sqlFilter || {};
+              opts.filter.dataFilter = opts.filter.dataFilter || {}; // underscore-query
               // console.log('FetchNodes:', opts.filter.sqlFilter);
 
               // Check cache 
@@ -2121,7 +2130,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               let nodes;
               try{
-                nodes = await fetchNodes(opts.filter.sqlFilter);
+                nodes = await fetchNodes(opts.filter);
               }catch(err){
                 return resolve({
                   err: 'shit'
@@ -2169,6 +2178,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               opts = opts || {};
               opts.filter = opts.filter || {};
               opts.filter.sqlFilter = opts.filter.sqlFilter || {};
+              opts.filter.dataFilter = opts.filter.dataFilter || {};
               // console.log('FetchNodes:', opts.filter.sqlFilter);
 
               // Check cache 
@@ -2187,7 +2197,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               let nodes;
               try{
-                nodes = await fetchNodesInMemory(opts.filter.sqlFilter);
+                nodes = await fetchNodesInMemory(opts.filter);
               }catch(err){
                 return resolve({
                   err: 'shit'
