@@ -260,9 +260,9 @@ eventEmitter.on('command',async (message, socket) => {
 			}
 
 			if(useDataFilter){
-				nodes = lodash.query(nodesDb2, dataFilter);
+				nodes = lodash.query(app.nodesDbParsed, dataFilter);
 			} else if(useSqlFilter){
-				nodes = lodash.filter(nodesDb2, sqlFilter);
+				nodes = lodash.filter(app.nodesDbParsed, sqlFilter);
 			} else {
 				// all nodes
 				nodes = app.nodesDbParsed;
