@@ -249,10 +249,8 @@ eventEmitter.on('command',async (message, socket) => {
 
 			// console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length, 'Time:', (timeEnd1.getTime() - timeStart1.getTime())/1000, (timeStart2.getTime() - timeStart1.getTime())/1000); //, nodes.length);
 
-			{
-				dataFilter, // priority, easier/flexible 
-				sqlFilter
-			} = message.filter;
+			dataFilter = message.filter.dataFilter; // priority, easier/flexible 
+			sqlFilter = message.filter.sqlFilter;
 
 			// using either underscore-query or lodash.filter (sqlFilter) 
 			if(!lodash.isEmpty(dataFilter)){
@@ -298,11 +296,9 @@ eventEmitter.on('command',async (message, socket) => {
 			let nodesDb2 = JSON.parse(JSON.stringify(app.nodesDbParsed));
     	let timeStart4 = (new Date());
 		  let nodes2; // = lodash.filter(nodesDb2, message.filter);
-
-			{
-				dataFilter, // priority, easier/flexible 
-				sqlFilter
-			} = message.filter;
+			
+			dataFilter = message.filter.dataFilter; // priority, easier/flexible 
+			sqlFilter = message.filter.sqlFilter;
 
 			// using either underscore-query or lodash.filter (sqlFilter) 
 			if(!lodash.isEmpty(dataFilter)){
