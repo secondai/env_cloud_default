@@ -48,6 +48,13 @@ const WStar = require('libp2p-webrtc-star')
 
 var WebTorrent = require('webtorrent');
 var WebTorrentClient = new WebTorrent();
+WebTorrentClient.on('torrent', torrent=>{
+  console.log('==WebTorrentClient==.on(torrent)');
+})
+WebTorrentClient.on('error', err=>{
+  console.error('==WebTorrentClient==.on(error)', err);
+})
+
 
 var utilLogger = require("./utils/logging");
 
