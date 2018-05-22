@@ -46,6 +46,8 @@ const IPFS = require('ipfs')
 const wrtc = require('wrtc') // or require('electron-webrtc')()
 const WStar = require('libp2p-webrtc-star')
 
+var WebTorrent = universe.require('webtorrent');
+var WebTorrentClient = new WebTorrent();
 
 var utilLogger = require("./utils/logging");
 
@@ -62,6 +64,8 @@ console.log('STELLAR_NETWORK', process.env.STELLAR_NETWORK);
 console.log('OLD_INCOMING', process.env.OLD_INCOMING);
 app.mongoDbName = app.argv.MONGODB || process.env.MONGODB;
 global.app = app;
+
+app.WebTorrentClient = WebTorrentClient;
 
 app.deepFreeze = function deepFreeze(obj) {
 
