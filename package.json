@@ -125,6 +125,7 @@
     "string-similarity": "^1.2.0",
     "subscriptions-transport-ws": "^0.9.1",
     "systeminformation": "3.38.0",
+    "torrent-stream": "1.0.4",
     "underscore-query": "3.3.2",
     "usage": "0.7.1",
     "uuid": "^3.1.0",
