@@ -42,9 +42,17 @@ var cookieParser = require('cookie-parser')
 var compression = require('compression')
 
 const aws = require('aws-sdk');
-const IPFS = require('ipfs')
-const wrtc = require('wrtc') // or require('electron-webrtc')()
-const WStar = require('libp2p-webrtc-star')
+// const IPFS = require('ipfs')
+// const wrtc = require('wrtc') // or require('electron-webrtc')()
+// const WStar = require('libp2p-webrtc-star')
+var ipfsAPI = require('ipfs-api')
+var ipfs;
+try {
+  ipfs = ipfsAPI(process.env.IPFS_HOST, process.env.IPFS_PORT, {protocol: process.env.IPFS_PROTOCOL}) // leaving out the arguments will default to these values
+}catch(err){
+  console.error('Failed ipfs-api:', err);
+}
+
 
 var WebTorrent = require('webtorrent');
 var WebTorrentClient = new WebTorrent();
@@ -101,54 +109,66 @@ function ipfsSetup(){
 
       console.log('Starting ipfs setup');
 
-      // OrbitDB uses Pubsub which is an experimental feature
-      // let repoDir = 'repo/ipfs1';
-
-      const wstar = new WStar({ wrtc: wrtc })
-      let ipfsOptions = {
-        config: {
-          Addresses: {
-            Swarm: [
-              '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
-            ]
-          }
-        }
-      }
-
-      // Create IPFS instance
-      // ipfsOptions.start = true;
-      const ipfs = new IPFS(ipfsOptions)
+      ipfs.id()
+      .then(res => {
+        console.log(`IPFS daemon active\nid: ${res.ID}`)
+        app.ipfsIsReady = true;
+        resolve(); // ready
+      })
+      .catch(err => {
+        console.error('IPFS daemon inactive')
+      })
 
       app.ipfs = ipfs;
 
-      ipfs.on('error', (err) => {
-        console.error('IPFS ERROR:', err.type, Object.keys(err));
-        // process.exit(); // should restart automatically! 
-      });
+      // OrbitDB uses Pubsub which is an experimental feature
+      // let repoDir = 'repo/ipfs1';
 
-      // ipfs.on('init', async ()=>{
-      //   console.log('init');
-      // })
-      ipfs.on('ready', async () => {
-        console.log('==IPFS Setup Ready==');
+      // const wstar = new WStar({ wrtc: wrtc })
+      // let ipfsOptions = {
+      //   config: {
+      //     Addresses: {
+      //       Swarm: [
+      //         '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
+      //       ]
+      //     }
+      //   }
+      // }
+
+      // // Create IPFS instance
+      // // ipfsOptions.start = true;
+      // const ipfs = new IPFS(ipfsOptions)
+
+      // app.ipfs = ipfs;
+
+      // ipfs.on('error', (err) => {
+      //   console.error('IPFS ERROR:', err.type, Object.keys(err));
+      //   // process.exit(); // should restart automatically! 
+      // });
+
+      // // ipfs.on('init', async ()=>{
+      // //   console.log('init');
+      // // })
+      // ipfs.on('ready', async () => {
+      //   console.log('==IPFS Setup Ready==');
           
-        app.ipfsIsReady = true;
+      //   app.ipfsIsReady = true;
         
-        let myId = await ipfs.id();
-        console.log('IPFS ID:', myId);
+      //   let myId = await ipfs.id();
+      //   console.log('IPFS ID:', myId);
 
-        console.log('Ready to process new nodes (loading previous into ipfs)');
-        resolve();
+      //   console.log('Ready to process new nodes (loading previous into ipfs)');
+      //   resolve();
 
-        return;
+      //   return;
 
-      })
-
-      // ipfs.init({},(err,result)=>{
-      //   console.log('INIT:', err,result);
       // })
 
-    },3000);
+      // // ipfs.init({},(err,result)=>{
+      // //   console.log('INIT:', err,result);
+      // // })
+
+    },1000);
 
     console.info('===setup ipfs in 3 seconds===');
 
