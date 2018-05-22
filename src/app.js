@@ -46,7 +46,7 @@ const IPFS = require('ipfs')
 const wrtc = require('wrtc') // or require('electron-webrtc')()
 const WStar = require('libp2p-webrtc-star')
 
-var WebTorrent = universe.require('webtorrent');
+var WebTorrent = require('webtorrent');
 var WebTorrentClient = new WebTorrent();
 
 var utilLogger = require("./utils/logging");
