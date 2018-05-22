@@ -106,35 +106,13 @@ function ipfsSetup(){
 
       const wstar = new WStar({ wrtc: wrtc })
       let ipfsOptions = {
-
         config: {
           Addresses: {
             Swarm: [
-              "/ip4/0.0.0.0/tcp/4002",
-              "/ip4/127.0.0.1/tcp/4003/ws",
-              "/dns4/wrtc-star.discovery.libp2p.io/tcp/443/wss/p2p-webrtc-star"
-              // '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
+              '/dns4/ws-star.discovery.libp2p.io/tcp/443/wss/p2p-websocket-star'
             ]
           }
-        },
-        libp2p: {
-          modules: {
-            transport: [wstar],
-            discovery: [wstar.discovery]
-          }
         }
-
-        // EXPERIMENTAL: {
-        //   pubsub: true
-        // },
-
-        // libp2p: {
-        //   modules: {
-        //     transport: [wstar],
-        //     discovery: [wstar.discovery]
-        //   }
-        // },
-
       }
 
       // Create IPFS instance
@@ -144,7 +122,7 @@ function ipfsSetup(){
       app.ipfs = ipfs;
 
       ipfs.on('error', (err) => {
-        console.error('IPFS ERROR:', err.type);
+        console.error('IPFS ERROR:', err.type, Object.keys(err));
         // process.exit(); // should restart automatically! 
       });
 
