@@ -4,9 +4,17 @@
   "repository": "https://github.com/nicholasareed/second_env_cloud",
   "keywords": ["second"],
 
+  "image" : "heroku/nodejs",
+  "buildpacks" : [
+    {
+      "url": "https://github.com/dockhero/heroku-buildpack-docker-compose.git"
+    }
+  ],
+
   "addons": [
     "heroku-redis",
-    "mongolab"
+    "mongolab",
+    "dockhero"
   ],
 
   "env" : {
