@@ -86,6 +86,14 @@ if(process.env.APP_OPEN_GRAPHQL == 'true'){
 }
 
 
+app.ws('/', function(ws, req) {
+	console.log('incoming websocket start?');
+  ws.on('message', function(msg) {
+    console.log('ws message:', msg);
+  });
+  console.log('socket', 'SETUP1');
+});
+
 
 // ai endpoint
 // - all remaining routes
@@ -109,13 +117,6 @@ routes.use(bodyParser.json(), async (req, res)=>{
 
 });
 
-
-app.ws('/', function(ws, req) {
-  ws.on('message', function(msg) {
-    console.log('ws message:', msg);
-  });
-  console.log('socket', 'SETUP1');
-});
 
 
 export default routes;
