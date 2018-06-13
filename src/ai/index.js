@@ -772,17 +772,29 @@ eventEmitter.on('command',async (message, socket) => {
   		// - Cloud -> RPi (this) -> Cloud
   		if(message.action == 'send' && requestsCache[message.requestId].wsClientId){
   			// response via websocket
-  			console.log('Responding via websocket instead of httpResponse (came in as websocket request)');
-  			console.log('clientId:', requestsCache[message.requestId].wsClientId);
-  			console.log('wsRequestId:', requestsCache[message.requestId].keyvalue.wsRequestId,);
+  			// socketio, or websocket? 
+	  		let responseFunc = requestsCache[message.requestId].socketioResponseFunc;
+  			if(responseFunc){
+  				// socketio request/response 
+	  			console.log('Responding via socketio instead of httpResponse (came in as socketio request)');
+	  			console.log('clientId:', requestsCache[message.requestId].wsClientId);
+					
+					responseFunc(message.data);
 
-  			let thisWs = app.wsClients[ requestsCache[message.requestId].wsClientId ].ws;
-				
-				thisWs.send(JSON.stringify({
-					requestId: requestsCache[message.requestId].keyvalue.wsRequestId,
-					type: 'response',
-					data: message.data
-				}));
+  			} else {
+  				// normal webosockets 
+	  			console.log('Responding via websocket instead of httpResponse (came in as websocket request)');
+	  			console.log('clientId:', requestsCache[message.requestId].wsClientId);
+	  			console.log('wsRequestId:', requestsCache[message.requestId].keyvalue.wsRequestId,);
+
+	  			let thisWs = app.wsClients[ requestsCache[message.requestId].wsClientId ].ws;
+					
+					thisWs.send(JSON.stringify({
+						requestId: requestsCache[message.requestId].keyvalue.wsRequestId,
+						type: 'response',
+						data: message.data
+					}));
+				}
 
   		} else {
 	  		if(message.action == 'res'){
@@ -1243,7 +1255,7 @@ class Second {
 
 
 	}
-	runRequest(InputNode, skipWrappingInputNode, reqObj, resObj, wsClientId){
+	runRequest(InputNode, skipWrappingInputNode, reqObj, resObj, wsClientId, socketioResponseFunc){
 
     // wait for memory to be ready!
     return new Promise((resolve, reject)=>{
@@ -1256,7 +1268,8 @@ class Second {
 				stack: [],
 				res: resObj,
 				req: reqObj,
-				wsClientId
+				wsClientId,
+				socketioResponseFunc
 			};
 
 			// clear request cache after 30 seconds 
@@ -1978,6 +1991,25 @@ const incomingAIRequest = ({ req, res }) => {
 
 }
 
+
+const incomingAIRequestSocketIO = ({ type, data, clientId, responseFunc }) => {
+
+	return new Promise(async (resolve, reject)=>{
+
+		console.log('Running incomingAIRequestSocketIO');
+
+		await MySecond.runRequest({
+			type: 'socketio_obj:Qmdsfkljsl29',
+			data: {
+				type, // connection, message, close  // TODO? request (response is handled by the requesting function) 
+				data, // the data for the message (null for connection, close) 
+				clientId, // for sending responses via app.wsClients[clientId].socket.send(...) 
+			}
+		}, false, null, null, clientId, responseFunc);
+
+	});
+
+}
 
 const incomingAIRequestWebsocket = ({ type, msg, clientId }) => {
 

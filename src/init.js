@@ -86,13 +86,40 @@ server.listen(PORT, () => {
 
 
 // Websockets 
-
+app.wsClients = {};
+app.socketioClients = {};
 io.on('connection', function (socket) {
 	console.log('Websocket connection');
-  socket.emit('news', { hello: 'world' });
-  socket.on('request', function (data) {
-    console.log(data);
+
+  // Manage clients
+  let clientId = uuidv4();
+  app.socketioClients[clientId] = { socket };
+
+  // notify on new connection...necessary?
+  // - should not "await" here, never resolves? 
+	// app.secondAI.incomingAIRequestSocketIO({
+	// 	type: 'connection',
+	// 	data: null,
+	// 	clientId
+	// });
+
+  // socket.emit('news', { hello: 'world' });
+  socket.on('request', function (RequestNode, responseFunc) {
+  	// let requestId = uuidv4();
+   //  console.log('RequestNode:', RequestNode);
+
+		app.secondAI.incomingAIRequestSocketIO({
+			type: 'request',
+			data: RequestNode,
+			clientId,
+			responseFunc
+		});
+
   });
+  socket.on('close', ()=>{
+
+  })
+
 });
 
 
