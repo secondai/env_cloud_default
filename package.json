@@ -129,6 +129,8 @@
     "rimraf": "^2.6.1",
     "route-parser": "0.0.5",
     "safe-eval": "^0.3.0",
+    "socket.io": "2.1.1",
+    "socket.io-client": "2.1.1",
     "stellar-sdk": "0.8.0",
     "string-similarity": "^1.2.0",
     "subscriptions-transport-ws": "^0.9.1",
