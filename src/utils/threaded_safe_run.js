@@ -498,6 +498,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           clearInterval,
           eventEmitter,
           globalCache: app.globalCache,
+          wsClients: app.wsClients, // websocket clients (IoT devices) 
           google,
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
 

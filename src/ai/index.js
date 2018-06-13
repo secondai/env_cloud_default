@@ -1247,7 +1247,7 @@ class Second {
 			}, 30 * 1000);
 
       secondReady.then(async ()=>{
-        console.log('Running web request (expecting express_obj):', InputNode.type); //, this.state.nodesDb);
+        console.log('Running web request (expecting express_obj, websocket_obj):', InputNode.type); //, this.state.nodesDb);
 
         // fetch and run code, pass in 
         // - using a specific "app_base" that is at the root 
@@ -1960,6 +1960,26 @@ const incomingAIRequest = ({ req, res }) => {
 }
 
 
+const incomingAIRequestWebsocket = ({ type, msg, clientId }) => {
+
+	return new Promise(async (resolve, reject)=>{
+
+		console.log('Running incomingAIRequestWebsocket');
+		
+		await MySecond.runRequest({
+			type: 'websocket_obj:Qmdsfkljsl29',
+			data: {
+				type,
+				msg,
+				clientId // for sending responses via app.wsClients[clientId].ws.send(...) 
+			}
+		}, false, null, null);
+
+	});
+
+}
+
+
 
 
 // Your AI is going to look for the data in its memory, but if you delete it, then it wont be able to find it. Just like removing a part of your brain, you cant just wish it back in place! 
@@ -1968,6 +1988,7 @@ const incomingAIRequest = ({ req, res }) => {
 export default incomingAIRequest;
 export {
 	incomingAIRequest,
+	incomingAIRequestWebsocket,
 	MySecond
 }
 

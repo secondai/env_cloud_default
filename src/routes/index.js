@@ -97,13 +97,13 @@ if(process.env.APP_OPEN_GRAPHQL == 'true'){
 
 // ai endpoint
 // - all remaining routes
-const ai = require('../ai');
+app.secondAI = require('../ai');
 routes.use(bodyParser.json(), async (req, res)=>{
 	
 	// wait for the result from the AI request 
 	// - passing in the "request arrived like X" information that will give us a valid response to return 
 	// - response might be a res.send({...everything..}) or simply res.send({resultId:'123'}) w/ a follow-up later 
-	let response = await ai.incomingAIRequest({
+	let response = await app.secondAI.incomingAIRequest({
 		req,
 		res,
 		cacheTEST:'test1'

@@ -5,7 +5,6 @@
 import 'newrelic';
 
 import app from './app';
-const SocketServer = require('ws').Server;
 
 import url from 'url'
 import { createServer } from 'http';
@@ -15,8 +14,11 @@ import { createServer } from 'http';
 // import { execute, subscribe } from 'graphql';
 // import schema from './schema';
 
-const WS_GQL_PATH = '/subscriptions';
+const SocketServer = require('ws').Server;
 
+// const WS_GQL_PATH = '/subscriptions';
+
+const uuidv4 = require('uuid/v4');
 
 const server = createServer(app);
 
@@ -84,10 +86,59 @@ server.listen(PORT, () => {
 // Websockets 
 const wss = new SocketServer({ server });
 
+app.wsClients = {};
 wss.on('connection', (ws) => {
   console.log('Websocket Client connected');
-  ws.on('close', () => console.log('Client disconnected'));
+
+  // TODO: auth on connection? 
+
+  // Manage clients
+  let clientId = uuidv4();
+  app.wsClients[clientId] = { ws };
+
+  ws.on('open', async () => {
+
+  	console.log('ws.on open');
+  	
+  	// not waiting for a response
+		await app.secondAI.incomingAIRequestWebsocket({
+			type: 'open',
+			msg: null,
+			clientId
+		});
+
+  });
+
+  ws.on('message', async (data) => {
+
+  	console.log('ws.on message');
+
+  	// SHOULD wait for a response (handle request-response protocol) 
+		let response = await app.secondAI.incomingAIRequestWebsocket({
+			type: 'message',
+			msg: data,
+			clientId
+		});
+
+  });
+
+  ws.on('close', async () => {
+		
+  	// delete app.wsClients[clientId];
+  	console.log('ws.on close');
+
+		await app.secondAI.incomingAIRequestWebsocket({
+			type: 'close',
+			msg: null,
+			clientId
+		});
+
+  });
+  
 });
+
+
+
 
 // setInterval(() => {
 //   wss.clients.forEach((client) => {
