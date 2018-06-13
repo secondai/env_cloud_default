@@ -773,11 +773,13 @@ eventEmitter.on('command',async (message, socket) => {
   		if(message.action == 'send' && requestsCache[message.requestId].wsClientId){
   			// response via websocket
   			console.log('Responding via websocket instead of httpResponse (came in as websocket request)');
+  			console.log('clientId:', requestsCache[message.requestId].wsClientId);
+  			console.log('wsRequestId:', requestsCache[message.requestId].keyvalue.wsRequestId,);
 
   			let thisWs = app.wsClients[ requestsCache[message.requestId].wsClientId ].ws;
 				
 				thisWs.send({
-					requestId: msg.requestId,
+					requestId: requestsCache[message.requestId].keyvalue.wsRequestId,
 					type: 'response',
 					data: message.data
 				});
