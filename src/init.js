@@ -116,8 +116,14 @@ io.on('connection', function (socket) {
 		});
 
   });
-  socket.on('close', ()=>{
 
+  socket.on('message', function (RequestNode, responseFunc) {
+  	console.log('Got MESSAGE via socketio, expecting "request" key');
+  	responseFunc('Invalid key "message" should be "request"');
+  });
+
+  socket.on('close', ()=>{
+  	console.log('Socketio CLOSED');
   })
 
 });
