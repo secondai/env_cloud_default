@@ -96,29 +96,62 @@ wss.on('connection', (ws) => {
   let clientId = uuidv4();
   app.wsClients[clientId] = { ws };
 
-  ws.on('open', async () => {
+  // notify on new connection...necessary?
+	await app.secondAI.incomingAIRequestWebsocket({
+		type: 'connection',
+		msg: null,
+		clientId
+	});
 
-  	console.log('ws.on open');
-  	
-  	// not waiting for a response
-		await app.secondAI.incomingAIRequestWebsocket({
-			type: 'open',
-			msg: null,
-			clientId
-		});
-
-  });
-
-  ws.on('message', async (data) => {
+  ws.on('message', async (msg) => {
 
   	console.log('ws.on message');
 
   	// SHOULD wait for a response (handle request-response protocol) 
+  	// - uses existing "universe.httpResponse?" 
 		let response = await app.secondAI.incomingAIRequestWebsocket({
 			type: 'message',
-			msg: data,
+			msg,
 			clientId
 		});
+
+  	// if(typeof msg != 'object'){
+  	// 	console.error('Did NOT receive an object for websocket request!', typeof msg);
+  	// 	console.log(msg);
+  	// 	return;
+  	// }
+
+  	// // MUST be either a request/response type 
+  	// switch(msg.type){
+  	// 	case 'request':
+
+		 //  	// SHOULD wait for a response (handle request-response protocol) 
+		 //  	// - uses existing "universe.httpResponse?" 
+			// 	let response = await app.secondAI.incomingAIRequestWebsocket({
+			// 		type: 'message',
+			// 		msg,
+			// 		clientId
+			// 	});
+
+			// 	// Send response! 
+			// 	ws.send({
+			// 		requestId: msg.requestId,
+			// 		type: 'response',
+			// 		data: response
+			// 	});
+
+  	// 		break;
+
+  	// 	case 'response':
+  	// 		// TODO: check for something waiting, else error? 
+  	// 		console.log('Accepting response to my request (from RPI)');
+   //      eventEmitter.emit(`ws-response-${msg.requestId}`, msg.data);
+  	// 		break;
+
+  	// 	default:
+  	// 		break;
+  	// }
+
 
   });
 
@@ -134,7 +167,7 @@ wss.on('connection', (ws) => {
 		});
 
   });
-  
+
 });
 
 

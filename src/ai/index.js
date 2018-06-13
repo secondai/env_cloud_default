@@ -768,11 +768,27 @@ eventEmitter.on('command',async (message, socket) => {
 
   		let returnData = true;
 
-  		if(message.action == 'res'){
-  			returnData = requestsCache[message.requestId].res;
+  		// Handle websocket response
+  		// - Cloud -> RPi (this) -> Cloud
+  		if(message.action == 'send' && requestsCache[message.requestId].wsClientId){
+  			// response via websocket
+  			console.log('Responding via websocket instead of httpResponse (came in as websocket request)');
+
+  			let thisWs = app.wsClients[ requestsCache[message.requestId].wsClientId ].ws;
+				
+				thisWs.send({
+					requestId: msg.requestId,
+					type: 'response',
+					data: message.data
+				});
+
   		} else {
-  			requestsCache[message.requestId].res[message.action](message.data);
-  		}
+	  		if(message.action == 'res'){
+	  			returnData = requestsCache[message.requestId].res;
+	  		} else {
+	  			requestsCache[message.requestId].res[message.action](message.data);
+	  		}
+	  	}
 
 		  eventEmitter.emit(
 		    'response',
@@ -1225,7 +1241,7 @@ class Second {
 
 
 	}
-	runRequest(InputNode, skipWrappingInputNode, reqObj, resObj){
+	runRequest(InputNode, skipWrappingInputNode, reqObj, resObj, wsClientId){
 
     // wait for memory to be ready!
     return new Promise((resolve, reject)=>{
@@ -1237,7 +1253,8 @@ class Second {
 				keyvalue: {},
 				stack: [],
 				res: resObj,
-				req: reqObj
+				req: reqObj,
+				wsClientId
 			};
 
 			// clear request cache after 30 seconds 
@@ -1965,15 +1982,15 @@ const incomingAIRequestWebsocket = ({ type, msg, clientId }) => {
 	return new Promise(async (resolve, reject)=>{
 
 		console.log('Running incomingAIRequestWebsocket');
-		
+
 		await MySecond.runRequest({
 			type: 'websocket_obj:Qmdsfkljsl29',
 			data: {
-				type,
-				msg,
+				type, // connection, message, close  // TODO? request (response is handled by the requesting function) 
+				msg, // the data for the message (null for connection, close) 
 				clientId // for sending responses via app.wsClients[clientId].ws.send(...) 
 			}
-		}, false, null, null);
+		}, false, null, null, clientId);
 
 	});
 

@@ -797,6 +797,52 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             })
           },
 
+          directToSecondViaWebsocket: (opts)=>{
+            // to an External second
+            return new Promise(async (resolve, reject)=>{
+              // opts = {
+              //   clientId,
+              //   RequestNode
+              // }
+
+              let clientId = opts.clientId;
+
+              // exists?
+              if(!app.wsClients[clientId]){
+                console.error('Client ID does NOT exist for directToSecondViaWebsocket, cannot send request when not connected');
+                return resolve({
+                  type: 'error:...',
+                  data: 'Failed cuz clientId does NOT exist for directToSecondViaWebsocket'
+                });
+              }
+
+              // start emitter listening for response 
+              let requestId = uuidv4();
+
+              // TODO: have a timeout for failed responses (ignore "late" responses?) ? 
+              eventEmitter.once(`ws-response-${requestId}`, function _listener(r){
+                console.log('Response to WEBSOCKET request, from RPI!');
+                resolve(r.data);
+              });
+
+              // Make request via websocket 
+              let ws = app.wsClients[clientId].ws;
+
+              console.log('Making ws.send request with requestId, type, data-as-node'); 
+
+              ws.send({
+                requestId,
+                type: 'request',
+                data: opts.RequestNode
+              });
+
+              console.log('Made websocket request, waiting for response');
+
+              // resolve(response);
+
+            })
+          },
+
           getIdentityForAddress: (address)=>{
             return new Promise(async (resolve, reject)=>{
 
