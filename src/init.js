@@ -108,8 +108,8 @@ io.on('connection', function (socket) {
   	// let requestId = uuidv4();
    //  console.log('RequestNode:', RequestNode);
 
-		responseFunc = responseFunc || ()=>{
-			console.log('callback/response function not provided with request, that isnt expected')
+		responseFunc = responseFunc || function(data){
+			console.log('Response (NOT sent back to requesting client, no responseFunc provided:', data);
 		}
 
 		app.secondAI.incomingAIRequestSocketIO({
