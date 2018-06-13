@@ -97,7 +97,8 @@ wss.on('connection', async (ws) => {
   app.wsClients[clientId] = { ws };
 
   // notify on new connection...necessary?
-	await app.secondAI.incomingAIRequestWebsocket({
+  // - should not "await" here, never resolves? 
+	app.secondAI.incomingAIRequestWebsocket({
 		type: 'connection',
 		msg: null,
 		clientId
