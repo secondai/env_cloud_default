@@ -54,16 +54,6 @@ try {
 }
 
 
-var WebTorrent = require('webtorrent');
-var WebTorrentClient = new WebTorrent();
-WebTorrentClient.on('torrent', torrent=>{
-  console.log('==WebTorrentClient==.on(torrent)');
-})
-WebTorrentClient.on('error', err=>{
-  console.error('==WebTorrentClient==.on(error)', err);
-})
-
-
 var utilLogger = require("./utils/logging");
 
 const app = express();
@@ -72,7 +62,7 @@ app.argv = argv;
 console.log('CLI:', app.argv.MONGODB);
 console.log('Process:', process.env.MONGODB);
 // console.log('LanguageServer:', process.env.LANGUAGE_SERVER);
-console.log('PORT_ON: ',process.env.PORT_ON,' (inside docker if exists. available at http://localhost:PORT_ON):');
+// console.log('PORT_ON: ',process.env.PORT_ON,' (inside docker if exists. available at http://localhost:PORT_ON):');
 console.log('PUBLIC_HOST:', process.env.PUBLIC_HOST);
 console.log('MONGODB_URI (on heroku):', process.env.MONGODB_URI);
 console.log('REDIS_URL (on heroku):', process.env.REDIS_URL);
@@ -81,6 +71,14 @@ console.log('OLD_INCOMING', process.env.OLD_INCOMING);
 app.mongoDbName = app.argv.MONGODB || process.env.MONGODB;
 global.app = app;
 
+var WebTorrent = require('webtorrent');
+var WebTorrentClient = new WebTorrent();
+WebTorrentClient.on('torrent', torrent=>{
+  console.log('==WebTorrentClient==.on(torrent)');
+})
+WebTorrentClient.on('error', err=>{
+  console.error('==WebTorrentClient==.on(error)', err);
+})
 app.WebTorrentClient = WebTorrentClient;
 
 app.deepFreeze = function deepFreeze(obj) {

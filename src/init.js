@@ -108,6 +108,10 @@ io.on('connection', function (socket) {
   	// let requestId = uuidv4();
    //  console.log('RequestNode:', RequestNode);
 
+		responseFunc = responseFunc || ()=>{
+			console.log('callback/response function not provided with request, that isnt expected')
+		}
+
 		app.secondAI.incomingAIRequestSocketIO({
 			type: 'request',
 			data: RequestNode,
@@ -119,7 +123,11 @@ io.on('connection', function (socket) {
 
   socket.on('message', function (RequestNode, responseFunc) {
   	console.log('Got MESSAGE via socketio, expecting "request" key');
-  	responseFunc('Invalid key "message" should be "request"');
+  	if(responseFunc){
+  		responseFunc('Invalid key "message" should be "request"');
+  	} else {
+  		console.log('callback/response function not provided with request')
+  	}
   });
 
   socket.on('close', ()=>{
