@@ -2,16 +2,16 @@ version: '3'
 services:
   ipfs:
     image: ipfs/go-ipfs
-    container_name: "ipfs"
-    restart: always
+    # container_name: "ipfs"
+    # restart: always
     expose: # internal links
     - 4001
     - 5001
     - 8080
     ports: # externally available
     - 4001:4001
-    - 5001:5001
-    - 8080:8080 
+    - 5010:5001
+    # - 8080:8080 
     volumes:
       - ipfs-data:/data
 
