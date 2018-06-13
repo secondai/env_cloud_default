@@ -87,7 +87,7 @@ server.listen(PORT, () => {
 const wss = new SocketServer({ server });
 
 app.wsClients = {};
-wss.on('connection', (ws) => {
+wss.on('connection', async (ws) => {
   console.log('Websocket Client connected');
 
   // TODO: auth on connection? 
