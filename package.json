@@ -57,6 +57,7 @@
     "bigi": "^1.4.2",
     "bitcoinjs-lib": "^3.3.1",
     "body-parser": "^1.17.1",
+    "bufferutil": "3.0.5",
     "cache-manager": "2.9.0",
     "circular-json": "0.5.3",
     "compression": "^1.7.1",
@@ -121,6 +122,7 @@
     "pm2": "2.10.3",
     "pug": "^2.0.0-beta11",
     "queue": "^4.4.2",
+    "reconnecting-websocket": "4.0.0-rc5",
     "redis": "^2.8.0",
     "request": "^2.83.0",
     "request-promise-native": "1.0.5",
@@ -134,12 +136,14 @@
     "torrent-stream": "1.0.4",
     "underscore-query": "3.3.2",
     "usage": "0.7.1",
+    "utf-8-validate": "4.0.2",
     "uuid": "^3.1.0",
     "vm2": "^3.5.2",
     "webtorrent": "0.99.4",
     "webtorrent-hybrid": "1.0.6",
     "winston": "^2.4.0",
-    "wrtc": "0.1.4"
+    "wrtc": "0.1.4",
+    "ws": "5.2.0"
   },
   "devDependencies": {
     "eslint": "^4.6.1",

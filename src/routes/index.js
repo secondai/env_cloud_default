@@ -85,14 +85,14 @@ if(process.env.APP_OPEN_GRAPHQL == 'true'){
 	}));
 }
 
-
-app.ws('/', function(ws, req) {
-	console.log('incoming websocket start?');
-  ws.on('message', function(msg) {
-    console.log('ws message:', msg);
-  });
-  console.log('socket', 'SETUP1');
-});
+// OLD, for express-ws (not working) 
+// app.ws('/', function(ws, req) {
+// 	console.log('incoming websocket start?');
+//   ws.on('message', function(msg) {
+//     console.log('ws message:', msg);
+//   });
+//   console.log('socket', 'SETUP1');
+// });
 
 
 // ai endpoint
