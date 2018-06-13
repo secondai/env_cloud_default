@@ -67,6 +67,7 @@ WebTorrentClient.on('error', err=>{
 var utilLogger = require("./utils/logging");
 
 const app = express();
+var expressWs = require('express-ws')(app);
 app.argv = argv;
 console.log('CLI:', app.argv.MONGODB);
 console.log('Process:', process.env.MONGODB);

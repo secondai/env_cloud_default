@@ -10,8 +10,8 @@ services:
     - 8080
     ports: # externally available
     - 4001:4001
-    - 5010:5001
-    # - 8082:8080 # Gateway 
+    - 5001:5001
+    - 8080:8080 
     volumes:
       - ipfs-data:/data
 

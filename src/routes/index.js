@@ -110,4 +110,12 @@ routes.use(bodyParser.json(), async (req, res)=>{
 });
 
 
+app.ws('/', function(ws, req) {
+  ws.on('message', function(msg) {
+    console.log('ws message:', msg);
+  });
+  console.log('socket', 'SETUP1');
+});
+
+
 export default routes;
