@@ -2040,6 +2040,7 @@ export default incomingAIRequest;
 export {
 	incomingAIRequest,
 	incomingAIRequestWebsocket,
+	incomingAIRequestSocketIO,
 	MySecond
 }
 
