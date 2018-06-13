@@ -778,11 +778,11 @@ eventEmitter.on('command',async (message, socket) => {
 
   			let thisWs = app.wsClients[ requestsCache[message.requestId].wsClientId ].ws;
 				
-				thisWs.send({
+				thisWs.send(JSON.stringify({
 					requestId: requestsCache[message.requestId].keyvalue.wsRequestId,
 					type: 'response',
 					data: message.data
-				});
+				}));
 
   		} else {
 	  		if(message.action == 'res'){
