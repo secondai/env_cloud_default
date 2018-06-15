@@ -2015,7 +2015,9 @@ const incomingAIRequestWebsocket = ({ type, msg, clientId }) => {
 
 	return new Promise(async (resolve, reject)=>{
 
-		console.log('Running incomingAIRequestWebsocket');
+		console.log('Running incomingAIRequestWebsocket (OLDOLDOLD)');
+
+		return false;
 
 		await MySecond.runRequest({
 			type: 'websocket_obj:Qmdsfkljsl29',
