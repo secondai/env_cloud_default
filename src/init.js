@@ -85,9 +85,10 @@ server.listen(PORT, () => {
 });
 
 
-// Websockets 
+// Websockets (socketio) 
 app.wsClients = {};
 app.socketioClients = {};
+app.socketIOServer = io;
 io.on('connection', function (socket) {
 	console.log('Websocket connection');
 

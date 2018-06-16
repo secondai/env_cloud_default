@@ -101,6 +101,11 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
       const JSZip = require('jszip');
 
+
+      const socketioClient = require('socket.io-client');
+
+      app.socketioServers = app.socketioServers || {};
+
       // const ipc = require('node-ipc');
       // let ipcId = 'second-worker-' + uuidv4();
       // ipc.config.id = ipcId;
@@ -498,8 +503,18 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           clearInterval,
           eventEmitter,
           globalCache: app.globalCache,
-          wsClients: app.wsClients, // websocket clients (IoT devices) 
+
+          // client
+          // - attaching to remote server 
+          socketioClient, 
+          socketioServers: app.socketioServers, // where I'm the client, connected to a remote socketio server 
+
+          // websocket server 
+          // - clients attached to server (IoT devices) 
+          socketIOServer: app.socketIOServer,
+          wsClients: app.wsClients, 
           socketioClients: app.socketioClients,
+
           google,
           webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
 
