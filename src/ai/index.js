@@ -1151,8 +1151,8 @@ class Second {
 
 			 //  let nodes = await fetchNodesQuick({}, 1, true);
 
-			  app.nodesDbParsed = JSON.parse(JSON.stringify(nodes));
-			  app.nodesDbParsedIds = JSON.parse(JSON.stringify(nodesById));
+			  app.nodesDbParsed = cJSON.parse(cJSON.stringify(nodes));
+			  app.nodesDbParsedIds = cJSON.parse(cJSON.stringify(nodesById));
 
 			  app.deepFreeze(app.nodesDbParsed);
 			  app.deepFreeze(app.nodesDbParsedIds);
