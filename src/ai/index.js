@@ -269,14 +269,60 @@ eventEmitter.on('command',async (message, socket) => {
 			}
 
 			// "fill out" by including parents/children for each possible result 
-			var possibleIds = lodash.map(nodes, '_id');
+			// - limits possible returned result to parent's children, all children of node 
+
+			function nodeFromNode(node){
+				return {
+					_id: tmpNode._id,
+					nodeId: tmpNode.nodeId,
+					name: tmpNode.name,
+					type: tmpNode.type,
+					data: tmpNode.data,
+					parent: null,
+					nodes: [],
+					createdAt: tmpNode.createdAt,
+					modifiedAt: tmpNode.modifiedAt,
+				};
+			}
+
+			function updateParent(tmpNode, node){
+				// get all parents, and single level of children 
+				if(node.parent){
+					tmpNode.parent = nodeFromNode(node.parent);
+					for(let childNode of node.parent.nodes){
+						tmpNode.parent.nodes.push(nodeFromNode(childNode));
+					}
+					updateParent(tmpNode.parent, node.parent);
+				}
+				// return tmpNode; // unnecessary, objected
+			}
+
+			function updateChildren(tmpNode, node){
+				// get all children (parents are included by default) 
+				if(node.nodes && node.nodes.length){
+					for(let childNode of node.nodes){
+						let tmpChild = nodeFromNode(childNode);
+						tmpNode.nodes.push(tmpChild);
+						updateChildren(tmpChild, childNode);
+					}
+				}
+				// return tmpNode; // unnecessary, objected
+			}
+
+			let returnNodes = [];
+			for(let node of nodes){
+				let tmpNode = nodeFromNode(node);
+				updateParent(tmpNode, node);
+				updateChildren(tmpNode, node);
+				returnNodes.push(tmpNode);
+			}
 
 		  eventEmitter.emit(
 		    'response',
 		    {
 		      // id      : ipc.config.id,
 		      id: message.id,
-		      data: JSON.parse(JSON.stringify(nodes)) //JSON.parse(JSON.stringify(nodes))
+		      data: JSON.parse(JSON.stringify(returnNodes)) //JSON.parse(JSON.stringify(nodes))
 		    }
 		  );
 
