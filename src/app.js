@@ -83,6 +83,10 @@ app.WebTorrentClient = WebTorrentClient;
 
 app.deepFreeze = function deepFreeze(obj) {
 
+  if(!obj){
+    return obj;
+  }
+
   // Retrieve the property names defined on obj
   var propNames = Object.getOwnPropertyNames(obj);
 

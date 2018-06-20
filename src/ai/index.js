@@ -1060,7 +1060,6 @@ class Second {
 				let childrenForNodeId = {};
 
 				for(let node of nodes){
-					app.deepFreeze(node);
 					if(node.nodeId){
 						// is a child
 						if(!childrenForNodeId[node.nodeId]){
@@ -1075,6 +1074,8 @@ class Second {
 					nodesById[node._id] = node;
 					node.parent = node.nodeId ? nodesById[node.nodeId] : null;
 					node.nodes = childrenForNodeId[node._id];
+					Object.freeze(node);
+					app.deepFreeze(node.data);
 				}
 
 				// // get rid of nodes that have a broken parent 
