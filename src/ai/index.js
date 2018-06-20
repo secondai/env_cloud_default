@@ -1060,6 +1060,7 @@ class Second {
 				let childrenForNodeId = {};
 
 				for(let node of nodes){
+					app.deepFreeze(node);
 					if(node.nodeId){
 						// is a child
 						if(!childrenForNodeId[node.nodeId]){
@@ -1154,8 +1155,8 @@ class Second {
 			  app.nodesDbParsed = cJSON.parse(cJSON.stringify(nodes));
 			  app.nodesDbParsedIds = cJSON.parse(cJSON.stringify(nodesById));
 
-			  app.deepFreeze(app.nodesDbParsed);
-			  app.deepFreeze(app.nodesDbParsedIds);
+			  // app.deepFreeze(app.nodesDbParsed);
+			  // app.deepFreeze(app.nodesDbParsedIds);
 
 			  console.info('event_emit: nodeDb.afterParse');
 			  app.eventEmitter.emit('nodesDb.afterParse', Date.now());
