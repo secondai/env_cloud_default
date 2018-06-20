@@ -1151,8 +1151,8 @@ class Second {
 
 			 //  let nodes = await fetchNodesQuick({}, 1, true);
 
-			  app.nodesDbParsed = nodes;
-			  app.nodesDbParsedIds = nodesById;
+			  app.nodesDbParsed = JSON.parse(JSON.stringify(nodes));
+			  app.nodesDbParsedIds = JSON.parse(JSON.stringify(nodesById));
 
 			  app.deepFreeze(app.nodesDbParsed);
 			  app.deepFreeze(app.nodesDbParsedIds);
@@ -1160,7 +1160,7 @@ class Second {
 			  console.info('event_emit: nodeDb.afterParse');
 			  app.eventEmitter.emit('nodesDb.afterParse', Date.now());
 
-			  resolve(nodes);
+			  resolve(app.nodesDbParsed);
 
     	})
     }
