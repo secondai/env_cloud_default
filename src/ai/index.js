@@ -273,15 +273,15 @@ eventEmitter.on('command',async (message, socket) => {
 
 			function nodeFromNode(node){
 				return {
-					_id: tmpNode._id,
-					nodeId: tmpNode.nodeId,
-					name: tmpNode.name,
-					type: tmpNode.type,
-					data: tmpNode.data,
+					_id: node._id,
+					nodeId: node.nodeId,
+					name: node.name,
+					type: node.type,
+					data: node.data,
 					parent: null,
 					nodes: [],
-					createdAt: tmpNode.createdAt,
-					modifiedAt: tmpNode.modifiedAt,
+					createdAt: node.createdAt,
+					modifiedAt: node.modifiedAt,
 				};
 			}
 
