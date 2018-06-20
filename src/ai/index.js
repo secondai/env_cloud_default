@@ -268,6 +268,9 @@ eventEmitter.on('command',async (message, socket) => {
 				nodes = app.nodesDbParsed;
 			}
 
+			// "fill out" by including parents/children for each possible result 
+			var possibleIds = lodash.map(nodes, '_id');
+
 		  eventEmitter.emit(
 		    'response',
 		    {
@@ -1051,82 +1054,102 @@ class Second {
     	return new Promise(async (resolve)=>{
 
 				// comes in as Object.freeze'd (no need to copy/clone) (faster to deepClone?) 
-				let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
+				let nodes = JSON.parse(JSON.stringify(app.nodesDb));
 
-				// get rid of nodes that have a broken parent 
-				// - TODO: more efficient somewhere else 
-				nodesDb = nodesDb.filter(node=>{
-					// check the parents to see if they are active
-					function checkParent(n){
-
-						if(n.nodeId){
-							let parent = _.find(nodesDb,{_id: n.nodeId});
-							if(parent && parent.active){
-								return checkParent(parent);
-							}
-							return false;
-						}
-						return true;
-
-					}
-					return checkParent(node);
-				});
-
-				// console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length); //, nodes.length);
 				let nodesById = {};
+				let childrenForNodeId = {};
 
-			  const fetchNodesQuick = (filterObj, depth, addToIdList) => {
-			    // also fetches all child nodes, for 10 levels deep
-			    return new Promise(async (resolve,reject)=>{
-			      depth = depth || 1;
-			      depth++;
-			      if(depth > 6){
-			        // too deep! (or pointing in a loop!?) 
-			        return resolve([]);
-			      }
+				for(let node of nodes){
+					if(node.nodeId){
+						// is a child
+						if(!childrenForNodeId[node.nodeId]){
+							childrenForNodeId[node.nodeId] = [];
+						}
+						childrenForNodeId[node.nodeId].push(node);
+					}
+					// make sure children reference array exists 
+					if(!childrenForNodeId[node._id]){
+						childrenForNodeId[node._id] = [];
+					}
+					nodesById[node._id] = node;
+					node.parent = node.nodeId ? nodesById[node.nodeId] : null;
+					node.nodes = childrenForNodeId[node._id];
+				}
 
-			      // necessary to parse/stringify instead of using circular json? 
-			      let nodes = JSON.parse(JSON.stringify(lodash.filter(nodesDb, filterObj))); // mimics simply object requests 
+				// // get rid of nodes that have a broken parent 
+				// // - TODO: more efficient somewhere else 
+				// nodesDb = nodesDb.filter(node=>{
+				// 	// check the parents to see if they are active
+				// 	function checkParent(n){
 
-			      // console.log('Found nodes!');
+				// 		if(n.nodeId){
+				// 			let parent = _.find(nodesDb,{_id: n.nodeId});
+				// 			if(parent && parent.active){
+				// 				return checkParent(parent);
+				// 			}
+				// 			return false;
+				// 		}
+				// 		return true;
 
-			      for(let node of nodes){
+				// 	}
+				// 	return checkParent(node);
+				// });
 
-			      	function getParentChain(nodeId){
-			      		let parent = lodash.find(nodesDb, {_id: nodeId});
-			      		if(parent.nodeId){
-			      			parent.parent = getParentChain(parent.nodeId);
-			      		}
-			      		return parent;
-			      	}
+				// // console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length); //, nodes.length);
+				// let nodesById = {};
 
-			        // get parent(s)
-			        if(node.nodeId){
-			          // find parent 
-			          // let parent = await fetchNodesQuick({_id: node.nodeId}, 4);
-			          // if(parent && parent.length){
-			          //   node.parent = parent[0];
-			          // }
-			          node.parent = getParentChain(node.nodeId); //lodash.find(nodesDb, {_id: node.nodeId});
+			 //  const fetchNodesQuick = (filterObj, depth, addToIdList) => {
+			 //    // also fetches all child nodes, for 10 levels deep
+			 //    return new Promise(async (resolve,reject)=>{
+			 //      depth = depth || 1;
+			 //      depth++;
+			 //      if(depth > 6){
+			 //        // too deep! (or pointing in a loop!?) 
+			 //        return resolve([]);
+			 //      }
 
-			        }
+			 //      // necessary to parse/stringify instead of using circular json? 
+			 //      let nodes = JSON.parse(JSON.stringify(lodash.filter(nodesDb, filterObj))); // mimics simply object requests 
 
-			        // get children 
-			        node.nodes = await fetchNodesQuick({nodeId: node._id}, depth);
+			 //      // console.log('Found nodes!');
 
-			        if(addToIdList){
-			        	nodesById[node._id] = node;
-			        }
+			 //      for(let node of nodes){
 
-			      }
+			 //      	function getParentChain(nodeId){
+			 //      		let parent = lodash.find(nodesDb, {_id: nodeId});
+			 //      		if(parent.nodeId){
+			 //      			parent.parent = getParentChain(parent.nodeId);
+			 //      		}
+			 //      		return parent;
+			 //      	}
 
-			      // console.log('After nodes');
-			      resolve(nodes);
+			 //        // get parent(s)
+			 //        if(node.nodeId){
+			 //          // find parent 
+			 //          // let parent = await fetchNodesQuick({_id: node.nodeId}, 4);
+			 //          // if(parent && parent.length){
+			 //          //   node.parent = parent[0];
+			 //          // }
+			 //          node.parent = getParentChain(node.nodeId); //lodash.find(nodesDb, {_id: node.nodeId});
 
-			    });
-			  }
+			 //        }
 
-			  let nodes = await fetchNodesQuick({}, 1, true);
+			 //        // get children 
+			 //        node.nodes = await fetchNodesQuick({nodeId: node._id}, depth);
+
+			 //        if(addToIdList){
+			 //        	nodesById[node._id] = node;
+			 //        }
+
+			 //      }
+
+			 //      // console.log('After nodes');
+			 //      resolve(nodes);
+
+			 //    });
+			 //  }
+
+			 //  let nodes = await fetchNodesQuick({}, 1, true);
 
 			  app.nodesDbParsed = nodes;
 			  app.nodesDbParsedIds = nodesById;
@@ -1141,6 +1164,101 @@ class Second {
 
     	})
     }
+
+    // app.nodesDbParser = function(){
+    // 	return new Promise(async (resolve)=>{
+
+				// // comes in as Object.freeze'd (no need to copy/clone) (faster to deepClone?) 
+				// let nodesDb = JSON.parse(JSON.stringify(app.nodesDb));
+
+				// // get rid of nodes that have a broken parent 
+				// // - TODO: more efficient somewhere else 
+				// nodesDb = nodesDb.filter(node=>{
+				// 	// check the parents to see if they are active
+				// 	function checkParent(n){
+
+				// 		if(n.nodeId){
+				// 			let parent = _.find(nodesDb,{_id: n.nodeId});
+				// 			if(parent && parent.active){
+				// 				return checkParent(parent);
+				// 			}
+				// 			return false;
+				// 		}
+				// 		return true;
+
+				// 	}
+				// 	return checkParent(node);
+				// });
+
+				// // console.log('DB Nodes. Total:', app.nodesDb.length, 'Possible:', nodesDb.length); //, nodes.length);
+				// let nodesById = {};
+
+			 //  const fetchNodesQuick = (filterObj, depth, addToIdList) => {
+			 //    // also fetches all child nodes, for 10 levels deep
+			 //    return new Promise(async (resolve,reject)=>{
+			 //      depth = depth || 1;
+			 //      depth++;
+			 //      if(depth > 6){
+			 //        // too deep! (or pointing in a loop!?) 
+			 //        return resolve([]);
+			 //      }
+
+			 //      // necessary to parse/stringify instead of using circular json? 
+			 //      let nodes = JSON.parse(JSON.stringify(lodash.filter(nodesDb, filterObj))); // mimics simply object requests 
+
+			 //      // console.log('Found nodes!');
+
+			 //      for(let node of nodes){
+
+			 //      	function getParentChain(nodeId){
+			 //      		let parent = lodash.find(nodesDb, {_id: nodeId});
+			 //      		if(parent.nodeId){
+			 //      			parent.parent = getParentChain(parent.nodeId);
+			 //      		}
+			 //      		return parent;
+			 //      	}
+
+			 //        // get parent(s)
+			 //        if(node.nodeId){
+			 //          // find parent 
+			 //          // let parent = await fetchNodesQuick({_id: node.nodeId}, 4);
+			 //          // if(parent && parent.length){
+			 //          //   node.parent = parent[0];
+			 //          // }
+			 //          node.parent = getParentChain(node.nodeId); //lodash.find(nodesDb, {_id: node.nodeId});
+
+			 //        }
+
+			 //        // get children 
+			 //        node.nodes = await fetchNodesQuick({nodeId: node._id}, depth);
+
+			 //        if(addToIdList){
+			 //        	nodesById[node._id] = node;
+			 //        }
+
+			 //      }
+
+			 //      // console.log('After nodes');
+			 //      resolve(nodes);
+
+			 //    });
+			 //  }
+
+			 //  let nodes = await fetchNodesQuick({}, 1, true);
+
+			 //  app.nodesDbParsed = nodes;
+			 //  app.nodesDbParsedIds = nodesById;
+
+			 //  app.deepFreeze(app.nodesDbParsed);
+			 //  app.deepFreeze(app.nodesDbParsedIds);
+
+			 //  console.info('event_emit: nodeDb.afterParse');
+			 //  app.eventEmitter.emit('nodesDb.afterParse', Date.now());
+
+			 //  resolve(nodes);
+
+    // 	})
+    // }
 
     // fetch and run code, pass in 
     let nodesInMemory = await app.graphql.fetchNodesSimple();

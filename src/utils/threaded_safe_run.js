@@ -477,6 +477,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
       let funcInSandbox = Object.assign({
         universe: {
+          runRequest: app.secondAI.MySecond.runRequest,
           npm: {
             install: npminstall
           },
@@ -1450,6 +1451,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               // make a request (assuming http for now) to an external Second 
               // - could also be local/on-page? 
+
+              console.error('Using WRONG TalkToSecond! Should use capability');
 
               let url = lodash.find(ExternalIdentityNode.nodes,{
                 type: 'external_identity_connect_method:0.0.1:local:382989239hsdfmn'

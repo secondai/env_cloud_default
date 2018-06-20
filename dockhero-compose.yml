@@ -8,7 +8,9 @@ services:
     - 4001
     - 5001
     - 8080
-    ports: # externally available
+    # externally available ports
+    # - 5010: api endpoint 
+    ports: 
     - 4001:4001
     - 5010:5001
     # - 8080:8080 
