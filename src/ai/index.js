@@ -1960,7 +1960,9 @@ const incomingAIRequest = ({ req, res }) => {
 			return false;
 		}
 
-		console.log('RESPONSE (from hardcoded):', response);
+		// console.log('RESPONSE (from hardcoded):', response);
+
+		
 
 
 		// // expecting output to be a node 

@@ -2142,7 +2142,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           runNodeCodeInVM: (opts) => {
             return new Promise(async (resolve, reject)=>{
 
-              console.log('runNodeCodeInVM');
+              // console.log('runNodeCodeInVM');
 
               // Runs in ThreadedVM 
               // - putting this here means it PROBABLY won't have all the context we'd hope for
@@ -2225,13 +2225,13 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // Check cache 
               if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
                 if(app.globalCache.SearchFilters[opts.cache]){
-                  console.log('Used cache (skipped IPC fetchNodes)');
+                  // console.log('Used cache (skipped IPC fetchNodes)');
                   return resolve(app.globalCache.SearchFilters[opts.cache]);
                 } else {
-                  console.log('Not cached yet:', opts.cache);
+                  // console.log('Not cached yet:', opts.cache);
                 }
               } else {
-                console.log('No cache attempted, fetchingNodes');
+                // console.log('No cache attempted, fetchingNodes');
               }
 
               // console.log('SLOW:', opts.cache ? opts.cache:'NoCache');
