@@ -633,7 +633,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             function getParentNodes2(node){
               let nodes = [node];
               if(node.nodeId && !node.parent){
-                console.error('parent chain broken in sameAppPlatform');
+                console.error('parent chain broken in sameAppPlatform', node.type, node._id);
               }
               if(node.parent){
                 nodes = nodes.concat(getParentNodes2(node.parent));
@@ -2229,7 +2229,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // run "filterNode" after all the results are found
               if(typeof(opts.filter.filterNodes) == 'function'){
                 try {
-                  console.log('FilterNodes:', sm123);
+                  console.log('FilterNodes:', sm123, nodes.length);
                   nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
                 }catch(err){
                   console.error('Failed filterNodes1', err);

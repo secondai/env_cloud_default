@@ -293,6 +293,9 @@ eventEmitter.on('command',async (message, socket) => {
 
 			function updateParent(tmpNode, node){
 				// get all parents, and single level of children 
+				if(node.nodeId && !node.parent){
+					console.error('Missing Parent for nodeId when updateParent!');
+				}
 				if(node.parent){
 					// console.log('88: Adding parent');
 					tmpNode.parent = nodeFromNode(node.parent);
