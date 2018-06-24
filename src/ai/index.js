@@ -561,7 +561,7 @@ eventEmitter.on('command',async (message, socket) => {
   		} else {
   			console.log('UpdateNode');
   			updatedNode = await app.graphql.updateNode(message.node);
-  			app.nodesDb.splice(nodeInMemoryIdx, 1, JSON.parse(JSON.stringify(updatedNode)));
+  			app.nodesDb.splice(nodeInMemoryIdx, 1, updatedNode);
 
   		}
 
@@ -584,10 +584,20 @@ eventEmitter.on('command',async (message, socket) => {
 					app.nodesDbParser()
 					.then(()=>{
 	      		app.eventEmitter.emit('node.afterUpdate', updatedNode);
+		      	try {
+		      		JSON.stringify(updatedNode);
+		      	}catch(err){
+		      		console.error(err);
+		      	}
 					});
 		    } else {
 		    	await app.nodesDbParser();
 	      	app.eventEmitter.emit('node.afterUpdate', updatedNode);
+	      	try {
+	      		JSON.stringify(updatedNode);
+	      	}catch(err){
+	      		console.error(err);
+	      	}
 		    }
 		  }
 
