@@ -2174,7 +2174,10 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           },
           searchMemory: (opts) => {
             return new Promise(async (resolve, reject)=>{
-              console.log('Running searchMemory');
+              app.sm123 = app.sm123 || 1;
+              let sm123 = app.sm123 + 0;
+              app.sm123++;
+              console.log('Running searchMemory', app.sm123);
               // resolve('universe result! ' + ob.context.tenant.dbName);
               // console.log('searchMemory1');
               opts = opts || {};
@@ -2201,6 +2204,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               try{
                 nodes = await fetchNodes(opts.filter);
               }catch(err){
+                console.error(err);
                 return resolve({
                   err: 'shit'
                 });
@@ -2222,9 +2226,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               .then(nodes=>{
                 // add result to cache
                 if(opts.cache){
-                  // app.globalCache.SearchFilters[opts.cache] = nodes;
+                  // app.globalCache.SearchFilters[opts.cache] = nodes; // UNCOMMENT TO ENABLE SEARCH CACHE (expensive/intensive?) 
                 }
-
+                console.log('Ending searchMemory', sm123);
                 resolve(nodes);
               })
               .catch(err=>{
