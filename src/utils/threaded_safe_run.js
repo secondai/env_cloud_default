@@ -432,7 +432,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         console.log('Using cached codeNode for vm');
         codeNode = app.globalCache.SearchFilters['exact_codeNode:'+nodeId];
       } else {
-        console.log('Not using cached codeNode for vm');
+        // console.log('Not using cached codeNode for vm');
         codeNode = await fetchNodes({
           sqlFilter: {
             _id: nodeId
@@ -440,11 +440,11 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         });
         // console.log('CodeNode Matches (should contain parent!)', JSON.stringify(codeNode, null, 2));
         codeNode = codeNode[0];
-        app.globalCache.SearchFilters['exact_codeNode:'+nodeId] = codeNode;
-        setTimeout(()=>{
-          console.log('de-caching internal codeNode');
-          app.globalCache.SearchFilters['exact_codeNode:'+nodeId] = null;
-        },2 * 60 * 1000);
+        // app.globalCache.SearchFilters['exact_codeNode:'+nodeId] = codeNode;
+        // setTimeout(()=>{
+        //   console.log('de-caching internal codeNode');
+        //   app.globalCache.SearchFilters['exact_codeNode:'+nodeId] = null;
+        // },2 * 60 * 1000);
       }
 
       // app_base and platform_nodes for CodeNode 
@@ -2195,7 +2195,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                 console.log('No cache attempted, fetchingNodes');
               }
 
-              console.log('SLOW:', opts.cache ? opts.cache:'NoCache');
+              // console.log('SLOW:', opts.cache ? opts.cache:'NoCache');
 
               let nodes;
               try{
@@ -2222,7 +2222,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               .then(nodes=>{
                 // add result to cache
                 if(opts.cache){
-                  app.globalCache.SearchFilters[opts.cache] = nodes;
+                  // app.globalCache.SearchFilters[opts.cache] = nodes;
                 }
 
                 resolve(nodes);
