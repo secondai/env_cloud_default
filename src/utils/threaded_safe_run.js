@@ -633,7 +633,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             function getParentNodes2(node){
               let nodes = [node];
               if(node.nodeId && !node.parent){
-                console.error('parent chain broken in sameAppPlatform', node.type, node._id);
+                // console.error('parent chain broken in sameAppPlatform', node.type, node._id);
                 throw 'parent chain broken in sameAppPlatform'
               }
               if(node.parent){
@@ -652,13 +652,21 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               parentNodes1 = getParentNodes2(node1);
             }catch(err){
               let tmpnode1 = lodash.find(app.nodesDbParsed,{_id: node1._id});
-              parentNodes1 = getParentNodes2(tmpnode1);
+              try {
+                parentNodes1 = getParentNodes2(tmpnode1);
+              }catch(err2){
+                console.error(err2);
+              }
             }
             try {
               parentNodes2 = getParentNodes2(node2);
             }catch(err){
               let tmpnode2 = lodash.find(app.nodesDbParsed,{_id: node2._id});
-              parentNodes2 = getParentNodes2(tmpnode2);
+              try {
+                parentNodes2 = getParentNodes2(tmpnode2);
+              }catch(err2){
+                console.error(err2);
+              }
             }
 
             // console.log('NodeParents2:', node2._id, parentNodes2.length);
@@ -2244,6 +2252,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               if(typeof(opts.filter.filterNodes) == 'function'){
                 try {
                   console.log('FilterNodes:', sm123, nodes.length);
+                  if(nodes.length == app.nodesDbParsed.length){
+                    console.error('Did NOT filter search at all (filterNodes length is max)!');
+                  }
                   nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
                 }catch(err){
                   console.error('Failed filterNodes1', err);
