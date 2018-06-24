@@ -627,7 +627,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           },
 
           sameAppPlatform: (node1, node2)=>{
-            // console.log('sameAppPlatform');
+            console.log('sameAppPlatform');
             // return true;
 
             function getParentNodes2(node){
@@ -695,11 +695,12 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               &&
               appBaseClosest1.data.appId == appBaseClosest2.data.appId
               ){
+              console.log('sameAppPlatform TRUE');
               return true;
             }
 
             // console.log('Missed sameAppPlatform');
-
+            console.log('sameAppPlatform false');
             return false;
 
           },
@@ -2111,7 +2112,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             return new Promise(async (resolve, reject)=>{
 
               console.log('runNodeCodeInVM');
-              
+
               // Runs in ThreadedVM 
               // - putting this here means it PROBABLY won't have all the context we'd hope for
 
