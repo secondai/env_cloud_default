@@ -2208,7 +2208,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               app.sm123 = app.sm123 || 1;
               let sm123 = app.sm123 + 0;
               app.sm123++;
+
               console.log('Running searchMemory', sm123);
+              
               // resolve('universe result! ' + ob.context.tenant.dbName);
               // console.log('searchMemory1');
               opts = opts || {};
@@ -2253,7 +2255,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                 try {
                   console.log('FilterNodes:', sm123, nodes.length);
                   if(nodes.length == app.nodesDbParsed.length){
-                    console.error('Did NOT filter search at all (filterNodes length is max)!');
+                    console.error('Did NOT filter search at all (filterNodes length is max)!', sm123);
                   }
                   nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
                 }catch(err){
