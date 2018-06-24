@@ -342,7 +342,7 @@ eventEmitter.on('command',async (message, socket) => {
 					returnNodes.push(tmpNode);
 				}
 				returnNodesObj = JSON.parse(JSON.stringify(returnNodes));
-			} else if {
+			} else {
 				// v4 (circular json) 
 				// - return everything vs. specify a path to retrieve info for 
 				returnNodesObj = cJSON.parse(cJSON.stringify(returnNodes));
