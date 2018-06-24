@@ -632,11 +632,17 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
             function getParentNodes2(node){
               let nodes = [node];
+              if(node.nodeId && !node.parent){
+                console.error('parent chain broken in sameAppPlatform');
+              }
               if(node.parent){
                 nodes = nodes.concat(getParentNodes2(node.parent));
               }
               return nodes;
             }
+
+            // if parent chain doesnt exist (or is broken) then just rebuild on-the-fly? 
+
             
             let parentNodes1 = getParentNodes2(node1);
             let parentNodes2 = getParentNodes2(node2);
