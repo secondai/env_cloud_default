@@ -326,26 +326,31 @@ eventEmitter.on('command',async (message, socket) => {
 			// v3 or v4 
 			let returnNodes = [];
 			let returnNodesObj;
-			if(1==0){
-				// v3
-				// console.log('--Start Return--');
-				for(let node of nodes){
-					let tmpNode = nodeFromNode(node);
-					updateParent(tmpNode, node);
-					updateChildren(tmpNode, node);
-					// siblings 
-					if(node.parent && tmpNode.parent){
-						for(let childNode of node.parent.nodes){
-							tmpNode.parent.nodes.push(nodeFromNode(childNode));
+			switch(message.filter.responseType){
+				case 'cjson':
+					// v4 (circular json) 
+					// - return everything vs. specify a path to retrieve info for 
+					returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
+					break;
+
+				case 'json':
+				default:
+					// v3
+					// console.log('--Start Return--');
+					for(let node of nodes){
+						let tmpNode = nodeFromNode(node);
+						updateParent(tmpNode, node);
+						updateChildren(tmpNode, node);
+						// siblings 
+						if(node.parent && tmpNode.parent){
+							for(let childNode of node.parent.nodes){
+								tmpNode.parent.nodes.push(nodeFromNode(childNode));
+							}
 						}
+						returnNodes.push(tmpNode);
 					}
-					returnNodes.push(tmpNode);
-				}
-				returnNodesObj = JSON.parse(JSON.stringify(returnNodes));
-			} else {
-				// v4 (circular json) 
-				// - return everything vs. specify a path to retrieve info for 
-				returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
+					returnNodesObj = JSON.parse(JSON.stringify(returnNodes));
+					break;
 			}
 
 		  eventEmitter.emit(

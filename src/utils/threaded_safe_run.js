@@ -128,6 +128,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       const fetchNodes = (filterOpts) => {
 
         filterOpts = filterOpts || {};
+        filterOpts.responseType = filterOpts.responseType || 'json'; // cjson 
         filterOpts.sqlFilter = filterOpts.sqlFilter || {};
         filterOpts.dataFilter = filterOpts.dataFilter || {};
 
@@ -276,6 +277,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           let nodes;
           try{
             nodes = await fetchNodes({
+              responseType: 'json',
               sqlFilter: {
                 nodeId: null,
                 type: 'identity_private:0.0.1:local:3298f2j398233'
@@ -434,6 +436,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       } else {
         // console.log('Not using cached codeNode for vm');
         codeNode = await fetchNodes({
+          responseType: 'cjson',
           sqlFilter: {
             _id: nodeId
           }
@@ -2210,7 +2213,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               app.sm123++;
 
               console.log('Running searchMemory', sm123);
-              
+
               // resolve('universe result! ' + ob.context.tenant.dbName);
               // console.log('searchMemory1');
               opts = opts || {};
