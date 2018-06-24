@@ -2110,6 +2110,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           runNodeCodeInVM: (opts) => {
             return new Promise(async (resolve, reject)=>{
 
+              console.log('runNodeCodeInVM');
+              
               // Runs in ThreadedVM 
               // - putting this here means it PROBABLY won't have all the context we'd hope for
 
@@ -2234,10 +2236,11 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                 if(opts.cache){
                   // app.globalCache.SearchFilters[opts.cache] = nodes; // UNCOMMENT TO ENABLE SEARCH CACHE (expensive/intensive?) 
                 }
-                console.log('Ending searchMemory', sm123);
+                console.log('Ending searchMemory', sm123, 'nodes:', nodes.length);
                 resolve(nodes);
               })
               .catch(err=>{
+                console.error('Failed searching internal memory (filterNodes)', err);
                 resolve({
                   error: true,
                   str: 'Failed searching internal memory (filterNodes)!',
