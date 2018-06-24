@@ -2220,6 +2220,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // run "filterNode" after all the results are found
               if(typeof(opts.filter.filterNodes) == 'function'){
                 try {
+                  console.log('FilterNodes:', sm123);
                   nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
                 }catch(err){
                   console.error('Failed filterNodes1', err);

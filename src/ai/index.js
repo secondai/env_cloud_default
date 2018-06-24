@@ -296,9 +296,10 @@ eventEmitter.on('command',async (message, socket) => {
 				if(node.parent){
 					// console.log('88: Adding parent');
 					tmpNode.parent = nodeFromNode(node.parent);
-					for(let childNode of node.parent.nodes){
-						tmpNode.parent.nodes.push(nodeFromNode(childNode));
-					}
+					// // children for parent 
+					// for(let childNode of node.parent.nodes){
+					// 	tmpNode.parent.nodes.push(nodeFromNode(childNode));
+					// }
 					updateParent(tmpNode.parent, node.parent);
 				} else {
 					// console.log('88: no parent');
@@ -324,6 +325,12 @@ eventEmitter.on('command',async (message, socket) => {
 				let tmpNode = nodeFromNode(node);
 				updateParent(tmpNode, node);
 				updateChildren(tmpNode, node);
+				// siblings 
+				if(node.parent && tmpNode.parent){		
+					for(let childNode of node.parent.nodes){
+						tmpNode.parent.nodes.push(nodeFromNode(childNode));
+					}
+				}
 				returnNodes.push(tmpNode);
 			}
 
