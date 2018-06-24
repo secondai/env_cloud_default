@@ -136,7 +136,7 @@ eventEmitter.on('command',async (message, socket) => {
 
   // message = JSON.parse(message); 
 
-  console.log('IPC Command:', message.command);
+  // console.log('IPC Command:', message.command);
 
   // await app.graphql.newHistory({
   // 	type: 'incoming_ipc_command:' + message.command, // should be a Node type (for easier display)  
@@ -263,6 +263,12 @@ eventEmitter.on('command',async (message, socket) => {
 				nodes = lodash.query(app.nodesDbParsed, dataFilter);
 			} else if(useSqlFilter){
 				nodes = lodash.filter(app.nodesDbParsed, sqlFilter);
+
+				// _id only
+				if(sqlFilter._id){
+					console.log('sqlFilter._id:', sqlFilter._id, nodes.length, (nodes[0].parent ? 'HasParent':'NoParent'), nodes[0].nodeId);
+				}
+
 			} else {
 				// all nodes
 				nodes = app.nodesDbParsed;
@@ -313,7 +319,7 @@ eventEmitter.on('command',async (message, socket) => {
 			}
 
 			let returnNodes = [];
-			console.log('--Start Return--');
+			// console.log('--Start Return--');
 			for(let node of nodes){
 				let tmpNode = nodeFromNode(node);
 				updateParent(tmpNode, node);
@@ -1568,7 +1574,7 @@ class Second {
 
 	      }
 
-        console.log('Got CodeNode', CodeNode._id); //, CodeNode.data.key);
+        // console.log('Got CodeNode', CodeNode._id); //, CodeNode.data.key);
 
         UniverseInputNode = {};
 
