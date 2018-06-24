@@ -561,7 +561,7 @@ eventEmitter.on('command',async (message, socket) => {
   		} else {
   			console.log('UpdateNode');
   			updatedNode = await app.graphql.updateNode(message.node);
-  			app.nodesDb.splice(nodeInMemoryIdx, 1, updatedNode);
+  			app.nodesDb.splice(nodeInMemoryIdx, 1, JSON.parse(JSON.stringify(updatedNode)));
 
   		}
 
