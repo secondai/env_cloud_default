@@ -266,7 +266,7 @@ eventEmitter.on('command',async (message, socket) => {
 
 				// _id only
 				if(sqlFilter._id){
-					console.log('sqlFilter._id:', sqlFilter._id, nodes.length, ((nodes[0].parent && !nodes[0].parent) ? 'Missing PARENT!!':''), nodes[0].nodeId);
+					console.log('sqlFilter._id:', sqlFilter._id, nodes.length, ((nodes[0].nodeId && !nodes[0].parent) ? 'Missing PARENT!!':''), nodes[0].nodeId);
 				}
 
 			} else {
@@ -1216,7 +1216,7 @@ class Second {
 			  // Test parse result 
 			  let tmpCodeNodes = lodash.query(app.nodesDbParsed, {_id:'5ae65f24bacc8e0021e8db38'});
 			  // console.log('tmpCodeNodes', );
-			  console.log('tmpCodeNodes:', tmpCodeNodes.length, ((tmpCodeNodes[0].parent && !tmpCodeNodes[0].parent) ? 'Missing PARENT!!':''), tmpCodeNodes[0].nodeId);
+			  console.log('tmpCodeNodes:', tmpCodeNodes.length, ((tmpCodeNodes[0].nodeId && !tmpCodeNodes[0].parent) ? 'Missing PARENT!!':''), tmpCodeNodes[0].nodeId);
 
 
 			  // app.deepFreeze(app.nodesDbParsed);
