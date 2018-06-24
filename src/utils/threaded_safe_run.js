@@ -627,13 +627,14 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           },
 
           sameAppPlatform: (node1, node2)=>{
-            console.log('sameAppPlatform');
+            // console.log('sameAppPlatform');
             // return true;
 
             function getParentNodes2(node){
               let nodes = [node];
               if(node.nodeId && !node.parent){
                 console.error('parent chain broken in sameAppPlatform', node.type, node._id);
+                throw 'parent chain broken in sameAppPlatform'
               }
               if(node.parent){
                 nodes = nodes.concat(getParentNodes2(node.parent));
@@ -642,10 +643,23 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             }
 
             // if parent chain doesnt exist (or is broken) then just rebuild on-the-fly? 
-
+            // - using reference version of nodesDb (w/ parents, children) 
             
-            let parentNodes1 = getParentNodes2(node1);
-            let parentNodes2 = getParentNodes2(node2);
+            let parentNodes1;
+            let parentNodes2;
+
+            try {
+              parentNodes1 = getParentNodes2(node1);
+            }catch(err){
+              let tmpnode1 = lodash.find(app.nodesDbParsed,{_id: node1._id});
+              parentNodes1 = getParentNodes2(tmpnode1);
+            }
+            try {
+              parentNodes2 = getParentNodes2(node2);
+            }catch(err){
+              let tmpnode2 = lodash.find(app.nodesDbParsed,{_id: node2._id});
+              parentNodes2 = getParentNodes2(tmpnode2);
+            }
 
             // console.log('NodeParents2:', node2._id, parentNodes2.length);
 
