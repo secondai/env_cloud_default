@@ -81,26 +81,40 @@ WebTorrentClient.on('error', err=>{
 })
 app.WebTorrentClient = WebTorrentClient;
 
-app.deepFreeze = function deepFreeze(obj) {
+app.deepFreeze = function deepFreeze(o) {
 
-  if(!obj){
-    return obj;
+  if(!o){
+    return o;
   }
 
-  // Retrieve the property names defined on obj
-  var propNames = Object.getOwnPropertyNames(obj);
+  Object.freeze(o);
 
-  // Freeze properties before freezing self
-  propNames.forEach(function(name) {
-    var prop = obj[name];
-
-    // Freeze prop if it is an object
-    if (typeof prop == 'object' && prop !== null)
-      deepFreeze(prop);
+  Object.getOwnPropertyNames(o).forEach(function (prop) {
+    if (o.hasOwnProperty(prop)
+    && o[prop] !== null
+    && (typeof o[prop] === "object" || typeof o[prop] === "function")
+    && !Object.isFrozen(o[prop])) {
+      deepFreeze(o[prop]);
+    }
   });
+  
+  return o;
 
-  // Freeze self (no-op if already frozen)
-  return Object.freeze(obj);
+
+  // // Retrieve the property names defined on obj
+  // var propNames = Object.getOwnPropertyNames(obj);
+
+  // // Freeze properties before freezing self
+  // propNames.forEach(function(name) {
+  //   var prop = obj[name];
+
+  //   // Freeze prop if it is an object
+  //   if (typeof prop == 'object' && prop !== null)
+  //     deepFreeze(prop);
+  // });
+
+  // // Freeze self (no-op if already frozen)
+  // return Object.freeze(obj);
 }
 
 

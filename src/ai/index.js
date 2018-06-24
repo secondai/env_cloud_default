@@ -274,6 +274,7 @@ eventEmitter.on('command',async (message, socket) => {
 				nodes = app.nodesDbParsed;
 			}
 
+			// v3ish
 			// "fill out" by including parents/children for each possible result 
 			// - limits possible returned result to parent's children, all children of node 
 
@@ -322,19 +323,29 @@ eventEmitter.on('command',async (message, socket) => {
 				// return tmpNode; // unnecessary, objected
 			}
 
+			// v3 or v4 
 			let returnNodes = [];
-			// console.log('--Start Return--');
-			for(let node of nodes){
-				let tmpNode = nodeFromNode(node);
-				updateParent(tmpNode, node);
-				updateChildren(tmpNode, node);
-				// siblings 
-				if(node.parent && tmpNode.parent){		
-					for(let childNode of node.parent.nodes){
-						tmpNode.parent.nodes.push(nodeFromNode(childNode));
+			let returnNodesObj;
+			if(1==0){
+				// v3
+				// console.log('--Start Return--');
+				for(let node of nodes){
+					let tmpNode = nodeFromNode(node);
+					updateParent(tmpNode, node);
+					updateChildren(tmpNode, node);
+					// siblings 
+					if(node.parent && tmpNode.parent){
+						for(let childNode of node.parent.nodes){
+							tmpNode.parent.nodes.push(nodeFromNode(childNode));
+						}
 					}
+					returnNodes.push(tmpNode);
 				}
-				returnNodes.push(tmpNode);
+				returnNodesObj = JSON.parse(JSON.stringify(returnNodes));
+			} else if {
+				// v4 (circular json) 
+				// - return everything vs. specify a path to retrieve info for 
+				returnNodesObj = cJSON.parse(cJSON.stringify(returnNodes));
 			}
 
 		  eventEmitter.emit(
@@ -342,7 +353,7 @@ eventEmitter.on('command',async (message, socket) => {
 		    {
 		      // id      : ipc.config.id,
 		      id: message.id,
-		      data: JSON.parse(JSON.stringify(returnNodes)) //JSON.parse(JSON.stringify(nodes))
+		      data: returnNodesObj //JSON.parse(JSON.stringify(nodes))
 		    }
 		  );
 
@@ -1145,7 +1156,7 @@ class Second {
 					// }
 					node.parent = node.nodeId ? nodesById[node.nodeId] : null;
 					node.nodes = childrenForNodeId[node._id];
-					Object.freeze(node.data);
+					// Object.freeze(node.data);
 					// app.deepFreeze(node.data);
 				}
 
