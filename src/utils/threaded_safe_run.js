@@ -438,6 +438,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             _id: nodeId
           }
         });
+        console.log('CodeNode Matches (should contain parent!)', JSON.stringify(codeNode, null, 2));
         codeNode = codeNode[0];
         app.globalCache.SearchFilters['exact_codeNode:'+nodeId] = codeNode;
         setTimeout(()=>{
