@@ -1117,18 +1117,22 @@ class Second {
 				let childrenForNodeId = {};
 
 				for(let node of nodes){
+					nodesById[node._id] = node;
+					childrenForNodeId[node._id] = [];
+				}
+
+				for(let node of nodes){
 					if(node.nodeId){
 						// is a child
-						if(!childrenForNodeId[node.nodeId]){
-							childrenForNodeId[node.nodeId] = [];
-						}
+						// if(!childrenForNodeId[node.nodeId]){
+						// 	childrenForNodeId[node.nodeId] = [];
+						// }
 						childrenForNodeId[node.nodeId].push(node);
 					}
-					// make sure children reference array exists 
-					if(!childrenForNodeId[node._id]){
-						childrenForNodeId[node._id] = [];
-					}
-					nodesById[node._id] = node;
+					// // make sure children reference array exists 
+					// if(!childrenForNodeId[node._id]){
+					// 	childrenForNodeId[node._id] = [];
+					// }
 					node.parent = node.nodeId ? nodesById[node.nodeId] : null;
 					node.nodes = childrenForNodeId[node._id];
 					Object.freeze(node.data);
