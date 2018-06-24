@@ -288,11 +288,14 @@ eventEmitter.on('command',async (message, socket) => {
 			function updateParent(tmpNode, node){
 				// get all parents, and single level of children 
 				if(node.parent){
+					console.log('88: Adding parent');
 					tmpNode.parent = nodeFromNode(node.parent);
 					for(let childNode of node.parent.nodes){
 						tmpNode.parent.nodes.push(nodeFromNode(childNode));
 					}
 					updateParent(tmpNode.parent, node.parent);
+				} else {
+					console.log('88: no parent');
 				}
 				// return tmpNode; // unnecessary, objected
 			}
@@ -310,6 +313,7 @@ eventEmitter.on('command',async (message, socket) => {
 			}
 
 			let returnNodes = [];
+			console.log('--Start Return--');
 			for(let node of nodes){
 				let tmpNode = nodeFromNode(node);
 				updateParent(tmpNode, node);
