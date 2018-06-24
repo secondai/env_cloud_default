@@ -2289,6 +2289,71 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
             })
           },
+          trimSearchResults: (nodes, opts)=>{
+
+            function nodeFromNode(node){
+              return {
+                _id: node._id,
+                nodeId: node.nodeId,
+                name: node.name,
+                type: node.type,
+                data: node.data,
+                parent: null,
+                nodes: [],
+                createdAt: node.createdAt,
+                modifiedAt: node.modifiedAt,
+              };
+            }
+
+            function updateParent(tmpNode, node){
+              // get all parents, and single level of children 
+              if(node.nodeId && !node.parent){
+                console.error('Missing Parent for nodeId when updateParent!');
+              }
+              if(node.parent){
+                // console.log('88: Adding parent');
+                tmpNode.parent = nodeFromNode(node.parent);
+                // // children for parent 
+                // for(let childNode of node.parent.nodes){
+                //  tmpNode.parent.nodes.push(nodeFromNode(childNode));
+                // }
+                updateParent(tmpNode.parent, node.parent);
+              } else {
+                // console.log('88: no parent');
+              }
+              // return tmpNode; // unnecessary, objected
+            }
+
+            function updateChildren(tmpNode, node){
+              // get all children (parents are included by default) 
+              if(node.nodes && node.nodes.length){
+                for(let childNode of node.nodes){
+                  let tmpChild = nodeFromNode(childNode);
+                  tmpNode.nodes.push(tmpChild);
+                  updateChildren(tmpChild, childNode);
+                }
+              }
+              // return tmpNode; // unnecessary, objected
+            }
+
+            let returnNodes = [];
+
+            for(let node of nodes){
+              let tmpNode = nodeFromNode(node);
+              updateParent(tmpNode, node);
+              updateChildren(tmpNode, node);
+              // siblings 
+              if(node.parent && tmpNode.parent){
+                for(let childNode of node.parent.nodes){
+                  tmpNode.parent.nodes.push(nodeFromNode(childNode));
+                }
+              }
+              returnNodes.push(tmpNode);
+            }
+            
+            return returnNodes;
+
+          },
           searchMemoryMemory: (opts) => {
             return new Promise(async (resolve, reject)=>{
               console.log('Running searchMemoryMemory');
