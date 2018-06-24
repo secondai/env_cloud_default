@@ -518,6 +518,7 @@ eventEmitter.on('command',async (message, socket) => {
 
   		if(nodeInMemoryIdx === -1){
   			console.error('Node to update NOT in memory!', message.node._id);
+  			return false;
   		}
 
   		// message.data = "filter"
@@ -529,7 +530,7 @@ eventEmitter.on('command',async (message, socket) => {
   		} else {
   			console.log('UpdateNode');
   			updatedNode = await app.graphql.updateNode(message.node);
-  			app.nodesDb.splice(nodeInMemoryIdx,1, updatedNode);
+  			app.nodesDb.splice(nodeInMemoryIdx, 1, updatedNode);
 
   		}
 

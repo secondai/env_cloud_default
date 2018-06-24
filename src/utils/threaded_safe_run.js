@@ -472,7 +472,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       // console.log('platformClosest?', (platformClosest && platformClosest._id) ? true:false, nodeId);
       // console.log('appBaseClosest?', (appBaseClosest && appBaseClosest._id) ? true:false, nodeId);
       if(!platformClosest){
-        console.error('Missing platformClosest for CodeNode:', JSON.stringify(codeNode));
+        console.error('Missing platformClosest for CodeNode:', JSON.stringify(codeNode, null, 2));
       }
 
       let funcInSandbox = Object.assign({
@@ -483,6 +483,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           },
           appBaseClosest,
           platformClosest,
+          process: process,
           env: process.env, // just allow all environment variables to be accessed 
           console,
           lodash,
