@@ -327,14 +327,8 @@ eventEmitter.on('command',async (message, socket) => {
 			let returnNodes = [];
 			let returnNodesObj;
 			switch(message.filter.responseType){
-				case 'cjson':
-					// v4 (circular json) 
-					// - return everything vs. specify a path to retrieve info for 
-					returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
-					break;
 
 				case 'json':
-				default:
 					// v3
 					// console.log('--Start Return--');
 					for(let node of nodes){
@@ -351,6 +345,14 @@ eventEmitter.on('command',async (message, socket) => {
 					}
 					returnNodesObj = JSON.parse(JSON.stringify(returnNodes));
 					break;
+
+				case 'cjson':
+				default:
+					// v4 (circular json) 
+					// - return everything vs. specify a path to retrieve info for 
+					returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
+					break;
+
 			}
 
 		  eventEmitter.emit(
@@ -1498,6 +1500,7 @@ class Second {
 			// clear request cache after 30 seconds 
 			// - should just do on completion? 
 			setTimeout(()=>{
+				console.log('freememory-requestscache');
 				delete requestsCache[thisRequestId];
 			}, 30 * 1000);
 
@@ -1962,7 +1965,7 @@ const incomingAIRequest = ({ req, res }) => {
 
 		// console.log('RESPONSE (from hardcoded):', response);
 
-		
+
 
 
 		// // expecting output to be a node 

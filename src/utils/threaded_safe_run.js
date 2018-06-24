@@ -2217,6 +2217,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // resolve('universe result! ' + ob.context.tenant.dbName);
               // console.log('searchMemory1');
               opts = opts || {};
+              opts.lean = opts.lean ? true:false;
               opts.filter = opts.filter || {};
               opts.filter.sqlFilter = opts.filter.sqlFilter || {};
               opts.filter.dataFilter = opts.filter.dataFilter || {}; // underscore-query
@@ -2274,7 +2275,11 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                   // app.globalCache.SearchFilters[opts.cache] = nodes; // UNCOMMENT TO ENABLE SEARCH CACHE (expensive/intensive?) 
                 }
                 // console.log('Ending searchMemory', sm123, 'nodes:', nodes.length);
-                resolve(nodes);
+                if(opts.lean){
+                  resolve(funcInSandbox.universe.trimSearchResults(nodes));
+                } else {
+                  resolve(nodes);
+                }
               })
               .catch(err=>{
                 console.error('Failed searching internal memory (filterNodes)', err);
@@ -2556,6 +2561,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             // } else {
               output = null;
               setTimeout(()=>{
+                console.log('freememory-universe');
                 data = null;
                 ob = null;
 
