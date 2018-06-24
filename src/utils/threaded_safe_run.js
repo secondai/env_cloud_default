@@ -2177,7 +2177,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               app.sm123 = app.sm123 || 1;
               let sm123 = app.sm123 + 0;
               app.sm123++;
-              console.log('Running searchMemory', app.sm123);
+              console.log('Running searchMemory', sm123);
               // resolve('universe result! ' + ob.context.tenant.dbName);
               // console.log('searchMemory1');
               opts = opts || {};
@@ -2219,7 +2219,12 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               // run "filterNode" after all the results are found
               if(typeof(opts.filter.filterNodes) == 'function'){
-                nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
+                try {
+                  nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
+                }catch(err){
+                  console.error('Failed filterNodes1', err);
+                  return;
+                }
               }
 
               Promise.resolve(nodes)
@@ -2286,7 +2291,12 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
               // run "filterNode" after all the results are found
               if(typeof(opts.filter.filterNodes) == 'function'){
-                nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
+                try {
+                  nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
+                }catch(err){
+                  console.error('Failed filterNodes1', err);
+                  return;
+                }
               }
 
               Promise.resolve(nodes)
