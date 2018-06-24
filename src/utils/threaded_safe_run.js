@@ -726,12 +726,12 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               &&
               appBaseClosest1.data.appId == appBaseClosest2.data.appId
               ){
-              console.log('sameAppPlatform TRUE');
+              // console.log('sameAppPlatform TRUE');
               return true;
             }
 
             // console.log('Missed sameAppPlatform');
-            console.log('sameAppPlatform false');
+            // console.log('sameAppPlatform false');
             return false;
 
           },
@@ -2256,7 +2256,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               // run "filterNode" after all the results are found
               if(typeof(opts.filter.filterNodes) == 'function'){
                 try {
-                  console.log('FilterNodes:', sm123, nodes.length);
+                  // console.log('FilterNodes:', sm123, nodes.length);
                   if(nodes.length == app.nodesDbParsed.length){
                     console.error('Did NOT filter search at all (filterNodes length is max)!', sm123);
                   }
@@ -2273,7 +2273,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                 if(opts.cache){
                   // app.globalCache.SearchFilters[opts.cache] = nodes; // UNCOMMENT TO ENABLE SEARCH CACHE (expensive/intensive?) 
                 }
-                console.log('Ending searchMemory', sm123, 'nodes:', nodes.length);
+                // console.log('Ending searchMemory', sm123, 'nodes:', nodes.length);
                 resolve(nodes);
               })
               .catch(err=>{

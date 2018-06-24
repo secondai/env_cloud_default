@@ -264,10 +264,10 @@ eventEmitter.on('command',async (message, socket) => {
 			} else if(useSqlFilter){
 				nodes = lodash.filter(app.nodesDbParsed, sqlFilter);
 
-				// _id only
-				if(sqlFilter._id){
-					console.log('sqlFilter._id:', sqlFilter._id, nodes.length, ((nodes[0].nodeId && !nodes[0].parent) ? 'Missing PARENT!!':''), nodes[0].nodeId);
-				}
+				// // _id only
+				// if(sqlFilter._id){
+				// 	console.log('sqlFilter._id:', sqlFilter._id, nodes.length, ((nodes[0].nodeId && !nodes[0].parent) ? 'Missing PARENT!!':''), nodes[0].nodeId);
+				// }
 
 			} else {
 				// all nodes
