@@ -1255,14 +1255,14 @@ class Second {
 			  app.nodesDbParsed = cJSON.parse(cJSON.stringify(nodes));
 			  app.nodesDbParsedIds = cJSON.parse(cJSON.stringify(nodesById));
 
-			  // Test parse result 
-			  let tmpCodeNodes = lodash.query(app.nodesDbParsed, {_id:'5ae65f24bacc8e0021e8db38'});
-			  // console.log('tmpCodeNodes', );
-			  console.log('tmpCodeNodes:', tmpCodeNodes.length, ((tmpCodeNodes[0].nodeId && !tmpCodeNodes[0].parent) ? 'Missing PARENT!!':''), tmpCodeNodes[0].nodeId);
+			  // // Test parse result 
+			  // let tmpCodeNodes = lodash.query(app.nodesDbParsed, {_id:'5ae65f24bacc8e0021e8db38'});
+			  // // console.log('tmpCodeNodes', );
+			  // console.log('tmpCodeNodes:', tmpCodeNodes.length, ((tmpCodeNodes[0].nodeId && !tmpCodeNodes[0].parent) ? 'Missing PARENT!!':''), tmpCodeNodes[0].nodeId);
 
 
-			  // app.deepFreeze(app.nodesDbParsed);
-			  // app.deepFreeze(app.nodesDbParsedIds);
+			  app.deepFreeze(app.nodesDbParsed);
+			  app.deepFreeze(app.nodesDbParsedIds);
 
 			  // console.info('event_emit: nodeDb.afterParse');
 			  app.eventEmitter.emit('nodesDb.afterParse', Date.now());
