@@ -128,7 +128,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       const fetchNodes = (filterOpts) => {
 
         filterOpts = filterOpts || {};
-        filterOpts.responseType = filterOpts.responseType || 'json'; // cjson 
+        filterOpts.responseType = filterOpts.responseType || 'cjson'; // cjson 
         filterOpts.sqlFilter = filterOpts.sqlFilter || {};
         filterOpts.dataFilter = filterOpts.dataFilter || {};
 
@@ -277,7 +277,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           let nodes;
           try{
             nodes = await fetchNodes({
-              responseType: 'json',
+              // responseType: 'json',
               sqlFilter: {
                 nodeId: null,
                 type: 'identity_private:0.0.1:local:3298f2j398233'
