@@ -350,8 +350,7 @@ eventEmitter.on('command',async (message, socket) => {
 				default:
 					// v4 (circular json) 
 					// - return everything vs. specify a path to retrieve info for 
-					returnNodesObj = nodes; // already used Object.freeze on node type/data 
-					// returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
+					returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
 					break;
 
 			}
