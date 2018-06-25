@@ -3,8 +3,6 @@ import mongoose from 'mongoose';
 
 import {graphql} from 'graphql'
 
-import * as utils from './utils'
-
 mongoose.Promise = global.Promise;
 
 import composeWithMongoose from 'graphql-compose-mongoose';
@@ -13,7 +11,7 @@ import { schemaComposer } from 'graphql-compose';
 
 const uuidv4 = require('uuid/v4');
 
-const dbConnectionString = process.env.MONGODB_URI || ((app.argv.MONGODB_CONNECTION ||  process.env.MONGODB_CONNECTION) + app.mongoDbName);
+const dbConnectionString = process.env.MONGODB_URI || ((App.argv.MONGODB_CONNECTION ||  process.env.MONGODB_CONNECTION) + App.mongoDbName);
 console.log('dbConnectionString:', dbConnectionString);
 mongoose.connect(dbConnectionString, {
   // useMongoClient: true,
@@ -293,8 +291,8 @@ const fetchNodes = (filterOpts) => {
       }
     `
 
-    let result = await app.graphql.graphql({
-      schema: app.graphql.schema,
+    let result = await App.graphql.graphql({
+      schema: App.graphql.schema,
       source: query_Nodes,
       contextValue: {
         admin: true,
@@ -347,8 +345,8 @@ const fetchNodesSimple = (filterOpts) => {
       }
     `
 
-    let result = await app.graphql.graphql({
-      schema: app.graphql.schema,
+    let result = await App.graphql.graphql({
+      schema: App.graphql.schema,
       source: query_Nodes,
       contextValue: {
         admin: true,
@@ -435,8 +433,8 @@ const findNode = (filterOpts) => {
       }
     `
 
-    let result = await app.graphql.graphql({
-      schema: app.graphql.schema,
+    let result = await App.graphql.graphql({
+      schema: App.graphql.schema,
       source: query_Nodes,
       contextValue: {
         admin: true,
@@ -511,8 +509,8 @@ const newNode = (tmpRecord) => {
       }
     `
 
-    let result = await app.graphql.graphql({
-      schema: app.graphql.schema,
+    let result = await App.graphql.graphql({
+      schema: App.graphql.schema,
       source: mutate_newNode,
       contextValue: {
         admin: true,
@@ -593,8 +591,8 @@ const updateNode = (tmpRecord) => {
       }
     `
 
-    let result = await app.graphql.graphql({
-      schema: app.graphql.schema,
+    let result = await App.graphql.graphql({
+      schema: App.graphql.schema,
       source: mutate_updateNode,
       contextValue: {
         admin: true,
@@ -648,8 +646,8 @@ const updateAllNodes = (filter, record) => {
       }
     `
 
-    let result = await app.graphql.graphql({
-      schema: app.graphql.schema,
+    let result = await App.graphql.graphql({
+      schema: App.graphql.schema,
       source: mutate_updateNode,
       contextValue: {
         admin: true,
@@ -690,8 +688,8 @@ const removeNode = (record) => {
       }
     `
 
-    let result = await app.graphql.graphql({
-      schema: app.graphql.schema,
+    let result = await App.graphql.graphql({
+      schema: App.graphql.schema,
       source: mutate_removeNode,
       contextValue: {
         admin: true,
@@ -742,8 +740,8 @@ const newHistory = (record) => {
 
     record.createdAt = (new Date()).getTime();
 
-    let result = await app.graphql.graphql({
-      schema: app.graphql.schema,
+    let result = await App.graphql.graphql({
+      schema: App.graphql.schema,
       source: mutate_newHistory,
       contextValue: {
         admin: true,

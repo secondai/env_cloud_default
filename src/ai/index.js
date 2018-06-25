@@ -350,8 +350,8 @@ eventEmitter.on('command',async (message, socket) => {
 				default:
 					// v4 (circular json) 
 					// - return everything vs. specify a path to retrieve info for 
-					returnNodesObj = nodes; // already used Object.freeze on node type/data 
-					// returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
+					returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
+					// returnNodesObj = nodes;
 					break;
 
 			}
@@ -1261,12 +1261,12 @@ class Second {
 			  // // console.log('tmpCodeNodes', );
 			  // console.log('tmpCodeNodes:', tmpCodeNodes.length, ((tmpCodeNodes[0].nodeId && !tmpCodeNodes[0].parent) ? 'Missing PARENT!!':''), tmpCodeNodes[0].nodeId);
 
-
+			  // CANNOT FREZE: https://github.com/patriksimek/vm2/issues/136
 			  // app.deepFreeze(app.nodesDbParsed);
 			  // app.deepFreeze(app.nodesDbParsedIds);
-			  app.nodesDbParsed.forEach(node=>{
-			  	Object.freeze(node);
-			  })
+			  // app.nodesDbParsed.forEach(node=>{
+			  // 	Object.freeze(node);
+			  // })
 			  // Object.freeze(app.nodesDbParsedIds);
 
 			  // console.info('event_emit: nodeDb.afterParse');
