@@ -1261,8 +1261,12 @@ class Second {
 			  // console.log('tmpCodeNodes:', tmpCodeNodes.length, ((tmpCodeNodes[0].nodeId && !tmpCodeNodes[0].parent) ? 'Missing PARENT!!':''), tmpCodeNodes[0].nodeId);
 
 
-			  app.deepFreeze(app.nodesDbParsed);
-			  app.deepFreeze(app.nodesDbParsedIds);
+			  // app.deepFreeze(app.nodesDbParsed);
+			  // app.deepFreeze(app.nodesDbParsedIds);
+			  app.nodesDbParsed.forEach(node=>{
+			  	Object.freeze(node);
+			  })
+			  // Object.freeze(app.nodesDbParsedIds);
 
 			  // console.info('event_emit: nodeDb.afterParse');
 			  app.eventEmitter.emit('nodesDb.afterParse', Date.now());
