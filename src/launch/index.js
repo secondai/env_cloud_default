@@ -50,6 +50,13 @@ if(expectedEnvVars.filter(varBox=>{
 }
 
 
+let App = {};
+global.App = App;
+App.globalCache = {};
+App.sharedServices = {};
+
+
+
 //////////////////
 // System watcher 
 // - memory usage
@@ -120,17 +127,11 @@ console.debug = function(){
 
 
 
+
 //////////////////
-// Setup Universe (global.App) 
+//  Services for Universe
 // - memory (persistent [nodes] and services/caches), vm execution environment 
-// - run  
 //////////////////
-
-let App = {};
-global.App = App;
-
-App.globalCache = {};
-App.sharedServices = {};
 
 // graphql (mongodb) 
 App.graphql = require('./graphql').default;
@@ -153,6 +154,12 @@ App.sharedServices.redisClient = App.redisClient;
 
 // utils
 App.utils = require('./utils');
+
+
+//////////////////
+// Universe
+// - run  
+//////////////////
 
 // Second (autostarts) 
 App.secondAI = require('./ai');
