@@ -14,7 +14,9 @@ console.log('ENV:', process.env);
 // - TODO: load fom config file shipped with environment 
 let expectedEnvVars = [
   ['DEFAULT_LAUNCH_PLATFORM'],
-  ['REDIS_URL or REDIS_HOST', '', {$or:[{k:'REDIS_URL'},{k: 'REDIS_HOST'}]}],
+  ['DEFAULT_LAUNCH_APPID'],
+  ['DEFAULT_PASSPHRASE'],
+  // ['REDIS_URL or REDIS_HOST', '', {$or:[{k:'REDIS_URL'},{k: 'REDIS_HOST'}]}],
   ['STELLAR_NETWORK'],
   // ['BASICS_ZIP_URL'],
   ['PORT'],
@@ -137,20 +139,22 @@ console.debug = function(){
 App.graphql = require('./graphql').default;
 App.sharedServices.graphql = App.graphql;
 
-// redis 
-App.redis = require("redis");
+// redis (if necessary)
+if(process.env.REDIS_URL || process.env.REDIS_HOST){
+  App.redis = require("redis");
 
-if(process.env.REDIS_URL){
-  App.redisClient = App.redis.createClient(process.env.REDIS_URL);
-} else {
-  App.redisClient = App.redis.createClient(6379, process.env.REDIS_HOST || 'redis');
+  if(process.env.REDIS_URL){
+    App.redisClient = App.redis.createClient(process.env.REDIS_URL);
+  } else {
+    App.redisClient = App.redis.createClient(6379, process.env.REDIS_HOST || 'redis');
+  }
+  App.redisClient.on("error", function (err) {
+      console.error("Redis Error " + err);
+  });
+
+  App.sharedServices.redis = App.redis;
+  App.sharedServices.redisClient = App.redisClient;
 }
-App.redisClient.on("error", function (err) {
-    console.error("Redis Error " + err);
-});
-
-App.sharedServices.redis = App.redis;
-App.sharedServices.redisClient = App.redisClient;
 
 // utils
 App.utils = require('./utils').default;
