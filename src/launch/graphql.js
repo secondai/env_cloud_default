@@ -767,7 +767,6 @@ const newHistory = (record) => {
 export default {
   schema,
   graphql,
-  utils,
   fetchNodes,
   fetchNodesSimple,
   newHistory,
