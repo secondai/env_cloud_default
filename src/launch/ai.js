@@ -1,11 +1,14 @@
 
+import { spawn } from 'child_process';
 
-// Load in actions 
-import { 
-	requestData
-} from './actions'
+import bigi from 'bigi'
+import bitcoin from 'bitcoinjs-lib'
 
-import runSafe from '../utils/run_safe'
+
+// const stdlib = require('@stdlib/stdlib');
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
+const {VM} = require('vm2');
 
 import _ from 'lodash'
 
@@ -110,6 +113,10 @@ class Second {
     		return false;
     	}
 
+    	console.error('--Disabled BASICS_ZIP_URL--');
+    	return false;
+
+
     	// Loading default nodes!
       const saveChildNodes = (nodeId, childNodes) => {
         return new Promise(async (resolve, reject)=>{
@@ -170,6 +177,7 @@ class Second {
       }
 
       // run "first" action
+      // - only ever run once 
       let firstResponse = await this.runRequest({
         type: 'incoming_first:0.1.1:local:78882h37',
         data: externalIdentityNode // arrives as INPUT
@@ -182,9 +190,11 @@ class Second {
     // run "startup" action
     // - initiates server, heartbeat/cron 
     let startupResponse = await this.runRequest({
-      type: 'incoming_startup:Qmf3289h9293fhsb',
+      type: 'incoming_startup_everything:Qmf3289h9293fhsb',
       data: {} // arrives as INPUT
     }, true)
+
+    console.log('StartupResponse:', startupResponse);
 
 	}
 
@@ -1588,6 +1598,2348 @@ eventEmitter.on('command',async (message, socket) => {
 
 })
 
+
+
+const runSafe = ({code, safeContext, requires, threadEventHandlers, requestId, mainIpcId, nodeId, timeout}) => {
+  return new Promise(async (resolve, reject)=>{
+
+    // threadEventHandlers make it easy to handle onGasExceeded, etc.
+    // - handles every tick? 
+    // - MUST return a single value 
+
+    safeContext = safeContext || {};
+    // safeContext._ = lodash;
+    safeContext.console = console;
+
+    try {
+      // console.log('Run ThreadedSafeRun', code);
+      let safeResult = await ThreadedSafeRun(code, safeContext, requires, threadEventHandlers, requestId, mainIpcId, nodeId, timeout);
+      // console.log('Resolved ThreadedSafeRun', safeResult);
+      resolve(safeResult);
+    }catch(err){
+      // err may be the result of the threadEventHandlers throwing (onGasExceeded, onTimeToFetchExceeded, onStorageSpaceExceeded)! 
+      // - could have killed the fetch
+      // Failed parsing the user-provided "reduce" function! 
+      console.error('Failed parsing user-provided reduce function3!', err);
+      console.error(code);
+      resolve(undefined);
+    }
+
+  });
+
+}
+
+
+const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHandlers, requestId, mainIpcId, nodeId, timeout) => {
+  return new Promise(async (resolve, reject)=>{
+
+    // console.log('starting ThreadedSafeRun (cannot console.log inside there/here (when run in a sandbox!)!)');
+    let ob = {evalString, context, requires, threadEventHandlers, requestId, mainIpcId, nodeId, timeout}; 
+
+    let combinedOutputData = '';
+    let eventEmitter = App.eventEmitter;
+
+    const request = require('request-promise-native');
+
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
+    const stringSimilarity = require('string-similarity');
+
+    // add loadSchema() function for handling requests for schemas 
+    // - also "validate schema" using type and data 
+
+    const NodeRSA = require('node-rsa');
+    const crypto = require('crypto');
+    var CryptoJS = require("crypto-js");
+
+    var StellarSdk = require('stellar-sdk');
+    var stellarServer;
+    // console.log('STELLAR_NETWORK:', process.env.STELLAR_NETWORK);
+    switch(process.env.STELLAR_NETWORK){
+      case 'public':
+        StellarSdk.Network.usePublicNetwork();
+        stellarServer = new StellarSdk.Server('https://horizon.stellar.org');
+        break;
+      case 'test':
+      default:
+        StellarSdk.Network.useTestNetwork();
+        stellarServer = new StellarSdk.Server('https://horizon-testnet.stellar.org');
+
+        // console.error('Missing process.env.STELLAR_NETWORK');
+        // throw "Missing process.env.STELLAR_NETWORK"
+        break;
+    }
+
+    const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '2k3jfh2jkh32cn983ucr892nuv982v93'; // Must be 256 bytes (32 characters)
+    const IV_LENGTH = 16; // For AES, this is always 16
+
+     
+    let cJSON = require('circular-json');
+
+    const uuidv4 = require('uuid/v4');
+
+
+    const JSZip = require('jszip');
+
+
+    const socketioClient = require('socket.io-client');
+
+    App.socketioServers = App.socketioServers || {};
+
+    // const ipc = require('node-ipc');
+    // let ipcId = 'second-worker-' + uuidv4();
+    // ipc.config.id = ipcId;
+    // ipc.config.retry = 1500;
+    // // ipc.config.sync= true; // do NOT have sync on! otherwise everything queues up, which sucks! 
+    // // ipc.config.maxConnections = 1; // doesnt work when set here!
+    // ipc.config.logger = ()=>{}
+
+    // ipc.connectTo(ob.mainIpcId, () => { // ipc.config.socketRoot + ipc.config.appspace + ipcId
+    //   ipc.of[ob.mainIpcId].on(
+    //       'response',
+    //       function(data){
+    //         // ipc.log('got a message from world : ', data);
+    //         // console.log('"REPONSE FROM WORLD"');
+    //         eventEmitter.emit('response',data);
+    //       }
+    //   );
+    // })
+
+    const fetchNodes = (filterOpts) => {
+
+      filterOpts = filterOpts || {};
+      filterOpts.responseType = filterOpts.responseType || 'cjson'; // cjson 
+      filterOpts.sqlFilter = filterOpts.sqlFilter || {};
+      filterOpts.dataFilter = filterOpts.dataFilter || {};
+
+      return new Promise(async (resolve, reject) => {
+        // resolve('REULT FROM fetchNodes!');
+        // // emit "fetch" command to main brain 
+        //  - no callback, so listen in a different way 
+        // - everything in universe should be done through ipc??
+        // ipc.connectTo('second-main', () => {
+          let nextIpcId = uuidv4()
+          // ipc.of['second-main'].on('connect', () => {
+
+
+            let fetchnodesStart = (new Date()).getTime();
+
+            eventEmitter.on('response', function _listener(r){
+              if(r.id != nextIpcId){
+                // skipping if not this event emitted for
+                return;
+              }
+
+              eventEmitter.removeListener('response', _listener);
+
+              let fetchnodesEnd = (new Date()).getTime();
+              let fetchnodesTime = (fetchnodesEnd - fetchnodesStart);
+              // console.log('fetchnodesTime:', fetchnodesTime);
+
+
+              // resolve('RESULT FROM fetchNodes, after ipc command and response2!');
+              try {
+                resolve(r.data);
+              }catch(err){
+                console.error('Err: failed fetchNodes response');
+                console.error(err);
+                resolve([]);
+              }
+
+            })
+
+            // ipc.of[ob.mainIpcId].emit('command', {
+            eventEmitter.emit('command', {
+              // cmdId: 
+              id: nextIpcId,
+              command: 'fetchNodes',
+              filter: filterOpts
+            });
+
+            // ,(result)=>{
+            //   resolve('REULT FROM fetchNodes!');
+            // });
+          // });
+        // });
+
+      })
+
+    }
+
+    const fetchNodesInMemory = (filter) => {
+
+      return new Promise(async (resolve, reject) => {
+
+        setupIpcWatcher({
+            command: 'fetchNodesInMemory', // whole thing for now
+            requestId: ob.requestId,
+            filter              
+        }, (r)=>{
+          resolve(r.data);
+        })
+
+
+      })
+
+    }
+
+
+    const fetchNodesInMemoryByIds = (_ids) => {
+
+      return new Promise(async (resolve, reject) => {
+
+        setupIpcWatcher({
+            command: 'fetchNodesInMemoryByIds', // whole thing for now
+            requestId: ob.requestId,
+            _ids              
+        }, (r)=>{
+          resolve(r.data);
+        })
+
+
+      })
+
+    }
+    
+
+
+    // passed-in libs as required and available
+    let required = {};
+    for(let r of ob.requires){
+      if(Array.isArray(r)){
+        // ['utils','../utils']
+        required[r[0]] = require(r[1]);
+      } else {
+        required[r] = require(r);
+      }
+    }
+
+    // helper function for interprocess communication (funcInSandbox) 
+    // - reaching back to main/starter memory
+    const setupIpcWatcher = (commandOpts, resolveFunc) => {
+
+      let nextIpcId = uuidv4()
+
+      eventEmitter.on('response', function _listener(r){
+        // return resolve('FUCK5');
+        if(r.id != nextIpcId){
+          // skipping if not this event emitted for
+          return;
+        }
+
+        eventEmitter.removeListener('response', _listener);
+
+        resolveFunc(r);
+      })
+
+      if(commandOpts.id){
+        throw "Unable to use id in command!"
+      }
+      commandOpts.id = nextIpcId;
+      // ipc.of[ob.mainIpcId].emit('command', commandOpts);
+      eventEmitter.emit('command', commandOpts);
+
+    }
+
+    const lodash = require('lodash');
+    const rsa = require('node-rsa');
+    var jsSchema = require('js-schema');
+
+    const {google} = require('googleapis');
+
+    let RouteParser = require('route-parser');
+
+    require("underscore-query")(lodash);
+
+    const getPrivateIdentity = () => {
+      return new Promise(async (resolve, reject)=>{
+
+        let nodes;
+        try{
+          nodes = await fetchNodes({
+            // responseType: 'json',
+            sqlFilter: {
+              nodeId: null,
+              type: 'identity_private:0.0.1:local:3298f2j398233'
+            }
+          });
+          if(!nodes.length){
+            throw "No private identity";
+          }
+        }catch(err){
+          return reject({
+            err: 'shit, no identity'
+          });
+        }
+
+        let IdentityNode = nodes[0];
+        resolve(IdentityNode);
+
+      });
+
+    }
+
+
+    const getIpfsHashForString = (str) => {
+      return new Promise(async (resolve, reject)=>{
+
+        // Runs in ThreadedVM 
+        // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+        // should validate code/schema too? 
+
+        setupIpcWatcher({
+            command: 'getIpfsHashForString', // whole thing for now
+            requestId: ob.requestId,
+            dataString: str
+        }, (r)=>{
+          resolve(r.data);
+        })
+
+      });
+    }
+
+    const npminstall = (packageName) => {
+      return new Promise(async (resolve, reject)=>{
+
+        // Runs in ThreadedVM 
+        // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+        // should validate code/schema too? 
+
+        setupIpcWatcher({
+            command: 'npminstall', // whole thing for now
+            requestId: ob.requestId,
+            package: packageName
+        }, (r)=>{
+          resolve(r.data);
+        })
+
+      });
+    }
+
+    const publishNodeToChain = async (opts) => {
+
+      // OLD
+      // - publishing to NodeChain (not used) 
+
+      let {
+        node,
+        chain // identity for chain, to lookup where to publish to 
+      } = opts;
+
+      let nodeInputStr = JSON.stringify(node);
+
+      let ipfsHashData = await getIpfsHashForString(nodeInputStr);
+      let ipfsHash = ipfsHashData.hash;
+
+      return {
+        type: 'ipfshash:0.0.1:local:3029fj',
+        data: {
+          hash: ipfsHash
+        }
+      };
+
+    }
+    
+
+
+    App.globalCache = App.globalCache || {};
+    App.globalCache.SearchFilters = App.globalCache.SearchFilters || {};
+
+
+    // Get codenode and parents/children  
+    // - from nodeId passed in
+    // - cache, until code changes are made 
+    //   - or simply cache for a limited time period? (testing: 2 minutes) 
+
+    let codeNode;
+
+    if(App.globalCache.SearchFilters['exact_codeNode:'+nodeId]){
+      console.log('Using cached codeNode for vm');
+      codeNode = App.globalCache.SearchFilters['exact_codeNode:'+nodeId];
+    } else {
+      // console.log('Not using cached codeNode for vm');
+      codeNode = await fetchNodes({
+        responseType: 'cjson',
+        sqlFilter: {
+          _id: nodeId
+        }
+      });
+      // console.log('CodeNode Matches (should contain parent!)', JSON.stringify(codeNode, null, 2));
+      codeNode = codeNode[0];
+      // App.globalCache.SearchFilters['exact_codeNode:'+nodeId] = codeNode;
+      // setTimeout(()=>{
+      //   console.log('de-caching internal codeNode');
+      //   App.globalCache.SearchFilters['exact_codeNode:'+nodeId] = null;
+      // },2 * 60 * 1000);
+    }
+
+    // app_base and platform_nodes for CodeNode 
+    // - useful to have as "global" values for the request, so we don't have to pass to each loadCapabilities function 
+    function getParentNodes1(node){
+      let nodes = [node];
+      if(node.parent){
+        nodes = nodes.concat(getParentNodes1(node.parent));
+      }
+      return nodes;
+    }
+    let parentNodes = getParentNodes1(codeNode);
+    let platformClosest = lodash.find(parentNodes, node=>{
+      return (
+        node.type.split(':')[0] == 'platform_nodes'
+      )
+    });
+    let appBaseClosest = lodash.find(parentNodes, node=>{
+      return (
+        node.type.split(':')[0] == 'app_base'
+        ||
+        node.type.split(':')[0] == 'app_parts'
+      )
+    });
+
+    // console.log('platformClosest?', (platformClosest && platformClosest._id) ? true:false, nodeId);
+    // console.log('appBaseClosest?', (appBaseClosest && appBaseClosest._id) ? true:false, nodeId);
+    if(!platformClosest){
+      console.error('Missing platformClosest for CodeNode:', JSON.stringify(codeNode, null, 2));
+    }
+
+    let funcInSandbox = Object.assign({
+      universe: {
+        runRequest: App.secondAI.MySecond.runRequest,
+        npm: {
+          install: npminstall
+        },
+        appBaseClosest,
+        platformClosest,
+        process: process,
+        env: process.env, // just allow all environment variables to be accessed 
+        console,
+        lodash,
+        required, // "requires" libs
+        require,
+        jsSchema,
+        rsa,
+        bitcoin,
+        bigi,
+        uuidv4,
+        cJSON,
+        JSZip,
+        stringSimilarity,
+        RouteParser,
+        aws: App.aws,
+        setTimeout,
+        setInterval,
+        clearTimeout,
+        clearInterval,
+        eventEmitter,
+        globalCache: App.globalCache,
+
+        sharedServices: App.sharedServices, // express server, socketio client/server, IPFS, 
+
+        // // client
+        // // - attaching to remote server 
+        // socketioClient, 
+        // socketioServers: App.socketioServers, // where I'm the client, connected to a remote socketio server 
+
+        // // websocket server 
+        // // - clients attached to server (IoT devices) 
+        // socketIOServer: App.socketIOServer,
+        // wsClients: App.wsClients, 
+        // socketioClients: App.socketioClients,
+
+        google,
+        webrequest: request, // use similar to request-promise: https://www.npmjs.com/package/request-promise
+
+        sleep: (ms)=>{
+          return new Promise((resolve,reject)=>{
+            setTimeout(resolve,ms)
+          })
+        },
+        checkPackage: (pkgName)=>{
+          App.globalCache.packages = App.globalCache.packages || {};
+          return App.globalCache.packages[pkgName] || {};
+        },
+        installPackage: (pkgName)=>{
+          // manages package installation 
+          // - simultaneous, etc. 
+          return new Promise((resolve,reject)=>{
+            // create global package tracker
+            console.log('installPackage1');
+            App.globalCache.packages = App.globalCache.packages || {};
+            if(!App.globalCache.packages[pkgName]){
+              let onInstallResolve;
+              let onInstall = new Promise((resolve2)=>{
+                onInstallResolve = resolve2;
+              });
+              App.globalCache.packages[pkgName] = {
+                installing: false,
+                installed: false,
+                errorInstalling: null,
+                onInstallResolve,
+                onInstall
+              }
+            }
+            let pkg = App.globalCache.packages[pkgName];
+            console.log('pkg:', pkg);
+            if(pkg.installing){
+              console.log('waiting for install, in progress');
+              return pkg.onInstall.then(resolve);
+            }
+            if(pkg.installed){
+              // all good, return resolved
+              console.log('installed already, ok!');
+              return resolve(true);
+            }
+            
+            if(pkg.errorInstalling){
+              console.log('Unable to load, previous error installing (try uninstalling, then reinstalling)');
+              return resolve(false);
+            }
+            
+            // install
+            pkg.installing = true;
+            const { exec } = require('child_process');
+            exec('npm install ' + pkgName, (err, stdout, stderr) => {
+              if (err) {
+                console.error(`exec error installing package!: ${err}`);
+                pkg.installing = false;
+                pkg.errorInstalling = true;
+                return;
+              }
+              console.log(`Exec Result: ${stdout}`);
+              
+              // resolve all waiting scripts (including in this block) 
+              pkg.onInstallResolve(true);
+              pkg.installed = true;
+              pkg.installing = false;
+              
+            });
+            
+            pkg.onInstall.then(resolve);
+            
+          });
+
+        },
+
+        isParentOf: (parentId, node1)=>{
+          // console.log('isParentOf', parentId);
+          function getParentNodeIds(node){
+            let nodes = [node._id];
+            if(node.parent){
+              nodes = nodes.concat(getParentNodeIds(node.parent));
+            }
+            return nodes;
+          }
+          
+          let parentNodeIds1 = getParentNodeIds(node1);
+          if(parentNodeIds1.indexOf(parentId) !== -1){
+            return true;
+          }
+          return false;
+
+        },
+
+        getParentRoot: (node)=>{
+          // get the root of a node (follow parents) 
+          // - parent probably doesnt have the full chain filled out (TODO: node.nodes().xyz) 
+          function getParentNodes(node){
+            let nodes = [node];
+            if(node.parent){
+              nodes = nodes.concat(getParentNodes(node.parent));
+            }
+            return nodes;
+          }
+          
+          let parentNodes1 = getParentNodes(node);
+          return parentNodes1[parentNodes1.length - 1];
+
+        },
+
+        sameAppPlatform: (node1, node2)=>{
+          // console.log('sameAppPlatform');
+          // return true;
+
+          function getParentNodes2(node){
+            let nodes = [node];
+            if(node.nodeId && !node.parent){
+              // console.error('parent chain broken in sameAppPlatform', node.type, node._id);
+              throw 'parent chain broken in sameAppPlatform'
+            }
+            if(node.parent){
+              nodes = nodes.concat(getParentNodes2(node.parent));
+            }
+            return nodes;
+          }
+
+          // if parent chain doesnt exist (or is broken) then just rebuild on-the-fly? 
+          // - using reference version of nodesDb (w/ parents, children) 
+          
+          let parentNodes1;
+          let parentNodes2;
+
+          try {
+            parentNodes1 = getParentNodes2(node1);
+          }catch(err){
+            let tmpnode1 = lodash.find(App.nodesDbParsed,{_id: node1._id});
+            try {
+              parentNodes1 = getParentNodes2(tmpnode1);
+            }catch(err2){
+              console.error(err2);
+            }
+          }
+          try {
+            parentNodes2 = getParentNodes2(node2);
+          }catch(err){
+            let tmpnode2 = lodash.find(App.nodesDbParsed,{_id: node2._id});
+            try {
+              parentNodes2 = getParentNodes2(tmpnode2);
+            }catch(err2){
+              console.error(err2);
+            }
+          }
+
+          // console.log('NodeParents2:', node2._id, parentNodes2.length);
+
+          // see if first match of each is correct (aka "outwards" (not from root, but from nodes)) 
+          let platformClosest1 = lodash.find(parentNodes1, node=>{
+            return (
+              node.type.split(':')[0] == 'platform_nodes'
+            )
+          });
+          let appBaseClosest1 = lodash.find(parentNodes1, node=>{
+            return (
+              node.type.split(':')[0] == 'app_base'
+              ||
+              node.type.split(':')[0] == 'app_parts'
+            )
+          });
+
+          let platformClosest2 = lodash.find(parentNodes2, node=>{
+            return (
+              node.type.split(':')[0] == 'platform_nodes'
+            )
+          });
+          let appBaseClosest2 = lodash.find(parentNodes2, node=>{
+            return (
+              node.type.split(':')[0] == 'app_base'
+              ||
+              node.type.split(':')[0] == 'app_parts'
+            )
+          });
+
+          // if(appBaseClosest2){
+          //   console.log('appBase MATCH');
+          // } else {
+          //   // console.log('nomatch appBase', node2._id);
+          //   try {
+          //     console.log(node2.parent._id);
+          //     console.log(node2.parent.parent._id);
+          //   }catch(err){}
+          // }
+
+          // if(platformClosest1 && platformClosest2){
+          //   console.log('platform MATCH');
+          // } else {
+          //   console.log('nomatch');
+          // }
+
+          if(
+            platformClosest1 &&
+            platformClosest2 &&
+            appBaseClosest1 &&
+            appBaseClosest2 &&
+            platformClosest1.data.platform == platformClosest2.data.platform
+            &&
+            appBaseClosest1.data.appId == appBaseClosest2.data.appId
+            ){
+            // console.log('sameAppPlatform TRUE');
+            return true;
+          }
+
+          // console.log('Missed sameAppPlatform');
+          // console.log('sameAppPlatform false');
+          return false;
+
+        },
+
+        sameParentChain: (node1, node2)=>{
+          function getParentIds(node){
+            let ids = [node._id];
+            if(node.parent){
+              ids = ids.concat(getParentIds(node.parent));
+            }
+            return ids;
+          }
+          
+          let parentIds1 = getParentIds(node1);
+          let parentIds2 = getParentIds(node2);
+
+          if(lodash.intersection(parentIds1, parentIds2).length){
+            return true;
+          }
+
+          return false;
+
+        },
+
+        // WebTorrent: App.WebTorrentClient,
+        // IPFS: {
+        //   ipfs: App.ipfs,
+        //   onReady: App.ipfsReady,
+        //   isReady: ()=>{
+        //     if(App.ipfsIsReady){
+        //       return true;    
+        //     } else {
+        //       return false;
+        //     }
+        //   },
+
+        //   pin: (buffersToPin)=>{
+
+        //     return new Promise(async (resolve, reject)=>{
+
+        //       // pin multiple!
+        //       let returnSingle = false;
+        //       if(!lodash.isArray(buffersToPin)){
+        //         returnSingle = true;
+        //         buffersToPin = [buffersToPin];
+        //       }
+
+        //       let hashResult;
+        //       try {
+        //         hashResult = await App.ipfs.files.add(buffersToPin);
+        //         console.log('hashResult:', hashResult);
+        //         let ipfsHashes = hashResult.map(result=>result.hash);
+        //         console.log('IPFS hashes to pin:', ipfsHashes);
+        //         for(let ipfsHash of ipfsHashes){
+        //           if(!ipfsHash){
+        //             console.error('Skipping invalid hash, empty from results', );
+        //             continue;
+        //           }
+        //           await App.ipfs.pin.add(ipfsHash);
+        //         }
+        //         if(returnSingle){
+        //           resolve({
+        //             type: 'ipfs_hash:..',
+        //             data: {
+        //               hash: ipfsHashes[0]
+        //             }
+        //           });
+        //         } else {
+        //           resolve({
+        //             type: 'ipfs_hashes:..',
+        //             data: {
+        //               hashes: ipfsHashes
+        //             }
+        //           });
+        //         }
+        //       }catch(err){
+        //         console.error('IPFS pin failure:', err);
+        //         resolve({
+        //           type: 'ipfs_error_pinning:..',
+        //           data: {
+        //             error: true,
+        //             hashResult,
+        //             err
+        //           }
+        //         });
+        //       }
+
+        //     });
+
+
+        //   }
+        // },
+
+        directToSecond: (opts)=>{
+          // to an External second
+          return new Promise(async (resolve, reject)=>{
+
+            let url = opts.url;
+            url = url.split('http://localhost').join('http://docker.for.mac.localhost');
+
+            // make web request to Node 
+            // - just passing through the Node, assume any Auth is already included 
+            let response = await request.post({
+              method: 'post',
+              url: url, //connectNode.data.connection, // expecting URL at first! 
+              body: opts.RequestNode, //ExternalRequestNode.data.RequestNode,
+              json: true
+            })
+
+            // console.log('Response from directToSecond:', opts.url, JSON.stringify(response,null,2));
+
+            resolve(response);
+
+          })
+        },
+
+        directToSecondViaWebsocket: (opts)=>{
+          // to an External second
+          return new Promise(async (resolve, reject)=>{
+            // opts = {
+            //   clientId,
+            //   RequestNode
+            // }
+
+            let clientId = opts.clientId;
+
+            // exists?
+            if(!App.sharedServices.wsClients[clientId]){
+              console.error('Client ID does NOT exist for directToSecondViaWebsocket, cannot send request when not connected');
+              return resolve({
+                type: 'error:...',
+                data: 'Failed cuz clientId does NOT exist for directToSecondViaWebsocket'
+              });
+            }
+
+            // start emitter listening for response 
+            let requestId = uuidv4();
+
+            // TODO: have a timeout for failed responses (ignore "late" responses?) ? 
+            eventEmitter.once(`ws-response-${requestId}`, function _listener(r){
+              console.log('Response to WEBSOCKET request, from RPI!');
+              resolve(r.data);
+            });
+
+            // Make request via websocket 
+            let ws = App.sharedServices.wsClients[clientId].ws;
+
+            console.log('Making ws.send request with requestId, type, data-as-node'); 
+
+            ws.send({
+              requestId,
+              type: 'request',
+              data: opts.RequestNode
+            });
+
+            console.log('Made websocket request, waiting for response');
+
+            // resolve(response);
+
+          })
+        },
+
+        // converts words to an address, posts address (temporary, should post on-chain and use ipfs) 
+        createAddressForIdentity: (username, publicKey, connection)=>{
+          return new Promise(async (resolve, reject)=>{
+            // fetches 1st bitcoin transaction for wallet address 
+            // - uses decoded first transaction as an IPFS link 
+            // - link: https://github.com/ipfs/js-ipfs/tree/master/examples/ipfs-101
+            // - ipfs pinning service: https://www.eternum.io (with an API) 
+
+            // currently just using "language" server! (not on bitcoin/ipfs while testing) 
+
+            // notice, using docker.for.mac.localhost !!! (temporary)
+
+            console.log('createAddressForIdentity');
+            console.log('connection:', connection);
+
+            // Create IPFS values (ExternalIdentityNode as JSON) 
+            // - external_identity:0.0.1:local:8982f982j92 
+            //   - publicKey
+            // - external_identity_connect_method:0.0.1:local:382989239hsdfmn
+            //   - method: 'http'
+            //   - connection: http://*.second.com/ai 
+            let ExternalIdentityNode = {
+              type: 'external_identity:0.0.1:local:8982f982j92',
+              data: {
+                publicKey, //: '-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAI+ArOUlbt1k2G2n5fj0obEn4mpCfYEx\nvSZy2c/0tv2caC0AYbxZ4vzppGVjxf+L6fythmWRB0vcwyXHy57fm7ECAwEAAQ==\n-----END PUBLIC KEY-----'
+              },
+              nodes: [{
+                type: 'external_identity_connect_method:0.0.1:local:382989239hsdfmn',
+                data: {
+                  method: 'http',
+                  connection, //: 'https://infinite-brook-40362.herokuApp.com/ai'
+                }
+              }]
+            };
+
+            console.log({
+              username, 
+              publicKey, 
+              connection,
+              ExternalIdentityNode
+            });
+            
+            let subname = ''; // empty is for root 
+            let usernameSplit = username.split('@');
+            if(usernameSplit.length > 1){
+              subname = usernameSplit[0];
+              username = usernameSplit[1];
+            }
+
+            // add to stellar and ipfs (nodechain) 
+            console.log('Adding to stellar and ifps (nodechain)');
+
+            // Identity ipfs hash 
+            // - add to nodechain (pins ipfshash) 
+            let identityIpfsHash;
+            try {
+              let chainResult = await publishNodeToChain({
+                node: ExternalIdentityNode
+              });
+              identityIpfsHash = chainResult.data.hash;
+            }catch(err){
+              console.error('Failed writing identity IpfsHash to nodechain', err);
+              return reject();
+            }
+
+
+            console.log('Adding to stellar:', identityIpfsHash, username);
+
+            // Add to stellar
+            var pairSource = StellarSdk.Keypair.fromSecret(process.env.STELLAR_SEED);
+            let pkTargetSeed = crypto.createHash('sha256').update(username).digest(); //returns a buffer
+            var pairTarget = StellarSdk.Keypair.fromRawEd25519Seed(pkTargetSeed);
+
+            console.log('pkTarget Seed:', pairTarget.secret());
+
+
+
+            // Update data (manageData operation) 
+            console.log('Building transaction (multisig manageData)');
+
+            // expecting targetAccount to already exist (aka was claimed, is now being updated)
+            // - dont automatically CLAIM right now, this is just for UPDATING (targetAccount must exist)! 
+            let targetAccount;
+            try {
+              targetAccount = await funcInSandbox.universe.getStellarAccount(pairTarget.secret(), {claim: true});
+              // targetAccount = await stellarServer.loadAccount(pairTarget.publicKey())
+              console.log('Found targetAccount (from getStellarAccount):'); //, targetAccount);
+            } catch(err){
+              console.error('Failed finding existing account for username. Should have already claimed!', err);
+              return reject();
+            }
+
+            // Start building the transaction for manageData update
+            let transaction = new StellarSdk.TransactionBuilder(targetAccount)
+
+            .addOperation(StellarSdk.Operation.manageData({
+              name: subname + '|second',
+              value: identityIpfsHash
+            }))
+            // .addMemo(StellarSdk.Memo.hash(b32))
+            .build();
+
+            // Sign the transaction to prove you are actually the person sending it.
+            transaction.sign(pairTarget); // targetKeys
+            transaction.sign(pairSource); // sourceKeys
+
+            // send to stellar network
+            let stellarResult = await stellarServer.submitTransaction(transaction)
+            .then(function(result) {
+              console.log('Stellar manageData Success! Results:'); //, result);
+              return result;
+            })
+            .catch(function(error) {
+              console.error('Stellar Something went wrong (failed updating data)!', error);
+              // If the result is unknown (no response body, timeout etc.) we simply resubmit
+              // already built transaction:
+              // server.submitTransaction(transaction);
+              return null;
+            });
+
+            // console.log('stellarResult', stellarResult);
+
+            if(!stellarResult){
+              console.error('Failed stellar createAddressForIdentity');
+              return reject();
+            }
+
+            console.log('stellarResult succeeded! (createAddressForIdentity)');
+
+            return resolve({
+              type: 'boolean:..',
+              data: true
+            })
+
+          })
+        },
+
+        // converts words to an address, posts address (temporary, should post on-chain and use ipfs) 
+        manageData: (network, username, field, nodeValue)=>{
+          return new Promise(async (resolve, reject)=>{
+
+            // writing a node to identity 
+
+            console.log('manageData', network, username, field);
+
+            let subname = ''; // empty is for root 
+            let usernameSplit = username.split('@');
+            if(usernameSplit.length > 1){
+              subname = usernameSplit[0];
+              username = usernameSplit[1];
+            }
+
+            // add to stellar and ipfs (nodechain) 
+            console.log('manageData for Identity on stellar and ifps (nodechain)');
+
+            // ipfs hash
+            // - add to nodechain (pins ipfshash) 
+            let nodeIpfsHash;
+            try {
+              let chainResult = await publishNodeToChain({
+                chain: 'dev@second', // TODO: should publish to my "personal" nodechain, that nobody can access, but that seeds my ipfs hashes 
+                node: nodeValue
+              });
+              nodeIpfsHash = chainResult.data.hash;
+            }catch(err){
+              console.error('Failed writing identity IpfsHash to nodechain', err);
+              return reject();
+            }
+
+
+            console.log('Adding to stellar:', nodeIpfsHash, username);
+
+            // Add to stellar
+            var pairSource = StellarSdk.Keypair.fromSecret(process.env.STELLAR_SEED);
+            let pkTargetSeed = crypto.createHash('sha256').update(username).digest(); //returns a buffer
+            var pairTarget = StellarSdk.Keypair.fromRawEd25519Seed(pkTargetSeed);
+
+            console.log('pkTarget Seed:', pairTarget.secret());
+
+
+
+            // Update data (manageData operation) 
+            console.log('Building transaction (multisig manageData)');
+
+            // expecting targetAccount to already exist (aka was claimed, is now being updated)
+            // - dont automatically CLAIM right now, this is just for UPDATING (targetAccount must exist)! 
+            let targetAccount;
+            try {
+              targetAccount = await funcInSandbox.universe.getStellarAccount(pairTarget.secret(), {claim: false});
+              // targetAccount = await stellarServer.loadAccount(pairTarget.publicKey())
+              console.log('Found targetAccount (from getStellarAccount):'); //, targetAccount);
+            } catch(err){
+              console.error('Failed finding existing account for username. Should have already claimed!', err);
+              return reject();
+            }
+
+            // Start building the transaction for manageData update
+            let transaction = new StellarSdk.TransactionBuilder(targetAccount)
+
+            .addOperation(StellarSdk.Operation.manageData({
+              name: subname + '|' + field,
+              value: nodeIpfsHash
+            }))
+            // .addMemo(StellarSdk.Memo.hash(b32))
+            .build();
+
+            // Sign the transaction to prove you are actually the person sending it.
+            transaction.sign(pairTarget); // targetKeys
+            transaction.sign(pairSource); // sourceKeys
+
+            // send to stellar network
+            let stellarResult = await stellarServer.submitTransaction(transaction)
+            .then(function(result) {
+              console.log('Stellar manageData Success! Results:'); //, result);
+              return result;
+            })
+            .catch(function(error) {
+              console.error('Stellar Something went wrong (failed updating data)!', error);
+              // If the result is unknown (no response body, timeout etc.) we simply resubmit
+              // already built transaction:
+              // server.submitTransaction(transaction);
+              return null;
+            });
+
+            // console.log('stellarResult', stellarResult);
+
+            if(!stellarResult){
+              console.error('Failed stellar manageData');
+              return reject();
+            }
+
+            console.log('stellarResult succeeded! (manageData)');
+
+            return resolve({
+              type: 'boolean:..',
+              data: true
+            })
+
+
+          })
+        },
+
+        getStellarAccount: async (targetSeed, opts)=>{
+
+          // Returns an account for an identity/username that we control 
+          // - if necessary: claims account (creates), sets up multi-sig
+
+          console.log('getStellarAccount:', targetSeed);
+
+          opts = opts || {
+            claim: true
+          }
+
+          var pairSource = StellarSdk.Keypair.fromSecret(process.env.STELLAR_SEED);
+          var pairTarget = StellarSdk.Keypair.fromSecret(targetSeed);
+
+          console.log('pkSource Seed:', pairSource.secret());
+          console.log('pkTarget Seed:', pairTarget.secret());
+
+
+          // Load Target account
+          let targetAccount = await stellarServer
+          .loadAccount(pairTarget.publicKey())
+          .catch(()=>{
+            return false;
+          })
+
+          if(targetAccount){
+            // target account exists
+            // - should already be owned by me 
+
+            let sourceIsSigner = lodash.find(targetAccount.signers,{public_key: pairSource.publicKey()});
+            if(sourceIsSigner){
+              // already claimed, but I'm the owner 
+              // - multi-sig is already setup 
+
+              // all good with this targetAccount! 
+              console.log('targetAccount all set with multisig for updating!');
+              return targetAccount;
+
+            } else {
+              // exists, and I'm not the owner 
+              // - could also check to see if it is unprotected? (unlikely, maybe on testnet only) 
+              // - could check the "data.willSellFor" field to see if it is for sale? 
+              console.error('Username exists and you are not the owner'); // TODO: return who the owner is 
+              return false;
+
+            }
+
+
+          }
+
+
+          // identity Account doesn't exist 
+          // - register account (and setup multisig) if I have a balance in my sourceAccount 
+
+
+          // Load source account
+          let sourceAccount;
+          try {
+            sourceAccount = await stellarServer.loadAccount(pairSource.publicKey())
+          }catch(err){
+            // problem with account 
+            return false;
+          }
+
+          // get source balance 
+          if(sourceAccount){
+            let balance = 0;
+            balance = sourceAccount.balances[0].balance;
+
+            console.log('Balance:', balance);
+
+            balance = parseInt(balance,10);
+            if(balance < 10){
+              console.error('Insufficient balance in account for creation:', sourceAccount.balances[0].balance);
+              return false;
+            }
+          }
+
+
+          // Claim account
+          if(!opts.claim){
+            console.error('NOT claiming even though targetAccount doesnt exist!');
+            return false;
+          }
+
+          // Start building the transaction.
+          let transaction = new StellarSdk.TransactionBuilder(sourceAccount)
+          .addOperation(StellarSdk.Operation.createAccount({
+            destination: pairTarget.publicKey(),
+            startingBalance: "3.0"
+            // source: pair
+          }))
+          .build();
+
+          // Sign the transaction to prove you are actually the person sending it.
+          transaction.sign(pairSource); // sourceKeys
+
+          // send to stellar network
+          let stellarResult = await stellarServer.submitTransaction(transaction)
+          .then(function(result) {
+            console.log('Stellar Success createAccount'); // , result); 
+            return result;
+          })
+          .catch(function(error) {
+            console.error('Stellar Something went wrong!', error);
+            // If the result is unknown (no response body, timeout etc.) we simply resubmit
+            // already built transaction:
+            // server.submitTransaction(transaction);
+            return null;
+          });
+
+          // console.log('stellarResult', stellarResult);
+          if(!stellarResult){
+            console.error('Failed creating account');
+            return false;
+          }
+
+          console.log('Created account, starting multisig (reloading account)');
+
+          // reload the account 
+          targetAccount = await stellarServer.loadAccount(pairTarget.publicKey())
+
+          // Add multisig 
+          console.log('adding multisig after creating username'); //, targetAccount);
+
+          // set multi-sig on this account 
+          // - will fail if I am unable to claim 
+
+          // Start building the transaction.
+          let transaction2 = new StellarSdk.TransactionBuilder(targetAccount)
+          .addOperation(StellarSdk.Operation.setOptions({
+            signer: {
+              ed25519PublicKey: pairSource.publicKey(),
+              weight: 1
+            }
+          }))
+          .addOperation(StellarSdk.Operation.setOptions({
+            masterWeight: 1, // set master key weight (should really be nothing, and controlled by this other key?) 
+            lowThreshold: 2, // trustlines
+            medThreshold: 2, // manageData
+            highThreshold: 2  // setOptions (multi-sig)
+          }))
+          .build();
+
+          // Sign the transaction to prove you are actually the person sending it.
+          transaction2.sign(pairTarget); // sourceKeys
+          // transaction2.sign(pairSource); // sourceKeys
+
+          // send to stellar network
+          let stellarResult2 = await stellarServer.submitTransaction(transaction2)
+          .then(function(result) {
+            console.log('Stellar MultiSig Setup Success!'); // Results:', result);
+            return result
+          })
+          .catch(function(error) {
+            console.error('Stellar Something went wrong (failed multisig)!', error);
+            // If the result is unknown (no response body, timeout etc.) we simply resubmit
+            // already built transaction:
+            // server.submitTransaction(transaction);
+            return null;
+          });
+
+          // console.log('Multisig result:', stellarResult2);
+
+          if(!stellarResult2){
+            console.error('Failed multisig setup');
+            return false;
+          }
+
+          // return final targetAccount (with signers, etc.) 
+          console.log('Returning targetAccount after creating and adding multi-sig');
+          targetAccount = await stellarServer.loadAccount(pairTarget.publicKey())
+
+          return targetAccount;
+
+        },
+
+
+        TalkToSecond: ({ExternalIdentityNode, InputNode}) => {
+          return new Promise(async (resolve, reject) => {
+
+            // make a request (assuming http for now) to an external Second 
+            // - could also be local/on-page? 
+
+            console.error('Using WRONG TalkToSecond! Should use capability');
+
+            let url = lodash.find(ExternalIdentityNode.nodes,{
+              type: 'external_identity_connect_method:0.0.1:local:382989239hsdfmn'
+            }).data.connection;
+
+            console.log('ExternalIdentity connection url:', url);
+
+            let response = await request.post({
+              method: 'post',
+              url: url,
+              body: InputNode,
+              json: true
+            })
+
+            resolve(response.secondResponse);
+
+          })
+        },
+
+        loadAndRunCapability: (nameSemver, opts, input)=>{
+          return new Promise(async(resolve, reject)=>{
+
+            // Run rsa capability 
+            let capNode = await funcInSandbox.universe.loadCapability(nameSemver, opts);
+            let returnNode = await funcInSandbox.universe.runCapability(capNode, input);
+
+            resolve(returnNode);
+
+          })
+        },
+        loadCapability: (nameSemver, opts)=>{
+          opts = opts || {};
+          return new Promise(async (resolve, reject)=>{
+
+            // console.log('--Load capability'); //, platformClosest._id, funcInSandbox.universe.isParentOf ? true:false);
+
+            // Returns the Node for the capability specified
+            let capabilityNodes = await funcInSandbox.universe.searchMemory({
+              filter: {
+                sqlFilter: {
+                  type: "capability:0.0.1:local:187h78h23",
+                  // nodeId: null, // NEW: app-level. OLD: top-level/root,
+                  data: {
+                    key: nameSemver // todo: semver with version!
+                  }
+                },
+                filterNodes: tmpNodes=>{
+                  return new Promise((resolve, reject)=>{
+                    // tmpNodes = tmpNodes.filter(tmpNode=>{
+                    //   return tmpNode.data.method == 'read';
+                    // })
+
+                    // try {
+                    //   console.log('platformClosest._id', platformClosest._id);
+                    // }catch(err){
+                    //   console.error('NO PLATFORMClOSEST');
+                    // }
+                    tmpNodes = lodash.filter(tmpNodes, tmpNode=>{
+
+                      if(funcInSandbox.universe.isParentOf(platformClosest._id, tmpNode)){
+                        // console.log('FOUND IT UNDER SAME APP!!!!!', tmpNode._id);
+                        // console.log('FOUND PARENT1!');
+                        return true;
+                      }
+                      return false;
+                    })
+                    resolve(tmpNodes);
+                  });
+                },
+              }
+            });
+            // capabilityNodes = universe.lodash.sortBy(capabilityNodes,capNode=>{
+            //   let orderNode = universe.lodash.find(capNode.nodes, {type: 'order_level:0.0.1:local:382hf273'});
+            //   return orderNode ? orderNode.data.level:0;
+            // });
+
+            if(!capabilityNodes || !capabilityNodes.length){
+              console.error('Unable to find capability!', nameSemver);
+
+              let allNodes = await funcInSandbox.universe.searchMemory({});
+              console.error('Failed capabilityNode',nameSemver); //, allNodes);
+              debugger;
+
+              return reject();
+            }
+
+            if(capabilityNodes.length > 1){
+              console.error('TOO MANY capability nodes!');
+              // return reject();
+            }
+
+            return resolve(capabilityNodes[0]);
+            
+          })
+        },
+        runCapability: (capNode, externalInputNode)=>{
+          // opts = opts || {};
+          return new Promise(async (resolve, reject)=>{
+
+            // Pass in InputNode to capability! 
+
+            let codeNode = lodash.find(capNode.nodes, {type: 'code:0.0.1:local:32498h32f2'});
+
+            let inputNode = {
+              type: 'capability_input_node:0.0.1:local:29f8239a13h9',
+              data: {
+                capabilityNode: capNode,
+                externalInputNode: externalInputNode
+              }
+            }
+
+            // run in vm
+            let responseNode;
+            try {
+              responseNode = await funcInSandbox.universe.runNodeCodeInVM({
+                codeNode, 
+                dataNode: inputNode
+              });
+            }catch(err){
+              console.error('In VM error:', err);
+              responseNode = {
+                type: 'err_in_vm:6231',
+                data: {
+                  err: err || {},
+                  error: err
+                }
+              }
+            }
+
+            resolve(responseNode);
+            
+          })
+        },
+
+        capabilities: ()=>{
+
+          return {
+            privateIdentity: getPrivateIdentity,
+            sign: StringNode=>{
+              // expecting a type:string:0.0.1:local:289hf329h93
+              // sign a string using internal IdentityNode (only 1 expected) 
+
+              return new Promise(async (resolve, reject)=>{
+
+                let stringToSign = StringNode.data;
+
+                let IdentityNode = await getPrivateIdentity();
+                let privateKey = IdentityNode.data.private;
+
+                let key = new rsa(privateKey);
+                let signed = key.sign(stringToSign);
+
+                resolve({
+                  type: 'string:0.0.1:local:289hf329h93',
+                  data: signed.toString('base64')
+                });
+
+              });
+            },
+            verify: ChallengeVerifyNode=>{
+              // expecting a type:challenge_verify:0.0.1:local:93fj92hj832ff2
+              // - verify that what was passed-in 
+
+              return new Promise(async (resolve, reject)=>{
+
+                // let stringToSign = ChallengeVerifyNode.data;
+
+                // let IdentityNode = await getPrivateIdentity();
+                // let privateKey = IdentityNode.data.private;
+
+                let key = new rsa(ChallengeVerifyNode.data.publicKey);
+
+                let verified = key.verify(ChallengeVerifyNode.data.challenge, ChallengeVerifyNode.data.solution, undefined, 'base64'); // todo
+
+                resolve({
+                  type: 'boolean:0.0.1:local:98h8fh28h3232f',
+                  data: verified
+                });
+
+              });
+            },
+            encryptPrivate: StringNode=>{
+              // expecting a type:string:0.0.1:local:289hf329h93
+              // sign a string using internal IdentityNode (only 1 expected) 
+
+              return new Promise(async (resolve, reject)=>{
+
+                try {
+
+                  let stringToEncrypt = StringNode.data;
+
+                  let IdentityNode = await getPrivateIdentity();
+                  let privateKey = IdentityNode.data.private;
+
+                  // Encrypt 
+                  // let ciphertext;
+                  // try {
+                  //   ciphertext = CryptoJS.AES.encrypt('test1', 'private kmk');
+                  // }catch(err){
+                  //   console.error(err);
+                  //   return resolve({
+                  //     type: 'string',
+                  //     data: 'test2'
+                  //   });
+                  // }
+
+                  // return resolve({
+                  //   // what: 'ok',
+                  //   sha: CryptoJS.SHA256('fuck').toString()
+                  // });
+
+                  let customEncryptionKey = CryptoJS.SHA256(privateKey).toString().substr(0,32);
+
+                  let iv = crypto.randomBytes(IV_LENGTH);
+                  let cipher = crypto.createCipheriv('aes-256-cbc', new Buffer(customEncryptionKey), iv);
+                  let encrypted = cipher.update(stringToEncrypt);
+
+                  encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+                  let ciphertext = iv.toString('hex') + ':' + encrypted.toString('hex');
+
+                  resolve({
+                    type: 'string:0.0.1:local:289hf329h93',
+                    data: ciphertext
+                  });
+
+                  // let key = new rsa(privateKey);
+                  // let encrypted = key.encryptPrivate(stringToEncrypt);
+
+                  // resolve({
+                  //   type: 'string:0.0.1:local:289hf329h93',
+                  //   data: encrypted.toString('base64') //encrypted //.toString('base64')
+                  // });
+                }catch(err){
+                  return resolve({
+                    type: 'error:..',
+                    data: {
+                      str: 'Failed encrypting!'
+                    }
+                  });
+                }
+
+              });
+            },
+            decryptPrivate: StringNode=>{
+              // expecting a type:string:0.0.1:local:289hf329h93
+              return new Promise(async (resolve, reject)=>{
+
+                try {
+
+                  let stringToDecrypt = StringNode.data;
+
+                  let IdentityNode = await getPrivateIdentity();
+                  let privateKey = IdentityNode.data.private;
+
+                  // // Decrypt 
+                  // var bytes  = CryptoJS.AES.decrypt(stringToDecrypt, privateKey);
+                  // var plaintext = bytes.toString(CryptoJS.enc.Utf8);
+
+                  let customEncryptionKey = CryptoJS.SHA256(privateKey).toString().substr(0,32);
+
+                  let textParts = stringToDecrypt.split(':');
+                  let iv = new Buffer(textParts.shift(), 'hex');
+                  let encryptedText = new Buffer(textParts.join(':'), 'hex');
+                  let decipher = crypto.createDecipheriv('aes-256-cbc', new Buffer(customEncryptionKey), iv);
+                  let decrypted = decipher.update(encryptedText);
+
+                  decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+                  // return decrypted.toString();
+                  let plaintext = decrypted.toString();
+
+                  resolve({
+                    type: 'string:0.0.1:local:289hf329h93',
+                    data: plaintext
+                  });
+
+                  // let key = new rsa(privateKey);
+                  // let decrypted;
+                  // try {                  
+                  //   decrypted = key.decrypt( new Buffer(StringNode.data,'base64')); // uses Private Key!
+                  // }catch(err){
+                  //   return resolve({
+                  //     err: err,
+                  //     str: err.toString()
+                  //   });
+                  // }
+
+                  // resolve({
+                  //   type: 'string:0.0.1:local:289hf329h93',
+                  //   data: {
+                  //     StringNode,
+                  //     decrypted
+                  //   }
+                  // });
+                }catch(err){
+                  return resolve({
+                    type: 'error:..',
+                    data: {
+                      str: 'Failed decrypting'
+                    }
+                  });
+                }
+
+              });
+            },
+            externalRequest: ExternalRequestNode => {
+              return new Promise(async (resolve,reject)=>{
+
+                console.error('DEPRECATED! should not be using externalRequest, should use TalkToSecond capability');
+
+                // Make a request to an external Second 
+                // data: {
+                //   ExternalIdentityNode, // must include connect_method
+                //   RequestNode: InitiateIdentifyNode
+                // }
+
+                // ExternalIdentityNode needs to have a NodeChild w/ a connect_method 
+                let connectNode = lodash.find(ExternalRequestNode.data.ExternalIdentityNode.nodes, {type: 'external_identity_connect_method:0.0.1:local:382989239hsdfmn'});
+                if(!connectNode){
+                  console.error('Missing ConnectNode!');
+                  return reject({
+                    type: 'internal_error_output:0.0.1:local:32948x2u3cno2c',
+                    data: {
+                      str: 'Missing existing ExternalIdentity connect_method child!'
+                    }
+                  })
+                }
+
+                console.log('Making external request');
+
+                // make web request to Node 
+                // - just passing through the Node, assume any Auth is already included 
+                let response = await request.post({
+                  method: 'post',
+                  url: connectNode.data.connection, // expecting URL at first! 
+                  body: ExternalRequestNode.data.RequestNode,
+                  json: true
+                })
+
+                // ONLY returning a "second" response! (no other URL is allowed besides this, for now) 
+                return resolve(response.secondResponse);
+
+
+              })
+            }
+          }
+
+        }, // check for capabilities, call capabilities with a Node 
+        getCapabilityAndRunWithNodeAsInput: ({capability, InputNode}) =>{
+
+          // Finds a capability (added hownow?) 
+          // - runs Code with 
+
+          setupIpcWatcher({
+              command: 'getCapabilityAndRunWithNodeAsInput', // whole thing for now
+              data,
+              capability,
+              InputNode
+          }, (r)=>{
+            resolve(r.data);
+          })
+
+        },
+        reportProblem: (problem)=>{
+          // how to report this problem so it can be tracked down? 
+          return true;
+        }, 
+        hasChildNode: (node, matcher)=>{
+          // allow "matcher" to be a function? 
+          return lodash.find(node.nodes,matcher);
+        },
+        historyLog: (data, type, logLevel)=>{
+          return new Promise(async (resolve, reject)=>{
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            setupIpcWatcher({
+                command: 'historyLog', // whole thing for now
+                data,
+                type,
+                logLevel
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+        },
+
+        findNode: (filterObj) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            setupIpcWatcher({
+                command: 'findNode', // whole thing for now
+                filter: filterObj
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+        },
+
+        newNode: (node, skipWaitForResolution, skipRebuild) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            setupIpcWatcher({
+                command: 'newNode', // whole thing for now
+                node,
+                skipWaitForResolution,
+                skipRebuild
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+        },
+        
+        updateNode: (node, skipWaitForResolution, skipRebuild) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            if(!node){
+              console.error('Missing Node to update!');
+              return reject();
+            }
+            node = Object.assign({},node);
+
+            node = {
+              _id: node._id || undefined,
+              name: node.name || undefined, 
+              nodeId: node.nodeId || undefined,
+              type: node.type || undefined,
+              data: node.data || undefined,
+              active: node.hasOwnProperty('active') ? node.active : undefined,
+              createdAt: node.createdAt || undefined,
+              updatedAt: (new Date()).getTime(),
+            }
+
+            // console.log('Node to update:', JSON.stringify(node,null,2));
+
+            setupIpcWatcher({
+                command: 'updateNode', // whole thing for now
+                node,
+                skipWaitForResolution,
+                skipRebuild
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+
+        },
+        
+        removeNode: (node, skipWaitForResolution, skipRebuild) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            if(!node){
+              console.error('Missing Node to remove!');
+              return reject();
+            }
+            node = Object.assign({},node);
+
+            node = {
+              _id: node._id || undefined
+            }
+
+            // console.log('Node to update:', JSON.stringify(node,null,2));
+
+            setupIpcWatcher({
+                command: 'removeNode', // whole thing for now
+                node,
+                skipWaitForResolution,
+                skipRebuild
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+
+        },
+
+        rebuildMemory: (skipWaitForResolution) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // used to manually rebuild memory after making bulk changes 
+            // - queues up "afterUpdate" events? 
+
+            setupIpcWatcher({
+                command: 'rebuildMemory', 
+                skipWaitForResolution
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+
+        },
+
+        getRequestCache: (opts) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            setupIpcWatcher({
+                command: 'getRequestCache', // whole thing for now
+                requestId: ob.requestId
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+        },
+        setRequestCacheKeyValue: (key, value) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            setupIpcWatcher({
+                command: 'setRequestCacheKeyValue', // whole thing for now
+                requestId: ob.requestId,
+                key,
+                value
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+        },
+
+        httpResponse: (action, data) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            setupIpcWatcher({
+                command: 'httpResponse', // whole thing for now
+                requestId: ob.requestId,
+                action,
+                data
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+        },
+
+        httpSession: (action, data) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            setupIpcWatcher({
+                command: 'httpSession', // whole thing for now
+                requestId: ob.requestId,
+                action,
+                data
+            }, (r)=>{
+              resolve(r.data);
+            })
+
+          });
+        },
+
+        runNodeCodeInVMSimple: (opts) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // only use this for comparison! 
+            // - do NOT use for reaching outside at all, expect the INPUT to include everything necessary! 
+            try {
+
+              let code = opts.codeNode.data.code;
+              let sandbox = {
+                SELF: opts.codeNode,
+                INPUT: opts.dataNode,
+                miniverse: {
+                  lodash
+                }
+              }
+
+              const simpleVM = new VM({
+                  timeout: 1000,
+                  sandbox
+              });
+
+              try {
+                let output = simpleVM.run(code); 
+                resolve(output); // does NOT handle promises! 
+                // resolve(true);
+              }catch(err){
+                // reject(undefined);
+                resolve(undefined);
+              }
+
+            }catch(err){
+              console.error('Failed runNodeCodeInVMSimple', err);
+            }
+
+          });
+
+        },
+
+        runNodeCodeInVM: (opts) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // console.log('runNodeCodeInVM');
+
+            // Runs in ThreadedVM 
+            // - putting this here means it PROBABLY won't have all the context we'd hope for
+
+            // should validate code/schema too? 
+
+            if(!opts.codeNode){
+              console.error('Missing codeNode for runNodeCodeInVM');
+              return reject();
+            }
+            if(!opts.codeNode.data){
+              console.error('Missing codeNode.data for runNodeCodeInVM');
+              return reject();
+            }
+            if(!opts.codeNode.data.code){
+              console.error('Missing codeNode.data.code for runNodeCodeInVM');
+              return reject();
+            }
+
+            try {
+
+              let code = opts.codeNode.data.code;
+
+
+              let datetime = (new Date());
+
+              setupIpcWatcher({
+                command: 'ThreadedSafeRun',
+                code: code,
+                SELF: opts.codeNode,
+                INPUT: opts.dataNode || opts.inputNode,
+                requestId: ob ? ob.requestId : uuidv4(), // from ob.context!!
+                mainIpcId: ob ? ob.mainIpcId : uuidv4(),
+                nodeId: opts.codeNode._id,
+                timeout: opts.timeout,
+                workGroup: opts.workGroup,
+                workers: opts.workers,
+                datetime: datetime.getSeconds() + '.' + datetime.getMilliseconds()
+              }, (r)=>{
+                resolve(r.data);
+              })
+
+            } catch(err){
+              console.error('Failed runNodeCodeInVM', err, Object.keys(opts.codeNode));
+            }
+
+
+          });
+
+        },
+        searchMemory: (opts) => {
+          return new Promise(async (resolve, reject)=>{
+            App.sm123 = App.sm123 || 1;
+            let sm123 = App.sm123 + 0;
+            App.sm123++;
+
+            console.log('Running searchMemory', sm123);
+
+            // resolve('universe result! ' + ob.context.tenant.dbName);
+            // console.log('searchMemory1');
+            opts = opts || {};
+            opts.lean = opts.lean ? true:false;
+            opts.filter = opts.filter || {};
+            opts.filter.sqlFilter = opts.filter.sqlFilter || {};
+            opts.filter.dataFilter = opts.filter.dataFilter || {}; // underscore-query
+            // console.log('FetchNodes:', opts.filter.sqlFilter);
+
+            // Check cache 
+            if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
+              if(App.globalCache.SearchFilters[opts.cache]){
+                // console.log('Used cache (skipped IPC fetchNodes)');
+                return resolve(App.globalCache.SearchFilters[opts.cache]);
+              } else {
+                // console.log('Not cached yet:', opts.cache);
+              }
+            } else {
+              // console.log('No cache attempted, fetchingNodes');
+            }
+
+            // console.log('SLOW:', opts.cache ? opts.cache:'NoCache');
+
+            let nodes;
+            try{
+              nodes = await fetchNodes(opts.filter);
+            }catch(err){
+              console.error(err);
+              return resolve({
+                err: 'shit'
+              });
+            }
+
+            // console.log('NODES FOR fetchNodes:', nodes.length);
+            // if(nodes && nodes.length){
+            //   console.log('Node:', nodes[0]);
+            // }
+
+            // console.log('internal searchMemory result length:', nodes.length);
+
+            // run "filterNode" after all the results are found
+            if(typeof(opts.filter.filterNodes) == 'function'){
+              try {
+                // console.log('FilterNodes:', sm123, nodes.length);
+                if(nodes.length == App.nodesDbParsed.length){
+                  console.error('Did NOT filter search at all (filterNodes length is max)!', sm123, 'CodeNode._id:', codeNode ? codeNode._id:null);
+                }
+                nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
+              }catch(err){
+                console.error('Failed filterNodes1', err);
+                return;
+              }
+            }
+
+            Promise.resolve(nodes)
+            .then(nodes=>{
+              // add result to cache
+              if(opts.cache){
+                // App.globalCache.SearchFilters[opts.cache] = nodes; // UNCOMMENT TO ENABLE SEARCH CACHE (expensive/intensive?) 
+              }
+              // console.log('Ending searchMemory', sm123, 'nodes:', nodes.length);
+              if(opts.lean){
+                resolve(funcInSandbox.universe.trimSearchResults(nodes));
+              } else {
+                resolve(nodes);
+              }
+            })
+            .catch(err=>{
+              console.error('Failed searching internal memory (filterNodes)', err);
+              resolve({
+                error: true,
+                str: 'Failed searching internal memory (filterNodes)!',
+                err: err.toString()
+              });
+            })
+
+
+
+          })
+        },
+        trimSearchResults: (nodes, opts)=>{
+
+          function nodeFromNode(node){
+            return {
+              _id: node._id,
+              nodeId: node.nodeId,
+              name: node.name,
+              type: node.type,
+              data: node.data,
+              parent: null,
+              nodes: [],
+              createdAt: node.createdAt,
+              modifiedAt: node.modifiedAt,
+            };
+          }
+
+          function updateParent(tmpNode, node){
+            // get all parents, and single level of children 
+            if(node.nodeId && !node.parent){
+              console.error('Missing Parent for nodeId when updateParent!');
+            }
+            if(node.parent){
+              // console.log('88: Adding parent');
+              tmpNode.parent = nodeFromNode(node.parent);
+              // // children for parent 
+              // for(let childNode of node.parent.nodes){
+              //  tmpNode.parent.nodes.push(nodeFromNode(childNode));
+              // }
+              updateParent(tmpNode.parent, node.parent);
+            } else {
+              // console.log('88: no parent');
+            }
+            // return tmpNode; // unnecessary, objected
+          }
+
+          function updateChildren(tmpNode, node){
+            // get all children (parents are included by default) 
+            if(node.nodes && node.nodes.length){
+              for(let childNode of node.nodes){
+                let tmpChild = nodeFromNode(childNode);
+                tmpNode.nodes.push(tmpChild);
+                updateChildren(tmpChild, childNode);
+              }
+            }
+            // return tmpNode; // unnecessary, objected
+          }
+
+          let returnNodes = [];
+
+          for(let node of nodes){
+            let tmpNode = nodeFromNode(node);
+            updateParent(tmpNode, node);
+            updateChildren(tmpNode, node);
+            // siblings 
+            if(node.parent && tmpNode.parent){
+              for(let childNode of node.parent.nodes){
+                tmpNode.parent.nodes.push(nodeFromNode(childNode));
+              }
+            }
+            returnNodes.push(tmpNode);
+          }
+          
+          return returnNodes;
+
+        },
+        searchMemoryMemory: (opts) => {
+          return new Promise(async (resolve, reject)=>{
+            console.log('Running searchMemoryMemory');
+            // resolve('universe result! ' + ob.context.tenant.dbName);
+            // console.log('searchMemory1');
+            opts = opts || {};
+            opts.filter = opts.filter || {};
+            opts.filter.sqlFilter = opts.filter.sqlFilter || {};
+            opts.filter.dataFilter = opts.filter.dataFilter || {};
+            // console.log('FetchNodes:', opts.filter.sqlFilter);
+
+            // Check cache 
+            if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
+              if(App.globalCache.SearchFilters[opts.cache]){
+                console.log('Used cache (skipped IPC fetchNodes)');
+                return resolve(App.globalCache.SearchFilters[opts.cache]);
+              } else {
+                console.log('Not cached yet:', opts.cache);
+              }
+            } else {
+              console.log('No cache attempted, fetchingNodes');
+            }
+
+            console.log('SLOW:', opts.cache ? opts.cache:'NoCache');
+
+            let nodes;
+            try{
+              nodes = await fetchNodesInMemory(opts.filter);
+            }catch(err){
+              return resolve({
+                err: 'shit'
+              });
+            }
+
+            // console.log('NODES FOR fetchNodes:', nodes.length);
+            // if(nodes && nodes.length){
+            //   console.log('Node:', nodes[0]);
+            // }
+
+            // console.log('internal searchMemory result length:', nodes.length);
+
+            // run "filterNode" after all the results are found
+            if(typeof(opts.filter.filterNodes) == 'function'){
+              try {
+                nodes = opts.filter.filterNodes(nodes); // may be a promise (probably is!) 
+              }catch(err){
+                console.error('Failed filterNodes1', err);
+                return;
+              }
+            }
+
+            Promise.resolve(nodes)
+            .then(nodes=>{
+              // add result to cache
+              if(opts.cache){
+                App.globalCache.SearchFilters[opts.cache] = nodes;
+              }
+
+              resolve(nodes);
+            })
+            .catch(err=>{
+              resolve({
+                error: true,
+                str: 'Failed searching internal memory (filterNodes)!',
+                err: err.toString()
+              });
+            })
+
+
+
+          })
+        },
+        searchMemoryByIds: (opts) => {
+          return new Promise(async (resolve, reject)=>{
+            console.log('Running searchMemoryByIds');
+            // resolve('universe result! ' + ob.context.tenant.dbName);
+            // console.log('searchMemory1');
+            opts = opts || {};
+            opts.filter = opts.filter || {};
+            opts.filter._ids = opts.filter._ids || [];
+            // console.log('FetchNodes:', opts.filter.sqlFilter);
+
+            // // Check cache 
+            // if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
+            //   if(App.globalCache.SearchFilters[opts.cache]){
+            //     console.log('Used cache (skipped IPC fetchNodes)');
+            //     return resolve(App.globalCache.SearchFilters[opts.cache]);
+            //   } else {
+            //     console.log('Not cached yet:', opts.cache);
+            //   }
+            // } else {
+            //   console.log('No cache attempted, fetchingNodes');
+            // }
+
+            // console.log('SLOW:', opts.cache ? opts.cache:'NoCache');
+
+            let nodes;
+            try{
+              nodes = await fetchNodesInMemoryByIds(opts.filter._ids);
+            }catch(err){
+              return resolve({
+                err: 'shit'
+              });
+            }
+
+            Promise.resolve(nodes)
+            .then(nodes=>{
+              // add result to cache
+              if(opts.cache){
+                App.globalCache.SearchFilters[opts.cache] = nodes;
+              }
+
+              resolve(nodes);
+            })
+            .catch(err=>{
+              resolve({
+                error: true,
+                str: 'Failed searching internal memory (filterNodes)!',
+                err: err.toString()
+              });
+            })
+
+
+
+          })
+        },
+
+        clearMemory: () => {
+          // clear all the memory! (active=false) 
+
+          return new Promise(async (resolve,reject) => {
+
+            await App.graphql.updateAllNodes({},{active:false});
+
+            resolve();
+
+          });
+
+        }
+
+      }
+    },ob.context);
+
+
+
+    // using VM, NOT !!!!!!! NodeVM from vm2!!! (external modules NOT allowed!) 
+    let vm = new VM({
+      // console: 'off', //'inherit',
+      console: 'inherit', //'inherit',
+      sandbox: funcInSandbox, // all the passed-in context variables (node, tenant) 
+      nesting: true,
+      timeout: ob.timeout || (5 * 1000), //5 * 1000, // default timeout of 5 seconds 
+      require: {
+        // external: true,
+        // [
+        //   '@stdlib/stdlib', // stdlib with lots of math functions
+        //   'lodash', // some basic useful functions 
+        //   'luxon', // datetime with good timezone support built-in 
+        //   'bigi', // big integer stuff for bitcoin
+        //   'bitcoinjs-lib', // big integer stuff for bitcoin
+        // ].concat(ob.requires || []), // also use passed-in libraries!
+        // builtin: [],
+        // root: "./",
+        // mock: {
+        //   fs: {
+        //     readFileSync() { return 'Nice try!'; }
+        //   }
+        // }
+      }
+    });
+    
+
+    // process.on('uncaughtException', (err) => {
+    //   process.send({
+    //     error: true,
+    //     err: 'Asynchronous error caught, uncaughtException'
+    //   });
+    // })
+
+    try {
+      let output = vm.run(ob.evalString);
+      // process.send('OUTPUT:' + ob.evalString);
+      // output could be a promise, so we just wait to resolve it (and resolving a value just returns the value :) )
+      Promise.resolve(output)
+      .then(data=>{
+          // console.log(JSON.stringify(data));
+          // process.stdout.write(JSON.stringify(
+          //     data
+          // ));
+
+          // console.log('DATA3:', data);
+
+          // should be returning a Node!
+          resolve(
+            data
+          ); // sends up from subprocess/child
+
+          // if(output && output.keepVM === true){
+          //   // not used, always not kept (was maybe using when ob was nulled for scheduler...)
+          // } else {
+            output = null;
+            setTimeout(()=>{
+              // console.log('freememory-universe');
+              data = null;
+              ob = null;
+
+              // free memory here? delete the vm entirely? 
+              delete funcInSandbox.universe;
+              funcInSandbox = null;
+              vm = null;
+
+            },100);
+          // }
+
+
+          // exit();
+      })
+      .catch(err=>{
+        console.error('---Failed in VM1!!!---- internal_server_error. --', err);
+        resolve({
+          type: 'internal_server_error_public_output:0.0.1:local:3298ry2398h3f',
+          data: {
+            error: true,
+            err: 'Error in returned promise',
+            str: err.toString(),
+            nodeId: ob.nodeId,
+            code: ob.evalString
+          }
+        });
+      })
+    }catch(err){
+      console.error('---Failed in VM2!!!----', err);
+      resolve({
+          type: 'internal_server_error_public_output:0.0.1:local:3298ry2398h3f',
+          data: {
+            error: true,
+            err: 'Error in code (without a Promise)',
+            str: err.toString(),
+            nodeId: ob.nodeId || 'Missing nodeId',
+            code: ob.evalString
+            // msg: err.message,
+            // line: err.lineNumber,
+            // stack: err.stack,
+            // keys: Object.getOwnPropertyNames(err)
+          }
+      });
+    }
+
+  });
+}
 
 
 // Your AI is going to look for the data in its memory, but if you delete it, then it wont be able to find it. Just like removing a part of your brain, you cant just wish it back in place! 
