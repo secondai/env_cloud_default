@@ -1,3 +1,3 @@
 require('babel-register');
-// require('./init');
-require('./launch');
+require('./init');
+// require('./launch');
