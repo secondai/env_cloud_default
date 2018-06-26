@@ -30,7 +30,7 @@ let expectedEnvVars = [
 ];
 let foundEnvVars = Object.keys(process.env).map(k=>{return {k, v: process.env[k]}});
 if(expectedEnvVars.filter(varBox=>{
-    let varName = varBox[1];
+    let varName = varBox[0];
     if(varBox.length == 1){
       // name same as string 
       if(!lodash.find(foundEnvVars, {k:varName})){
