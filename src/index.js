@@ -1,6 +1,8 @@
 require('babel-register');
 if(process.env.OLD_STARTUP == 'true'){
-	require('./init');
+	// OLD
+	require('./old/init');
 } else {
-	require('./launch');
+	// NEW (self-contained)
+	require('./init');
 }
