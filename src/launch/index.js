@@ -153,7 +153,7 @@ App.sharedServices.redis = App.redis;
 App.sharedServices.redisClient = App.redisClient;
 
 // utils
-App.utils = require('./utils');
+App.utils = require('./utils').default;
 
 
 //////////////////
