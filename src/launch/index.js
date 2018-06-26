@@ -13,6 +13,7 @@ console.log('ENV:', process.env);
 // Check for required environment variables 
 // - TODO: load fom config file shipped with environment 
 let expectedEnvVars = [
+  ['DEFAULT_LAUNCH_PLATFORM'],
   ['REDIS_URL or REDIS_HOST', '', {$or:[{k:'REDIS_URL'},{k: 'REDIS_HOST'}]}],
   ['STELLAR_NETWORK'],
   // ['BASICS_ZIP_URL'],
