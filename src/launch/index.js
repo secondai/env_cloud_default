@@ -84,11 +84,11 @@ setInterval(async function(){
 //////////////////
 
 var util = require('util');
-var winston = require('winston'),
+var winston = require('winston');
 App.sharedServices.logger = new winston.Logger();
 App.sharedServices.loggerStream = {
   write: function(message, encoding){
-      console.info(message);
+    console.info(message);
   }
 };
 App.sharedServices.logger.add(winston.transports.Console, {
