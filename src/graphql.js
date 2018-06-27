@@ -11,7 +11,7 @@ import { schemaComposer } from 'graphql-compose';
 
 const uuidv4 = require('uuid/v4');
 
-const dbConnectionString = process.env.MONGODB_URI || ((App.argv.MONGODB_CONNECTION ||  process.env.MONGODB_CONNECTION) + App.mongoDbName);
+const dbConnectionString = process.env.MONGODB_URI || (process.env.MONGODB_CONNECTION + process.env.MONGODB);
 console.log('dbConnectionString:', dbConnectionString);
 mongoose.connect(dbConnectionString, {
   // useMongoClient: true,

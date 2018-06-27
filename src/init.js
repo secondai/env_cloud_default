@@ -6,7 +6,6 @@
 // Start Second
 
 const lodash = require('lodash');
-require('underscore-query')(lodash);
 
 console.log('ENV:', process.env);
 
@@ -17,6 +16,8 @@ let expectedEnvVars = [
   ['DEFAULT_LAUNCH_APPID'],
   ['DEFAULT_PASSPHRASE'],
   // ['REDIS_URL or REDIS_HOST', '', {$or:[{k:'REDIS_URL'},{k: 'REDIS_HOST'}]}],
+  // ['MONGODB_URI or MONGODB_CONNECTION + MONGODB', ],
+  ['MONGODB_URI'],
   ['STELLAR_NETWORK'],
   // ['BASICS_ZIP_URL'],
   ['PORT'],
@@ -40,11 +41,8 @@ if(expectedEnvVars.filter(varBox=>{
         return true;
       }
     } else {
-      let varQuery = varBox[1];
-      if(!lodash.query(foundEnvVars, varQuery).length){
-        console.error('Missing ENV:', varName);
-        return true;
-      }
+      // TODO: run conditional check (should support "x or (y and z)" type of logic 
+      // let varQuery = varBox[1];
     }
     return false;
   }).length){

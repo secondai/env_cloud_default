@@ -113,8 +113,10 @@ class Second {
     		return false;
     	}
 
-    	console.error('--Disabled BASICS_ZIP_URL--');
-    	return false;
+    	if(process.env.DISABLE_FULL_LEARN == 'true'){
+	    	console.error('--Disabled BASICS_ZIP_URL--');
+	    	return false;
+	    }
 
 
     	// Loading default nodes!
