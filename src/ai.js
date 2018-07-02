@@ -3879,7 +3879,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
       // process.send('OUTPUT:' + ob.evalString);
       // output could be a promise, so we just wait to resolve it (and resolving a value just returns the value :) )
       Promise.resolve(output)
-      .then(data=>{
+      .then(async (data)=>{
           // console.log(JSON.stringify(data));
           // process.stdout.write(JSON.stringify(
           //     data
