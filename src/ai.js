@@ -5,6 +5,9 @@ import bigi from 'bigi'
 import bitcoin from 'bitcoinjs-lib'
 
 
+import request from 'request-promise-native'
+
+
 // const stdlib = require('@stdlib/stdlib');
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
@@ -61,9 +64,6 @@ App.nodesDbParsedIds = {}; // _ids ref to App.nodesDbParsed object
 // - the group name is passed in, as well as the amount to allow at a time 
 var queue = require('queue')
 let parallelVMs = {};
-
-
-process.env.DEFAULT_LAUNCH_PLATFORM = 'cloud'; // device, browser, etc.
 
 // Create Second 
 // - handle inputs 
@@ -3407,6 +3407,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           });
         },
 
+        requestResponse: (action, data) => {
+        	return funcInSandbox.universe.httpResponse(action, data);
+        },
         httpResponse: (action, data) => {
           return new Promise(async (resolve, reject)=>{
 
@@ -3888,6 +3891,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           resolve(
             data
           ); // sends up from subprocess/child
+
+          // prevent wipe for awhile 
+          await Promise.resolve(funcInSandbox.universe.wipeFunc)
 
           // if(output && output.keepVM === true){
           //   // not used, always not kept (was maybe using when ob was nulled for scheduler...)
