@@ -1389,8 +1389,9 @@ eventEmitter.on('command',async (message, socket) => {
 	  		let responseFunc = requestsCache[message.requestId].socketioResponseFunc;
   			if(responseFunc){
   				// socketio request/response 
-	  			console.log('Responding via socketio instead of httpResponse (came in as socketio request)');
-	  			console.log('clientId:', requestsCache[message.requestId].wsClientId);
+
+	        console.log('Responding via socketio instead of httpResponse (came in as socketio request)');
+	  			console.log('clientId:', requestsCache[message.requestId].wsClientId, responseFunc ? 'responseFunc exists':'responseFunc MISSING'););
 					
 					responseFunc(message.data);
 
@@ -2378,6 +2379,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         },
 
         directToSecondViaWebsocket: (opts)=>{
+
+        	// OLD, NOT USING
+
           // to an External second
           return new Promise(async (resolve, reject)=>{
             // opts = {
