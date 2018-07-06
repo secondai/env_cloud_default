@@ -1391,7 +1391,7 @@ eventEmitter.on('command',async (message, socket) => {
   				// socketio request/response 
 
 	        console.log('Responding via socketio instead of httpResponse (came in as socketio request)');
-	  			console.log('clientId:', requestsCache[message.requestId].wsClientId, responseFunc ? 'responseFunc exists':'responseFunc MISSING'););
+	  			console.log('clientId:', requestsCache[message.requestId].wsClientId, responseFunc ? 'responseFunc exists':'responseFunc MISSING');
 					
 					responseFunc(message.data);
 
@@ -1399,7 +1399,7 @@ eventEmitter.on('command',async (message, socket) => {
   				// normal webosockets 
 	  			console.log('Responding via websocket instead of httpResponse (came in as websocket request)');
 	  			console.log('clientId:', requestsCache[message.requestId].wsClientId);
-	  			console.log('wsRequestId:', requestsCache[message.requestId].keyvalue.wsRequestId,);
+	  			console.log('wsRequestId:', requestsCache[message.requestId].keyvalue.wsRequestId);
 
 	  			let thisWs = App.wsClients[ requestsCache[message.requestId].wsClientId ].ws;
 					
