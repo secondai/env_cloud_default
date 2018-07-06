@@ -3546,6 +3546,77 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           });
 
         },
+
+        runNodeCodeInVMInMemory: (opts) => {
+          return new Promise(async (resolve, reject)=>{
+
+            // same as runNodeCodeInVM, except NO JSON.stringify 
+            // - skips the whole ThreadedSafeRun request, just makes it directly (runSafe is called) 
+
+            if(!opts.codeNode){
+              console.error('Missing codeNode for runNodeCodeInVM');
+              return reject();
+            }
+            if(!opts.codeNode.data){
+              console.error('Missing codeNode.data for runNodeCodeInVM');
+              return reject();
+            }
+            if(!opts.codeNode.data.code){
+              console.error('Missing codeNode.data.code for runNodeCodeInVM');
+              return reject();
+            }
+
+            try {
+
+              var code = opts.codeNode.data.code;
+
+              var datetime = (new Date());
+
+				  		var safeContext = {
+				  			SELF: opts.codeNode, // code node
+				  			INPUT: opts.dataNode || opts.inputNode, 
+				  		}
+				  		var requires = ['lodash'];
+				  		var threadEventHandlers = {};
+				  		var mainIpcId = ob.mainIpcId;
+				  		var nodeId = ob.nodeId;
+				  		var timeout = null; //60 * 1000;
+
+							var safedData;
+				      try {
+				        safedData = await runSafe({ code, safeContext, requires, threadEventHandlers, requestId, mainIpcId, nodeId, timeout})
+				      }catch(err){
+				      	console.error('Failed runNodeCodeInVMInMemory', err);
+							  return reject(); // allow workers to continue
+				      }
+
+              // setupIpcWatcher({
+              //   command: 'ThreadedSafeRun',
+              //   code: code,
+              //   SELF: opts.codeNode,
+              //   INPUT: opts.dataNode || opts.inputNode,
+              //   requestId: ob ? ob.requestId : uuidv4(), // from ob.context!!
+              //   mainIpcId: ob ? ob.mainIpcId : uuidv4(),
+              //   nodeId: opts.codeNode._id,
+              //   timeout: opts.timeout,
+              //   workGroup: opts.workGroup,
+              //   workers: opts.workers,
+              //   datetime: datetime.getSeconds() + '.' + datetime.getMilliseconds()
+              // }, (r)=>{
+              //   resolve(r.data);
+              // })
+              console.log('Returning safedData from runNodeCodeInVMInMemory');
+
+              return resolve(safedData);
+
+            } catch(err){
+              console.error('Failed runNodeCodeInVMInMemory', err, Object.keys(opts.codeNode));
+            }
+
+
+          });
+
+        },
         searchMemory: (opts) => {
           return new Promise(async (resolve, reject)=>{
             App.sm123 = App.sm123 || 1;
