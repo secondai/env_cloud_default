@@ -4004,7 +4004,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         });
       })
     }catch(err){
-      console.error('---Failed in VM2!!!----', err);
+      console.error('---Failed in VM2!!!----', ob.nodeId, err);
       resolve({
           type: 'internal_server_error_public_output:0.0.1:local:3298ry2398h3f',
           data: {
