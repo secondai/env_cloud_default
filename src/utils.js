@@ -40,6 +40,19 @@ utils.nodesDbParser = function(opts){
 		let nodesById = {};
 		let childrenForNodeId = {};
 
+		function findRoot(nodeId){
+			let tmpNode = nodesById[nodeId];
+			if(!tmpNode){
+				// console.error('Missing node 983274');
+				return null;
+			}
+			if(!tmpNode.nodeId){
+				// is root
+				return tmpNode;
+			}
+			return findRoot(tmpNode.nodeId);
+		}
+
 		for(let node of nodes){
 			nodesById[node._id] = node;
 			childrenForNodeId[node._id] = [];
@@ -51,6 +64,7 @@ utils.nodesDbParser = function(opts){
 			}
 			node.parent = node.nodeId ? nodesById[node.nodeId] : null;
 			node.nodes = childrenForNodeId[node._id];
+			node._root = findRoot(node._id);
 		}
 		// ------
 

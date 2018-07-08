@@ -667,7 +667,8 @@ eventEmitter.on('command',async (message, socket) => {
   	nodeInMemory;
 
 	let sqlFilter,
-		dataFilter;
+		dataFilter,
+		rootNodeFilter;
 
 	let useDataFilter,
 		useSqlFilter;
@@ -766,6 +767,7 @@ eventEmitter.on('command',async (message, socket) => {
 
 			dataFilter = message.filter.dataFilter; // priority, easier/flexible 
 			sqlFilter = message.filter.sqlFilter;
+			rootNodeFilter = message.filter.rootNodeFilter;
 
 			// using either underscore-query or lodash.filter (sqlFilter) 
 			if(!lodash.isEmpty(dataFilter)){
@@ -787,6 +789,14 @@ eventEmitter.on('command',async (message, socket) => {
 			} else {
 				// all nodes
 				nodes = App.nodesDbParsed;
+			}
+
+			// root node filter (if used)
+			if(rootNodeFilter){
+				// filter from root node outwards
+				// - TODO: memoize/cache (probably lots of overlap) 
+				// - node._root holds info for root node (might be self-referential!) 
+				nodes = lodash.query(nodes, {_root: rootNodeFilter});
 			}
 
 			// v3ish
@@ -3633,6 +3643,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             opts.filter.sqlFilter = opts.filter.sqlFilter || {};
             opts.filter.dataFilter = opts.filter.dataFilter || {}; // underscore-query
             // console.log('FetchNodes:', opts.filter.sqlFilter);
+            // opts.filter.rootNodeFilter = opts.filter.rootNodeFilter; // underscore-query
 
             // Check cache 
             if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
