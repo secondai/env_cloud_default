@@ -668,7 +668,8 @@ eventEmitter.on('command',async (message, socket) => {
 
 	let sqlFilter,
 		dataFilter,
-		rootNodeFilter;
+		rootNodeFilter,
+		searchPath;
 
 	let useDataFilter,
 		useSqlFilter;
@@ -769,6 +770,11 @@ eventEmitter.on('command',async (message, socket) => {
 			sqlFilter = message.filter.sqlFilter;
 			rootNodeFilter = message.filter.rootNodeFilter;
 
+			// TODO (not sure if searchPath is necessary, or if nrequire ("node require") is more apt to returning single nodes where I know what I'm looking for (local react elements, etc) 
+			// - it gets away from the "everthing is easily replaceable" mindset when not array and type based (names are a pseudo-type) 
+			// - trying to avoid naming things, cuz that is one of the hard problems to solve 
+			searchPath = message.filter.searchPath; 
+
 			// using either underscore-query or lodash.filter (sqlFilter) 
 			if(!lodash.isEmpty(dataFilter)){
 				useDataFilter = true;
@@ -797,6 +803,12 @@ eventEmitter.on('command',async (message, socket) => {
 				// - TODO: memoize/cache (probably lots of overlap) 
 				// - node._root holds info for root node (might be self-referential!) 
 				nodes = lodash.query(nodes, {_root: rootNodeFilter});
+			}
+
+			if(searchPath){
+				// TODO: handle absolute and relative paths? 
+				// - for "relative" expect the "relative to" location 
+				//   - probably included from within a script? 
 			}
 
 			// v3ish
