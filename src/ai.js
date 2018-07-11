@@ -809,6 +809,7 @@ eventEmitter.on('command',async (message, socket) => {
 				// TODO: handle absolute and relative paths? 
 				// - for "relative" expect the "relative to" location 
 				//   - probably included from within a script? 
+				console.error('searchPath not used yet!');
 			}
 
 			// v3ish
@@ -887,7 +888,8 @@ eventEmitter.on('command',async (message, socket) => {
 				default:
 					// v4 (circular json) 
 					// - return everything vs. specify a path to retrieve info for 
-					returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
+					// returnNodesObj = cJSON.parse(cJSON.stringify(nodes));
+					returnNodesObj = nodes;
 					break;
 
 			}
