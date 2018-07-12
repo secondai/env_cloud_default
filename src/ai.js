@@ -3656,7 +3656,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 	              throw 'parent chain broken in sameAppPlatform'
 	            }
 	            if(node.parent){
-	              nodes = nodes.concat(getParentNodes2(node.parent));
+	              nodes = nodes.concat(getParentNodes(node.parent));
 	            }
 	            return nodes;
 	          }
