@@ -3647,8 +3647,23 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             let sm123 = App.sm123 + 0;
             App.sm123++;
 
-            console.log('Running searchMemory', sm123);
+            // console.log('Running searchMemory', sm123);
 
+	          function getParentNodes(node){
+	            let nodes = [node];
+	            if(node.nodeId && !node.parent){
+	              // console.error('parent chain broken in sameAppPlatform', node.type, node._id);
+	              throw 'parent chain broken in sameAppPlatform'
+	            }
+	            if(node.parent){
+	              nodes = nodes.concat(getParentNodes2(node.parent));
+	            }
+	            return nodes;
+	          }
+
+	          // if parent chain doesnt exist (or is broken) then just rebuild on-the-fly? 
+	          // - using reference version of nodesDb (w/ parents, children) 
+	         
             // resolve('universe result! ' + ob.context.tenant.dbName);
             // console.log('searchMemory1');
             opts = opts || {};
@@ -3656,8 +3671,78 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             opts.filter = opts.filter || {};
             opts.filter.sqlFilter = opts.filter.sqlFilter || {};
             opts.filter.dataFilter = opts.filter.dataFilter || {}; // underscore-query
+            opts.filter.sameAppPlatform = opts.filter.sameAppPlatform ? true:false;
             // console.log('FetchNodes:', opts.filter.sqlFilter);
             // opts.filter.rootNodeFilter = opts.filter.rootNodeFilter; // underscore-query
+
+            // if sameAppPlatform==true, then find and require for _root 
+            // - $and for existing query, unless already isObject and has $and
+            if(opts.filter.sameAppPlatform){
+            	// build additional query for sameAppPlatform
+            	// - expecting opts.SELF code of search origin 
+            	try {
+
+			          let parentNodes = getParentNodes(App.nodesDbParsedIds[opts.SELF._id]);
+
+			          // see if first match of each is correct (aka "outwards" (not from root, but from nodes)) 
+			          let platformClosest = lodash.find(parentNodes, node=>{
+			            return (
+			              node.type.split(':')[0] == 'platform_nodes'
+			            )
+			          });
+			          let appBaseClosest = lodash.find(parentNodes, node=>{
+			            return (
+			              node.type.split(':')[0] == 'app_base'
+			              ||
+			              node.type.split(':')[0] == 'app_parts'
+			            )
+			          });
+
+	            	let sapQuery = {
+	            		$or: [{
+		            		'_root.type': {
+		            			$like: 'app_base'
+		            		},
+		            		'_root.type': {
+		            			$like: 'app_parts'
+		            		},
+		            	}],
+	            		'_root.data.appId': appBaseClosest.data.appId,
+	            		'_root.nodes': {
+	            			$elemMatch: {
+	            				type: {
+	            					$like: 'platform_nodes'
+	            				},
+	            				'data.platform': platformClosest.data.platform
+	            			}
+	            		}
+	            	}
+
+	            	console.log('sapQuery:', sapQuery);
+
+
+	            	if(lodash.isArray(opts.filter.dataFilter)){
+	            		// array is treated as "or"?
+	            		console.error('Unexpected opts.filter.dataFilter is array');
+	            	} else if(lodash.isObject(opts.filter.dataFilter)){
+	            		if(opts.filter.dataFilter['$and']){
+	            			// push to existing
+	            			opts.filter.dataFilter['$and'].push(sapQuery);
+	            		} else {
+	            			// no existing "$and", add it 
+	            			opts.filter.dataFilter = {
+	            				$and: [opts.filter.dataFilter,sapQuery]
+	            			}
+	            		}
+	            	} else {
+	            		console.error('unexpected dataFilter when sameAppPlatform');
+	            	}
+	            }catch(err){
+	            	console.error('sameAppPlatform Failed:', err);
+	            }
+            }
+
+            console.log('dataFilter:', opts.filter.dataFilter);
 
             // Check cache 
             if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
