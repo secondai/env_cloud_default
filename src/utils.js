@@ -162,14 +162,24 @@ utils.removeNode = async function(nodeId){
 	function removeNodeAndChildren(nodeId){
 
 		let nodeInMemory = App.nodesDbParsedIds[nodeId];
-
-		for(let node of nodeInMemory.nodes){
-			removeNodeAndChildren(node._id);
+		if(!nodeInMemory){
+			console.error('Missing nodeInMemory for removal', nodeId);
+			return;
+		}
+		if(nodeInMemory && nodeInMemory.nodes){
+			for(let node of nodeInMemory.nodes){
+				removeNodeAndChildren(node._id);
+			}
 		}
 
 		let nodeIdx = App.nodesDbParsed.findIndex(n=>{
 			return n._id == nodeId
 		});
+
+		if(nodeIdx === -1){
+			console.error('Unable to find nodeIdx in nodesDbParsed', nodeId);
+			return;
+		}
 
 		if(nodeInMemory.nodeId){
 			// remove from parent's child nodes 
