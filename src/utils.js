@@ -232,7 +232,11 @@ utils.nodesDbParser = function(opts){
 
 		for(let node of nodes){
 			if(node.nodeId){
-				childrenForNodeId[node.nodeId].push(node);
+				if(!nodesById[node.nodeId]){
+					console.error('Need to remove and reparse!', node.nodeId);
+				} else {
+					childrenForNodeId[node.nodeId].push(node);
+				}
 			}
 			node.parent = node.nodeId ? nodesById[node.nodeId] : null;
 			node.nodes = childrenForNodeId[node._id];
