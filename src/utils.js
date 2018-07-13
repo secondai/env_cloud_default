@@ -61,6 +61,33 @@ utils.nodesToTree = function(nodes, opts){
 	return nodes;
 }
 
+utils.insertNode = async function(newNode){
+
+	// for inline removal 
+
+	// removing lowest-children on up (reverse tree, leafs to trunks) 
+
+	App.nodesDbParsed.push(newNode);
+	App.nodesDbParsedIds[newNode._id] = newNode;
+	App.childrenForNodeId[newNode._id] = [];
+
+	if(newNode.nodeId){
+		App.childrenForNodeId[newNode.nodeId].push(newNode);		
+	}
+
+	newNode.parent = newNode.nodeId ? App.nodesDbParsedIds[newNode.nodeId] : null;
+
+	if(newNode.nodeId && !newNode.parent){
+		console.error('Failed utils.insertNode parent missing');
+	}
+
+	newNode.nodes = App.childrenForNodeId[newNode._id];
+	newNode._root = utils.parentChainMatch(newNode._id);
+
+	return true;
+	
+}
+
 utils.updateNode = async function(newNode, oldNode){
 
 	// for inline updates 
@@ -96,7 +123,16 @@ utils.updateNode = async function(newNode, oldNode){
 
 		// update _root for each child of modified (and their children) 
 		nodeInMemory.parent = newNode.nodeId ? App.nodesDbParsedIds[newNode.nodeId] : null;
-		nodeInMemory._root = utils.parentChainMatch(nodeInMemory._id); // finds root
+
+		function updateChildrenRoot(refNode){
+			refNode._root = utils.parentChainMatch(refNode._id); // finds root
+			for(let n of refNode.nodes){
+				updateChildrenRoot(n);
+			}
+		}
+
+		updateChildrenRoot(nodeInMemory);
+
 	}
 
 	// Update nodeById's data, type, name, etc. 
@@ -112,6 +148,35 @@ utils.updateNode = async function(newNode, oldNode){
 	// - emit event up/down chain "parent-was-modified" / "child-was-modified" / "child-3-levels-down-was-modified" (?) 
 
 	return newNode;
+
+}
+
+utils.removeNode = async function(nodeId){
+
+	// for inline removal 
+
+	// removing lowest-children on up (reverse tree, leafs to trunks) 
+
+	function removeNodeAndChildren(nodeId){
+
+		let nodeInMemory = App.nodesDbParsedIds[nodeId];
+
+		for(let node of nodeInMemory.nodes){
+			removeNodeAndChildren(node._id);
+		}
+
+		let nodeIdx = App.nodesDbParsed.findIndex(n=>{
+			return n._id == nodeId
+		});
+
+		App.nodesDbParsed.splice(nodeIdx, 1);
+		delete App.nodesDbParsedIds[nodeId];
+		delete App.childrenForNodeId[nodeId];
+	}
+
+	removeNodeAndChildren(nodeId);
+
+	return true;
 
 }
 
