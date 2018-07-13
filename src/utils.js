@@ -104,14 +104,16 @@ utils.updateNode = async function(newNode, oldNode){
 	if(newNode.nodeId != oldNode.nodeId){
 		console.log('Updated node relationship changed');
 		// remove from children for previous 
-		let oldChildIdx = App.childrenForNodeId[oldNode.nodeId].findIndex(n=>{
-			return n._id == oldNode._id
-		});
-		if(oldChildIdx === -1){
-			console.error('invalid oldChildIdx');
-			return;
+		if(oldNode.nodeId){
+			let oldChildIdx = App.childrenForNodeId[oldNode.nodeId].findIndex(n=>{
+				return n._id == oldNode._id
+			});
+			if(oldChildIdx === -1){
+				console.error('invalid oldChildIdx');
+				return;
+			}
+			App.childrenForNodeId[oldNode.nodeId].splice(oldChildIdx, 1);
 		}
-		App.childrenForNodeId[oldNode.nodeId].splice(oldChildIdx, 1);
 
 		nodeInMemory.nodeId = newNode.nodeId;
 
