@@ -1089,26 +1089,33 @@ eventEmitter.on('command',async (message, socket) => {
   		// console.log('UpdateNode:', typeof message.node)
   		// console.log('UpdateNode2:', JSON.stringify(message.node, null,2))
 
-  		nodeInMemoryIdx = App.nodesDb.findIndex(n=>{ // App.nodesDbParsedIds[message.node._id];
-  			return n._id == message.node._id;
-  		});
+  		nodeInMemory = App.nodesDbParsedIds[message.node._id];
 
-  		if(nodeInMemoryIdx === -1){
-  			console.error('Node to update NOT in memory!', message.node._id);
+  		if(!nodeInMemory){
+  			console.error('Missing nodeInMemory for updateNode!', message.node._id);
   			return false;
   		}
+
+  		// nodeInMemoryIdx = App.nodesDb.findIndex(n=>{ // App.nodesDbParsedIds[message.node._id];
+  		// 	return n._id == message.node._id;
+  		// });
+
+  		// if(nodeInMemoryIdx === -1){
+  		// 	console.error('Node to update NOT in memory!', message.node._id);
+  		// 	return false;
+  		// }
 
   		// message.data = "filter"
 			let updatedNode;
   		if(message.node.active === false){
   			console.log('RemoveNode');
   			updatedNode = await App.graphql.removeNode(message.node);
-  			App.nodesDb.splice(nodeInMemoryIdx,1);
+  			// App.nodesDb.splice(nodeInMemoryIdx,1);
   		} else {
   			console.log('UpdateNode');
-  			updatedNode = await App.graphql.updateNode(message.node);
-  			App.nodesDb.splice(nodeInMemoryIdx, 1, updatedNode);
-
+  			updatedNode = await App.graphql.updateNode(message.node); // returns full node! 
+  			// App.nodesDb.splice(nodeInMemoryIdx, 1, updatedNode);
+  			await App.utils.updateNode(updatedNode, nodeInMemory);
   		}
 
 			// Update memory!
@@ -1127,17 +1134,17 @@ eventEmitter.on('command',async (message, socket) => {
 				});
 			} else {
 				if(message.skipWaitForResolution){
-					App.utils.nodesDbParser()
-					.then(()=>{
+					// App.utils.nodesDbParser()
+					// .then(()=>{
 	      		App.eventEmitter.emit('node.afterUpdate', updatedNode);
 		      	try {
 		      		JSON.stringify(updatedNode);
 		      	}catch(err){
 		      		console.error(err);
 		      	}
-					});
+					// });
 		    } else {
-		    	await App.utils.nodesDbParser();
+		    	// await App.utils.nodesDbParser();
 	      	App.eventEmitter.emit('node.afterUpdate', updatedNode);
 	      	try {
 	      		JSON.stringify(updatedNode);
