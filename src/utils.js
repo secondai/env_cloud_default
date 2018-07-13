@@ -215,7 +215,7 @@ utils.nodesDbParser = function(opts){
 		function findRoot(nodeId){
 			let tmpNode = nodesById[nodeId];
 			if(!tmpNode){
-				// console.error('Missing node 983274');
+				console.error('Missing parent node from findRoot!', nodeId);
 				return null;
 			}
 			if(!tmpNode.nodeId){
@@ -237,6 +237,9 @@ utils.nodesDbParser = function(opts){
 			node.parent = node.nodeId ? nodesById[node.nodeId] : null;
 			node.nodes = childrenForNodeId[node._id];
 			node._root = findRoot(node._id);
+			if(!node._root){
+				console.error('Need to remove:', node._id);
+			}
 		}
 		// ------
 
