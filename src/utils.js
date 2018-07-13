@@ -215,7 +215,7 @@ utils.nodesDbParser = function(opts){
 		function findRoot(nodeId){
 			let tmpNode = nodesById[nodeId];
 			if(!tmpNode){
-				console.error('Missing parent node from findRoot!', nodeId);
+				// console.error('Missing parent node from findRoot!', nodeId);
 				return null;
 			}
 			if(!tmpNode.nodeId){
@@ -233,7 +233,7 @@ utils.nodesDbParser = function(opts){
 		for(let node of nodes){
 			if(node.nodeId){
 				if(!nodesById[node.nodeId]){
-					console.error('Need to remove and reparse!', node.nodeId);
+					// console.error('Need to remove and reparse!', node.nodeId, 'doesnt exist', node._id, 'should be removed');
 				} else {
 					childrenForNodeId[node.nodeId].push(node);
 				}
@@ -242,7 +242,8 @@ utils.nodesDbParser = function(opts){
 			node.nodes = childrenForNodeId[node._id];
 			node._root = findRoot(node._id);
 			if(!node._root){
-				console.error('Need to remove:', node._id);
+				console.error('Need to remove (dangling):', node._id);
+				App.graphql.removeNode({_id: node._id});
 			}
 		}
 		// ------
