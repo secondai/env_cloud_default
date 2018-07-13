@@ -677,6 +677,29 @@ eventEmitter.on('command',async (message, socket) => {
 	let useDataFilter,
 		useSqlFilter;
 
+
+
+	async function removeNodeAndChildren(nodeId){
+
+		let nodeInMemory = App.nodesDbParsedIds[nodeId];
+
+		for(let node of nodeInMemory.nodes){
+			removeNodeAndChildren(node._id);
+		}
+
+		let nodeIdx = App.nodesDb.findIndex(n=>{
+			return n._id == nodeId
+		});
+
+		let updatedNode = await App.graphql.removeNode({_id: nodeId});
+		let savedNodeCopy = JSON.parse(JSON.stringify(updatedNode));
+		App.nodesDb.splice(nodeIdx,1);
+		await App.utils.removeNode(nodeId);
+
+		return savedNodeCopy;
+
+	}
+
   switch(message.command){
   	
   	case 'fetchNodes':
@@ -1098,33 +1121,35 @@ eventEmitter.on('command',async (message, socket) => {
 
   		nodeInMemory = App.nodesDbParsedIds[message.node._id];
 
-  		if(!nodeInMemory){
-  			console.error('Missing nodeInMemory for updateNode!', message.node._id);
-  			return false;
-  		}
+  		// if(!nodeInMemory){
+  		// 	console.error('Missing nodeInMemory for updateNode!', message.node._id);
+  		// 	return false;
+  		// }
 
-  		nodeInMemoryIdx = App.nodesDb.findIndex(n=>{ // App.nodesDbParsedIds[message.node._id];
-  			return n._id == message.node._id;
-  		});
+  		// nodeInMemoryIdx = App.nodesDb.findIndex(n=>{ // App.nodesDbParsedIds[message.node._id];
+  		// 	return n._id == message.node._id;
+  		// });
 
-  		if(nodeInMemoryIdx === -1){
-  			console.error('Node to update NOT in memory!', message.node._id);
-  			return false;
-  		}
+  		// if(nodeInMemoryIdx === -1){
+  		// 	console.error('Node to update NOT in memory!', message.node._id);
+  		// 	return false;
+  		// }
 
   		// message.data = "filter"
 			let updatedNode;
   		if(message.node.active === false){
+  			// remove node 
+  			// - also removes all children 
+  			//   - recursively 
   			console.log('RemoveNode');
-  			updatedNode = await App.graphql.removeNode(message.node);
-  			savedNodeCopy = JSON.parse(JSON.stringify(updatedNode));
-  			App.nodesDb.splice(nodeInMemoryIdx,1);
-  			await App.utils.removeNode(message.node._id);
+
+				savedNodeCopy = removeNodeAndChildren(message.node._id);
+
   		} else {
   			console.log('UpdateNode');
   			updatedNode = await App.graphql.updateNode(message.node); // returns full node! 
   			savedNodeCopy = JSON.parse(JSON.stringify(updatedNode));
-  			App.nodesDb.splice(nodeInMemoryIdx, 1, savedNodeCopy);
+  			// App.nodesDb.splice(nodeInMemoryIdx, 1, savedNodeCopy);
   			await App.utils.updateNode(updatedNode, nodeInMemory);
   		}
 
@@ -1193,9 +1218,11 @@ eventEmitter.on('command',async (message, socket) => {
   		console.log('RemoveNode');
 
   		// message.data = "filter"
-			let removedNode = await App.graphql.removeNode(message.node);
-			App.nodesDb.splice(nodeInMemoryIdx,1);
-			await App.utils.removeNode(message.node._id);
+			// let removedNode = await App.graphql.removeNode(message.node);
+			// App.nodesDb.splice(nodeInMemoryIdx,1);
+			// await App.utils.removeNode(message.node._id);
+
+			let removedNode = removeNodeAndChildren(message.node._id);
 
 			// Update memory!
 			if(message.skipRebuild){
