@@ -99,7 +99,7 @@ utils.updateNode = async function(newNode, oldNode){
 	// - nodeId matters most! 
 	let nodeInMemory = App.nodesDbParsedIds[newNode._id];
 	if(!nodeInMemory){
-		console.error('Missing nodeInMemory for _id', newNode._id);
+		console.error('Missing nodeInMemory for _id', newNode._id, newNode);
 		return false;
 	}
 
