@@ -610,6 +610,7 @@ const updateNode = (tmpRecord) => {
       }catch(err){
         console.error('Graphql failed updating!', result.message, err, result);
         console.error('result.data', result.data);
+        console.error('existing record:', record);
         // console.error(JSON.stringify(result,null,2));
         // console.error('RECORD:', JSON.stringify(record,null,2));
         return resolve({
