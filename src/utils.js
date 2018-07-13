@@ -98,6 +98,10 @@ utils.updateNode = async function(newNode, oldNode){
 	// Find changes between old and new node relationships 
 	// - nodeId matters most! 
 	let nodeInMemory = App.nodesDbParsedIds[newNode._id];
+	if(!nodeInMemory){
+		console.error('Missing nodeInMemory for _id', newNode._id);
+		return false;
+	}
 
 	// Handle relationship changes 
 	// - nodeId changed 
@@ -109,8 +113,8 @@ utils.updateNode = async function(newNode, oldNode){
 				return n._id == oldNode._id
 			});
 			if(oldChildIdx === -1){
-				console.error('invalid oldChildIdx');
-				return;
+				console.error('invalid oldChildIdx1', oldNode.nodeId);
+				return 'invalid oldChildIdx1';
 			}
 			App.childrenForNodeId[oldNode.nodeId].splice(oldChildIdx, 1);
 		}
@@ -187,7 +191,7 @@ utils.removeNode = async function(nodeId){
 				return n._id == nodeId
 			});
 			if(oldChildIdx === -1){
-				console.error('invalid oldChildIdx');
+				console.error('invalid oldChildIdx2');
 				return;
 			}
 			App.childrenForNodeId[nodeInMemory.nodeId].splice(oldChildIdx, 1);
