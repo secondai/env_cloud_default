@@ -1080,9 +1080,24 @@ eventEmitter.on('command',async (message, socket) => {
 			savedNodeCopy = JSON.parse(JSON.stringify(savedNode));
 			
 			// TODO: figure out affected and only update as necessary! 
-  		App.nodesDb.push(savedNodeCopy);
 
-  		await App.utils.insertNode(savedNode);
+  		
+			try {
+				await App.utils.insertNode(savedNode);
+			}catch(err){
+				// failed updating
+			  eventEmitter.emit(
+			    'response',
+			    {
+			      // id      : ipc.config.id,
+			      id: message.id,
+			      data: false
+			    }
+			  );
+				return false;
+			}
+			
+  		App.nodesDb.push(savedNodeCopy);
 
 			if(message.skipRebuild){
 				// skipping rebuild for now
@@ -1147,7 +1162,20 @@ eventEmitter.on('command',async (message, socket) => {
 
   		} else {
   			console.log('UpdateNode');
-  			updatedNode = await App.graphql.updateNode(message.node); // returns full node! 
+  			try {
+  				updatedNode = await App.graphql.updateNode(message.node); // returns full node! 
+  			}catch(err){
+  				// failed updating
+				  eventEmitter.emit(
+				    'response',
+				    {
+				      // id      : ipc.config.id,
+				      id: message.id,
+				      data: false
+				    }
+				  );
+  				return false;
+  			}
   			savedNodeCopy = JSON.parse(JSON.stringify(updatedNode));
   			// App.nodesDb.splice(nodeInMemoryIdx, 1, savedNodeCopy);
   			await App.utils.updateNode(updatedNode, nodeInMemory);

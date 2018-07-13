@@ -608,12 +608,17 @@ const updateNode = (tmpRecord) => {
       try {
         resolve(result.data.nodeUpdateById.record);
       }catch(err){
-        console.error('Graphql failed updating!', result.message, err, result);
-        console.error('result.data', result.data);
-        console.error('existing record:', record);
+        console.error('Graphql failed updating! (probably duplicate "name/nodeId")', result.message);
+        
+        try {
+          let msgErr = result.errors[0]
+          console.error('Error type/response:', typeof msgErr, msgErr);
+        }catch(err){
+          console.error('Failed error print:', err);
+        }
         // console.error(JSON.stringify(result,null,2));
         // console.error('RECORD:', JSON.stringify(record,null,2));
-        return resolve({
+        return reject({
           type: 'error:Qmdsflj',
           data: {
             error: true,
