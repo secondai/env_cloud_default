@@ -1057,7 +1057,7 @@ eventEmitter.on('command',async (message, socket) => {
 			savedNodeCopy = JSON.parse(JSON.stringify(savedNode));
 			
 			// TODO: figure out affected and only update as necessary! 
-  		App.nodesDb.push(savedNode);
+  		App.nodesDb.push(savedNodeCopy);
 
   		await App.utils.insertNode(savedNode);
 
@@ -1124,7 +1124,7 @@ eventEmitter.on('command',async (message, socket) => {
   			console.log('UpdateNode');
   			updatedNode = await App.graphql.updateNode(message.node); // returns full node! 
   			savedNodeCopy = JSON.parse(JSON.stringify(updatedNode));
-  			App.nodesDb.splice(nodeInMemoryIdx, 1, updatedNode);
+  			App.nodesDb.splice(nodeInMemoryIdx, 1, savedNodeCopy);
   			await App.utils.updateNode(updatedNode, nodeInMemory);
   		}
 
@@ -1230,9 +1230,9 @@ eventEmitter.on('command',async (message, socket) => {
   	case 'rebuildMemory':
 
 			if(message.skipWaitForResolution){
-				App.utils.nodesDbParser();
+				// App.utils.nodesDbParser();
 			} else {
-				await App.utils.nodesDbParser();
+				// await App.utils.nodesDbParser();
 			}
 
 		  eventEmitter.emit(
