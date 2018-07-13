@@ -662,6 +662,9 @@ const incomingAIRequestWebsocket = ({ type, msg, clientId }) => {
 // Events (usually from inside a codeNode) 
 eventEmitter.on('command',async (message, socket) => {
 
+	let savedNode,
+		savedNodeCopy;
+
   let nodes,
   	nodeInMemoryIdx,
   	nodeInMemory;
@@ -1045,12 +1048,13 @@ eventEmitter.on('command',async (message, socket) => {
 
   		// message.data = "filter"
   		message.node.name = message.node.hasOwnProperty('name') ? message.node.name : uuidv4();
-			let savedNode = await App.graphql.newNode(message.node);
+			savedNode = await App.graphql.newNode(message.node);
 
 			// Update memory!
 			
 			// have a "wait until next resolution" before emitting afterUpdate? 
 			// - states: update-succeeded, updated-and-changes-available-after-reparse
+			savedNodeCopy = JSON.parse(JSON.stringify(savedNode));
 			
 			// TODO: figure out affected and only update as necessary! 
   		App.nodesDb.push(savedNode);
@@ -1080,7 +1084,7 @@ eventEmitter.on('command',async (message, socket) => {
 		    {
 		      // id      : ipc.config.id,
 		      id: message.id,
-		      data: savedNode
+		      data: savedNodeCopy
 		    }
 		  );
 
@@ -1113,11 +1117,13 @@ eventEmitter.on('command',async (message, socket) => {
   		if(message.node.active === false){
   			console.log('RemoveNode');
   			updatedNode = await App.graphql.removeNode(message.node);
+  			savedNodeCopy = JSON.parse(JSON.stringify(updatedNode));
   			App.nodesDb.splice(nodeInMemoryIdx,1);
   			await App.utils.removeNode(message.node._id);
   		} else {
   			console.log('UpdateNode');
   			updatedNode = await App.graphql.updateNode(message.node); // returns full node! 
+  			savedNodeCopy = JSON.parse(JSON.stringify(updatedNode));
   			App.nodesDb.splice(nodeInMemoryIdx, 1, updatedNode);
   			await App.utils.updateNode(updatedNode, nodeInMemory);
   		}
@@ -1165,7 +1171,7 @@ eventEmitter.on('command',async (message, socket) => {
 		    {
 		      // id      : ipc.config.id,
 		      id: message.id,
-		      data: updatedNode
+		      data: savedNodeCopy
 		    }
 		  );
 
