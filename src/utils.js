@@ -169,6 +169,18 @@ utils.removeNode = async function(nodeId){
 			return n._id == nodeId
 		});
 
+		if(nodeInMemory.nodeId){
+			// remove from parent's child nodes 
+			let oldChildIdx = App.childrenForNodeId[nodeInMemory.nodeId].findIndex(n=>{
+				return n._id == nodeId
+			});
+			if(oldChildIdx === -1){
+				console.error('invalid oldChildIdx');
+				return;
+			}
+			App.childrenForNodeId[nodeInMemory.nodeId].splice(oldChildIdx, 1);
+		}
+
 		App.nodesDbParsed.splice(nodeIdx, 1);
 		delete App.nodesDbParsedIds[nodeId];
 		delete App.childrenForNodeId[nodeId];
