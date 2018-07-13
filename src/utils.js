@@ -91,7 +91,7 @@ utils.updateNode = async function(newNode, oldNode){
 		// has a new parent? 
 		if(newNode.nodeId){
 			console.log('new parent for updated relationship');
-			App.childrenForNodeId.push(nodeInMemory);
+			App.childrenForNodeId[newNode.nodeId].push(nodeInMemory);
 		}
 
 		// update _root for each child of modified (and their children) 
