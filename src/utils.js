@@ -38,6 +38,15 @@ utils.parentChainMatch = function(nodeId, parentChain, match){
 	
 }
 
+utils.findRootChain = function(node, chain){
+	chain = chain || [];
+	chain.push(node);
+	if(node.parent){
+		chain = utils.findRootChain(node.parent, chain);
+	}
+	return chain;
+}
+
 utils.nodesToTree = function(nodes, opts){
 	// takes a list of all nodes
 	// - returns a circular tree (each node in array has all parents/children available by reference) 
@@ -83,6 +92,8 @@ utils.insertNode = async function(newNode){
 
 	newNode.nodes = App.childrenForNodeId[newNode._id];
 	newNode._root = utils.parentChainMatch(newNode._id);
+	newNode._rootChain = utils.findRootChain(newNode); // this needlessly iterates (already know path from here down, but still re-building each time) 
+	newNode._path = newNode._rootChain.map(n=>n.name).reverse().join('/');
 
 	return true;
 	
@@ -132,6 +143,8 @@ utils.updateNode = async function(newNode, oldNode){
 
 		function updateChildrenRoot(refNode){
 			refNode._root = utils.parentChainMatch(refNode._id); // finds root
+			refNode._rootChain = utils.findRootChain(refNode); // this needlessly iterates (already know path from here down, but still re-building each time) 
+			refNode._path = refNode._rootChain.map(n=>n.name).reverse().join('/');
 			for(let n of refNode.nodes){
 				updateChildrenRoot(n);
 			}
@@ -226,14 +239,6 @@ utils.nodesDbParser = function(opts){
 		let nodesById = {};
 		let childrenForNodeId = {};
 
-		function findRootChain(node, chain){
-			chain = chain || [];
-			chain.push(node);
-			if(node.parent){
-				chain = findRootChain(node.parent, chain);
-			}
-			return chain;
-		}
 		function findRoot(nodeId){
 			let tmpNode = nodesById[nodeId];
 			if(!tmpNode){
@@ -262,7 +267,7 @@ utils.nodesDbParser = function(opts){
 			}
 			node.parent = node.nodeId ? nodesById[node.nodeId] : null;
 			node.nodes = childrenForNodeId[node._id];
-			node._rootChain = findRootChain(node);
+			node._rootChain = utils.findRootChain(node);
 			node._path = node._rootChain.map(n=>n.name).reverse().join('/');
 			node._root = findRoot(node._id);
 			if(!node._root){
