@@ -1161,9 +1161,9 @@ eventEmitter.on('command',async (message, socket) => {
   			// remove node 
   			// - also removes all children 
   			//   - recursively 
-  			console.log('RemoveNode');
+  			console.log('RemoveNode (from updateNode)');
 
-				savedNodeCopy = removeNodeAndChildren(message.node._id);
+				savedNodeCopy = await removeNodeAndChildren(message.node._id);
 
   		} else {
   			console.log('UpdateNode');
