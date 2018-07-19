@@ -226,6 +226,14 @@ utils.nodesDbParser = function(opts){
 		let nodesById = {};
 		let childrenForNodeId = {};
 
+		function findRootChain(node, chain){
+			chain = chain || [];
+			chain.push(node);
+			if(node.parent){
+				chain = findRootChain(node.parent, chain);
+			}
+			return chain;
+		}
 		function findRoot(nodeId){
 			let tmpNode = nodesById[nodeId];
 			if(!tmpNode){
@@ -254,6 +262,8 @@ utils.nodesDbParser = function(opts){
 			}
 			node.parent = node.nodeId ? nodesById[node.nodeId] : null;
 			node.nodes = childrenForNodeId[node._id];
+			node._rootChain = findRootChain(node);
+			node._path = node._rootChain.map(n=>n.name).reverse().join('/');
 			node._root = findRoot(node._id);
 			if(!node._root){
 				console.error('Need to remove (dangling):', node._id);
