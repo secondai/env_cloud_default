@@ -683,8 +683,13 @@ eventEmitter.on('command',async (message, socket) => {
 
 		let nodeInMemory = App.nodesDbParsedIds[nodeId];
 
+		if(!nodeInMemory){
+			console.error('Missing node in memory when ai.js/removeNodeAndChildren (not utils.removeNode yet)');
+			return false;
+		}
+
 		for(let node of nodeInMemory.nodes){
-			removeNodeAndChildren(node._id);
+			await removeNodeAndChildren(node._id);
 		}
 
 		let nodeIdx = App.nodesDb.findIndex(n=>{
@@ -1096,7 +1101,7 @@ eventEmitter.on('command',async (message, socket) => {
 			  );
 				return false;
 			}
-			
+
   		App.nodesDb.push(savedNodeCopy);
 
 			if(message.skipRebuild){

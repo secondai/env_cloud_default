@@ -3,7 +3,7 @@ services:
   ipfs:
     image: ipfs/go-ipfs
     # container_name: "ipfs"
-    # restart: always
+    restart: always
     expose: # internal links
     - 4001
     - 5001
