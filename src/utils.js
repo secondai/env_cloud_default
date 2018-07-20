@@ -217,6 +217,8 @@ utils.removeNode = async function(nodeId){
 
 	removeNodeAndChildren(nodeId);
 
+	console.log('app.utils.removeNode complete');
+
 	return true;
 
 }

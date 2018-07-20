@@ -699,6 +699,7 @@ eventEmitter.on('command',async (message, socket) => {
 		let updatedNode = await App.graphql.removeNode({_id: nodeId});
 		let savedNodeCopy = JSON.parse(JSON.stringify(updatedNode));
 		App.nodesDb.splice(nodeIdx,1);
+		console.log('Removing from app.utils.removeNode');
 		await App.utils.removeNode(nodeId);
 
 		return savedNodeCopy;
@@ -1162,8 +1163,20 @@ eventEmitter.on('command',async (message, socket) => {
   			// - also removes all children 
   			//   - recursively 
   			console.log('RemoveNode (from updateNode)');
-
-				savedNodeCopy = await removeNodeAndChildren(message.node._id);
+  			try {
+					savedNodeCopy = await removeNodeAndChildren(message.node._id);
+				}catch(err){
+					console.error('RemoveNode error:', err);
+				  eventEmitter.emit(
+				    'response',
+				    {
+				      // id      : ipc.config.id,
+				      id: message.id,
+				      data: false
+				    }
+				  );
+  				return false;
+				}
 
   		} else {
   			console.log('UpdateNode');
