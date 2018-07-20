@@ -1157,7 +1157,7 @@ eventEmitter.on('command',async (message, socket) => {
   		// }
 
   		// message.data = "filter"
-			let updatedNode;
+			let updatedNode = {};
   		if(message.node.active === false){
   			// remove node 
   			// - also removes all children 
