@@ -162,6 +162,9 @@ utils.updateNode = async function(newNode, oldNode){
 	nodeInMemory.data = newNode.data;
 	nodeInMemory.updatedAt = newNode.updatedAt;
 	nodeInMemory.createdAt = newNode.createdAt;
+	nodeInMemory._root = utils.parentChainMatch(nodeInMemory._id); // finds root
+	nodeInMemory._rootChain = utils.findRootChain(nodeInMemory); // this needlessly iterates (already know path from here down, but still re-building each time)
+	nodeInMemory._path = nodeInMemory._rootChain.map(n=>n.name).reverse().join('/');
 
 	// TODO: 
 	// - emit event up/down chain "parent-was-modified" / "child-was-modified" / "child-3-levels-down-was-modified" (?) 
