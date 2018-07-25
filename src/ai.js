@@ -3894,7 +3894,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 	            		}
 	            	}
 
-	            	console.log('sapQuery:', sapQuery);
+	            	// console.log('sapQuery:', sapQuery);
 
 
 	            	if(lodash.isArray(opts.filter.dataFilter)){
@@ -3918,7 +3918,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 	            }
             }
 
-            // console.log('dataFilter:', opts.filter.dataFilter);
+            console.log('dataFilter:', opts.filter.dataFilter);
 
             // Check cache 
             if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
