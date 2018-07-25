@@ -3092,6 +3092,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             // Returns the Node for the capability specified
             let capabilityNodes = await funcInSandbox.universe.searchMemory({
               filter: {
+              	sameAppPlatform: true,
                 sqlFilter: {
                   type: "capability:0.0.1:local:187h78h23",
                   // nodeId: null, // NEW: app-level. OLD: top-level/root,
@@ -3099,29 +3100,29 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
                     key: nameSemver // todo: semver with version!
                   }
                 },
-                filterNodes: tmpNodes=>{
-                  return new Promise((resolve, reject)=>{
-                    // tmpNodes = tmpNodes.filter(tmpNode=>{
-                    //   return tmpNode.data.method == 'read';
-                    // })
+                // filterNodes: tmpNodes=>{
+                //   return new Promise((resolve, reject)=>{
+                //     // tmpNodes = tmpNodes.filter(tmpNode=>{
+                //     //   return tmpNode.data.method == 'read';
+                //     // })
 
-                    // try {
-                    //   console.log('platformClosest._id', platformClosest._id);
-                    // }catch(err){
-                    //   console.error('NO PLATFORMClOSEST');
-                    // }
-                    tmpNodes = lodash.filter(tmpNodes, tmpNode=>{
+                //     // try {
+                //     //   console.log('platformClosest._id', platformClosest._id);
+                //     // }catch(err){
+                //     //   console.error('NO PLATFORMClOSEST');
+                //     // }
+                //     tmpNodes = lodash.filter(tmpNodes, tmpNode=>{
 
-                      if(funcInSandbox.universe.isParentOf(platformClosest._id, tmpNode)){
-                        // console.log('FOUND IT UNDER SAME APP!!!!!', tmpNode._id);
-                        // console.log('FOUND PARENT1!');
-                        return true;
-                      }
-                      return false;
-                    })
-                    resolve(tmpNodes);
-                  });
-                },
+                //       if(funcInSandbox.universe.isParentOf(platformClosest._id, tmpNode)){
+                //         // console.log('FOUND IT UNDER SAME APP!!!!!', tmpNode._id);
+                //         // console.log('FOUND PARENT1!');
+                //         return true;
+                //       }
+                //       return false;
+                //     })
+                //     resolve(tmpNodes);
+                //   });
+                // },
               }
             });
             // capabilityNodes = universe.lodash.sortBy(capabilityNodes,capNode=>{
@@ -3132,9 +3133,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             if(!capabilityNodes || !capabilityNodes.length){
               console.error('Unable to find capability!', nameSemver);
 
-              let allNodes = await funcInSandbox.universe.searchMemory({});
+              // let allNodes = await funcInSandbox.universe.searchMemory({});
               console.error('Failed capabilityNode',nameSemver); //, allNodes);
-              debugger;
+              // debugger;
 
               return reject();
             }
