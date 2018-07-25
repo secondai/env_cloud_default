@@ -2229,7 +2229,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               console.log('Unable to load, previous error installing (try uninstalling, then reinstalling)');
               return resolve(false);
             }
-            
+
             // install
             pkg.installing = true;
             const { exec } = require('child_process');
