@@ -3091,7 +3091,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
             // Returns the Node for the capability specified
             let capabilityNodes = await funcInSandbox.universe.searchMemory({
-            	SELF: codeNode, // derived from this universe instance!
+            	SELF: codeNode, // derived from this universe instance
               filter: {
               	sameAppPlatform: true,
                 dataFilter: {
@@ -3894,7 +3894,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 	            		}
 	            	}
 
-	            	// console.log('sapQuery:', sapQuery);
+	            	console.log('sapQuery:', sapQuery);
 
 
 	            	if(lodash.isArray(opts.filter.dataFilter)){
