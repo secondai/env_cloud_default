@@ -3091,6 +3091,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
             // Returns the Node for the capability specified
             let capabilityNodes = await funcInSandbox.universe.searchMemory({
+            	SELF: codeNode, // derived from this universe instance!
               filter: {
               	sameAppPlatform: true,
                 sqlFilter: {
