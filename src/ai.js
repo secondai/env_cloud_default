@@ -3094,12 +3094,11 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             	SELF: codeNode, // derived from this universe instance!
               filter: {
               	sameAppPlatform: true,
-                sqlFilter: {
-                  type: "capability:0.0.1:local:187h78h23",
-                  // nodeId: null, // NEW: app-level. OLD: top-level/root,
-                  data: {
-                    key: nameSemver // todo: semver with version!
-                  }
+                dataFilter: {
+                  type: {
+                  	$like: 'capability:'
+                  },
+                  'data.key' : nameSemver
                 },
                 // filterNodes: tmpNodes=>{
                 //   return new Promise((resolve, reject)=>{
