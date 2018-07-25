@@ -4193,7 +4193,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           // exit();
       })
       .catch(err=>{
-        console.error('---Failed in VM1!!!---- internal_server_error. --', ob.nodeId, err, output);
+        console.error('---Failed in VM1!!!---- internal_server_error. --', ob.nodeId, err, , err.toString ? err.toString():null, output);
         resolve({
           type: 'internal_server_error_public_output:0.0.1:local:3298ry2398h3f',
           data: {
@@ -4206,7 +4206,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         });
       })
     }catch(err){
-      console.error('---Failed in VM2!!!----', ob.nodeId, err, typeof output);
+      console.error('---Failed in VM2!!!----', ob.nodeId, err, err.toString ? err.toString():null);
       resolve({
           type: 'internal_server_error_public_output:0.0.1:local:3298ry2398h3f',
           data: {
