@@ -3919,7 +3919,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 	            }
             }
 
-            console.log('dataFilter:', JSON.stringify(opts.filter.dataFilter,null,2));
+            // console.log('dataFilter:', JSON.stringify(opts.filter.dataFilter,null,2));
 
             // Check cache 
             if(opts.cache && (process.env.IGNORE_MEMORY_CACHE || '').toString() !== 'true'){
