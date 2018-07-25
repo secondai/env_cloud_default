@@ -2140,6 +2140,31 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         lodash,
         required, // "requires" libs
         require,
+        // shim'd "dynamic require" from universe, so that we can rename/alias packages that are dynamically installed
+        // - only works with github urls (need a solution for easily forking, renaming in package.json)
+        drequire: (pkgName, semVerComparison, installationPackageUrl)=>{
+               // // TODO:
+               // // for the pkgName, see if we have a semver match using semVerComparison, and return the best match (sort, findLastValid)
+               // // - if no match, then install using installationPackageUrl
+ 
+               // // expecting installationPackageUrl's package.json's name to be pkgName+pkgVersion
+               // // - if it isn't, faillure
+ 
+               // // expecting/mandating that the package match the version, and the name matches?
+               // let mypkg = universe.drequire('package-name',{
+               //      version: '0.1.3',
+               //      onMissing: 'github.com/nicholasareed/url.git#branchname'
+               // })
+               // if(!mypkg){
+ 
+               // }
+ 
+				},
+				drequireInstall: ()=>{
+				     // installs an npm package,
+				     // - caches, validates
+				     // - used as a temporary measure for dynamic packages
+				},
         jsSchema,
         rsa,
         bitcoin,
