@@ -15,6 +15,8 @@ const {VM} = require('vm2');
 
 import _ from 'lodash'
 
+import path from 'path'
+
 // import {PluginManager} from "live-plugin-manager";
 // const pluginManager = new PluginManager();
 // async function runPlugins() {
@@ -2124,6 +2126,8 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 
     let funcInSandbox = Object.assign({
       universe: {
+        __dirname: __dirname,
+        staticFilePath: path.resolve(process.env.STATIC_FILE_PATH || __dirname + '/staticfiles'), // where static files will be stored
         runRequest: App.secondAI.MySecond.runRequest,
         npm: {
           install: npminstall
@@ -2181,7 +2185,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         installPackage: (pkgName)=>{
           // manages package installation 
           // - simultaneous, etc. 
-          return new Promise((resolve,reject)=>{
+          return new Promise(async (resolve,reject)=>{
             // create global package tracker
             console.log('installPackage1');
             App.globalCache.packages = App.globalCache.packages || {};
@@ -2190,12 +2194,19 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               let onInstall = new Promise((resolve2)=>{
                 onInstallResolve = resolve2;
               });
+              let onRemoveResolve;
+              let onRemove = new Promise((resolve2)=>{
+                onRemoveResolve = resolve2;
+              });
               App.globalCache.packages[pkgName] = {
                 installing: false,
+                removing: false,
                 installed: false,
                 errorInstalling: null,
                 onInstallResolve,
-                onInstall
+                onInstall,
+                onRemoveResolve,
+                onRemove
               }
             }
             let pkg = App.globalCache.packages[pkgName];
@@ -2203,6 +2214,10 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             if(pkg.installing){
               console.log('waiting for install, in progress');
               return pkg.onInstall.then(resolve);
+            }
+            if(pkg.removing){
+              console.log('waiting for removal, in progreess, then re-install');
+              await pkg.onRemove;
             }
             if(pkg.installed){
               // all good, return resolved
@@ -2228,13 +2243,82 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               console.log(`Exec Result: ${stdout}`);
               
               // resolve all waiting scripts (including in this block) 
-              pkg.onInstallResolve(true);
+              if(pkg.onInstallResolve){
+              	pkg.onInstallResolve(true);
+              }
               pkg.installed = true;
               pkg.installing = false;
               
             });
             
             pkg.onInstall.then(resolve);
+            
+          });
+
+        },
+        removePackage: (pkgName)=>{
+          // manages package installation 
+          // - simultaneous, etc. 
+          return new Promise(async (resolve,reject)=>{
+            // create global package tracker
+            console.log('removePackage1');
+            App.globalCache.packages = App.globalCache.packages || {};
+            if(!App.globalCache.packages[pkgName]){
+              let onInstallResolve;
+              let onInstall = new Promise((resolve2)=>{
+                onInstallResolve = resolve2;
+              });
+              let onRemoveResolve;
+              let onRemove = new Promise((resolve2)=>{
+                onRemoveResolve = resolve2;
+              });
+              App.globalCache.packages[pkgName] = {
+                installing: false,
+                removing: false,
+                installed: false,
+                errorInstalling: null,
+                onInstallResolve,
+                onInstall,
+                onRemoveResolve,
+                onRemove
+              }
+            }
+            let pkg = App.globalCache.packages[pkgName];
+            console.log('pkg:', pkg);
+            if(pkg.installing){
+              console.log('waiting for install, in progress, before uninstalling');
+              await pkg.onInstall;
+            }
+            if(pkg.removing){
+              console.log('waiting for remove, in progress');
+              return pkg.onRemove.then(resolve);
+            }
+            // try and remove
+            // - doesnt matter if installed or not
+            
+            // install
+            pkg.removing = true; // easier than "anything else 
+            const { exec } = require('child_process');
+            exec('npm remove ' + pkgName, (err, stdout, stderr) => {
+              if (err) {
+                console.error(`exec error removing package!: ${err}`);
+                pkg.removing = false;
+                pkg.errorInstalling = false; // allow re-install
+                return;
+              }
+              console.log(`Exec Result: ${stdout}`);
+              
+              // resolve all waiting scripts (including in this block) 
+              if(pkg.onRemoveResolve){
+              	pkg.onRemoveResolve(true);
+              }
+              pkg.installed = false;
+              pkg.removing = false;
+              pkg.errorInstalling = false; // allow re-install
+              
+            });
+            
+            pkg.onRemove.then(resolve);
             
           });
 
