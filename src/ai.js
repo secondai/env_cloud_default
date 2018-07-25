@@ -3879,6 +3879,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
 		            		'_root.type': {
 		            			$like: 'app_base'
 		            		},
+		            	},{
 		            		'_root.type': {
 		            			$like: 'app_parts'
 		            		},
