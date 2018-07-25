@@ -4150,8 +4150,9 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
     //   });
     // })
 
+    let output;
     try {
-      let output = vm.run(ob.evalString);
+      output = vm.run(ob.evalString);
       // process.send('OUTPUT:' + ob.evalString);
       // output could be a promise, so we just wait to resolve it (and resolving a value just returns the value :) )
       Promise.resolve(output)
@@ -4192,7 +4193,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
           // exit();
       })
       .catch(err=>{
-        console.error('---Failed in VM1!!!---- internal_server_error. --', ob.nodeId, err);
+        console.error('---Failed in VM1!!!---- internal_server_error. --', ob.nodeId, err, output);
         resolve({
           type: 'internal_server_error_public_output:0.0.1:local:3298ry2398h3f',
           data: {
@@ -4205,7 +4206,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
         });
       })
     }catch(err){
-      console.error('---Failed in VM2!!!----', ob.nodeId, err);
+      console.error('---Failed in VM2!!!----', ob.nodeId, err, typeof output);
       resolve({
           type: 'internal_server_error_public_output:0.0.1:local:3298ry2398h3f',
           data: {
