@@ -45,6 +45,14 @@
       "description" : "Initial password for admin ActsAs user",
       "value":""
     },
+    "DEFAULT_LAUNCH_PLATFORM" : {
+      "description" : "",
+      "value":"cloud"
+    },
+    "DEFAULT_LAUNCH_APPID" : {
+      "description" : "",
+      "value":"cloud_appstore"
+    },
     "IPFS_USER" : {
       "description" : "Username for IPFS proxy",
       "value":""
