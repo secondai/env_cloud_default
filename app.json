@@ -8,6 +8,9 @@
   "buildpacks" : [
     {
       "url": "https://github.com/dockhero/heroku-buildpack-docker-compose.git"
+    },
+    {
+      "url": "heroku/nodejs"
     }
   ],
 
