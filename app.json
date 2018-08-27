@@ -41,6 +41,14 @@
     "DEFAULT_PASSPHRASE" : {
       "description" : "Initial password for admin ActsAs user",
       "value":""
+    },
+    "IPFS_USER" : {
+      "description" : "Username for IPFS proxy",
+      "value":""
+    },
+    "IPFS_PASSWORD" : {
+      "description" : "Password for IPFS proxy",
+      "value":""
     }
   }
 }

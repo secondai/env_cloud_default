@@ -22,8 +22,8 @@ services:
     ports:
       - "${IPFS_PORT}:80"
     environment:
-      - BASIC_AUTH_USERNAME="${IPFS_USER}"
-      - BASIC_AUTH_PASSWORD="${IPFS_PASSWORD}"
+      - BASIC_AUTH_USERNAME=${IPFS_USER}
+      - BASIC_AUTH_PASSWORD=${IPFS_PASSWORD}
       - PROXY_PASS=http://ipfs:5001/
       # - PROXY_PASS=http://ipfs:8080/
 
