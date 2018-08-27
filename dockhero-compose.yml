@@ -12,10 +12,20 @@ services:
     # - 5010: api endpoint 
     ports: 
     - 4001:4001
-    - 5010:5001
+    # - 5010:5001
     # - 8080:8080 
     volumes:
       - ipfs-data:/data
+
+  nginx2:
+    image: quay.io/dtan4/nginx-basic-auth-proxy:latest
+    ports:
+      - 5010:80
+    environment:
+      - BASIC_AUTH_USERNAME=testuser
+      - BASIC_AUTH_PASSWORD=testpass
+      - PROXY_PASS=http://ipfs:5001/
+      # - PROXY_PASS=http://ipfs:8080/
 
 volumes:
   ipfs-data:
