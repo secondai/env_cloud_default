@@ -3526,7 +3526,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
             node = {
               _id: node._id || undefined,
               name: node.name || undefined, 
-              nodeId: node.nodeId || undefined,
+              nodeId: node.hasOwnProperty('nodeId') ? node.nodeId : undefined,
               type: node.type || undefined,
               data: node.data || undefined,
               active: node.hasOwnProperty('active') ? node.active : undefined,
