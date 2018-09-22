@@ -19,6 +19,7 @@ services:
 
   nginx3:
     image: quay.io/dtan4/nginx-basic-auth-proxy:latest
+    restart: always
     ports:
       - 5010:80
       - 8080:8080
