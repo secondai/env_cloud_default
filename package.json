@@ -128,6 +128,7 @@
     "request-promise-native": "1.0.5",
     "rimraf": "^2.6.1",
     "route-parser": "0.0.5",
+    "s3-proxy": "1.1.1",
     "safe-eval": "^0.3.0",
     "socket.io": "2.1.1",
     "socket.io-client": "2.1.1",
