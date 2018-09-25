@@ -16,6 +16,7 @@ const {VM} = require('vm2');
 import _ from 'lodash'
 
 import path from 'path'
+import s3Proxy from 's3-proxy';
 
 // import {PluginManager} from "live-plugin-manager";
 // const pluginManager = new PluginManager();
@@ -860,7 +861,7 @@ eventEmitter.on('command',async (message, socket) => {
 					parent: null,
 					nodes: [],
 					createdAt: node.createdAt,
-					modifiedAt: node.modifiedAt,
+					updatedAt: node.updatedAt,
 				};
 			}
 
@@ -4029,7 +4030,7 @@ const ThreadedSafeRun = (evalString, context = {}, requires = [], threadEventHan
               parent: null,
               nodes: [],
               createdAt: node.createdAt,
-              modifiedAt: node.modifiedAt,
+              updatedAt: node.updatedAt,
             };
           }
 
